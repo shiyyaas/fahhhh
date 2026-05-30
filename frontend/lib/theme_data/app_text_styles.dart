@@ -1,18 +1,19 @@
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
 
-  static const TextStyle heading = TextStyle(
-    fontFamily: "Poppins",
+  static TextStyle heading = GoogleFonts.poppins(
     fontSize: 24,
     fontWeight: FontWeight.w600,
     color: AppColors.headingText,
   );
 
-  static const TextStyle small = TextStyle(
-    fontFamily: "Itim",
+  static TextStyle small = GoogleFonts.itim(
     fontSize: 14,
     color: AppColors.smallText,
   );
+
 }
