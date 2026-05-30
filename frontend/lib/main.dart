@@ -1,3 +1,4 @@
+import 'package:fahhhh/theme_data/design_system.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -10,16 +11,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text("Attendance App"),
-        ),
-        body: const Center(
-          child: Text(
-            "Yoh Flutter 🚀",
-            style: TextStyle(fontSize: 24),
-          ),
+
+      theme: DesignSystem.lightTheme,
+
+      home: const Scaffold(
+        body: Center(
+          child: Text("Shiyas App"),
         ),
       ),
     );
