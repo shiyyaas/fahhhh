@@ -16,4 +16,9 @@ class AppTextStyles {
     color: AppColors.smallText,
   );
 
+  static TextStyle sfPRO = GoogleFonts.inter(
+    // fontWeight: FontWeight.w500,
+    color: AppColors.headingText,
+  );
+
 }
