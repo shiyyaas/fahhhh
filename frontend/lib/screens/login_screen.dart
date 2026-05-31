@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme_data/app_colors.dart';
 import '../theme_data/app_text_styles.dart';
+import '../widgets/input_fields.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,7 +14,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController emailController = TextEditingController();
-
   final TextEditingController passwordController = TextEditingController();
 
   @override
@@ -39,58 +39,44 @@ class _LoginPageState extends State<LoginPage> {
                 'Welcome',
                 style: Theme.of(context)
                     .textTheme
-                    .headlineMedium,
+                    .headlineLarge
+                    ?.copyWith(
+                      fontSize: 40,
+                      height: 1.1,
+                      ),
               ),
 
-              const SizedBox(height: 4),
-
-              Text(
-                "Sign in to your account",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium,
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 4, // ← only left padding
+                  top: 4,  // ← only top padding
+                ),
+                child: Text(
+                  "Sign in to your account",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium,
+                ),
               ),
 
               const SizedBox(height: 80),
 
-              Text(
-                'Email address',
-                style: AppTextStyles.small.copyWith(
-                  color: AppColors.headingText,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              TextField(
+              InputField(
                 controller: emailController,
-
-                decoration: const InputDecoration(
-                  hintText: "Enter your email address",
+                label: "Email address",
+                hintText: "Enter your email address"
                 ),
-              ),
-
-              const SizedBox(height: 24),
-
-              Text(
-                'Password',
-                style: AppTextStyles.small.copyWith(
-                  color: AppColors.headingText,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-
-                decoration: const InputDecoration(
-                  hintText: "Enter your password",
-                ),
-              ),
 
               const SizedBox(height: 10),
+
+              InputField(
+                controller: passwordController,
+                label: "Password", 
+                hintText: "Enter your password",
+                obscureText: true,
+                ),
+
+              const SizedBox(height: 6),
 
               Align(
                 alignment: Alignment.centerRight,
@@ -119,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: const Text(
                     'Login',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 20, 
                     ),
                   ),
                 ),
