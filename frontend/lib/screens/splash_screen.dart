@@ -34,8 +34,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Step 1: Fade IN
     _controller.forward().then((_) {
 
-      // Step 2: Stay for 1.5 seconds
-      Timer(const Duration(milliseconds: 1500), () {
+      // Step 2: Stay for 1 seconds
+      Timer(const Duration(milliseconds: 1000), () {
 
         // Step 3: Fade OUT
         _controller.reverse().then((_) {
