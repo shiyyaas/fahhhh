@@ -1,13 +1,15 @@
-import 'package:fahhhh/screens/login_screen.dart';
-import 'package:fahhhh/screens/splash_screen.dart';
+import 'package:fahhhh/app_routes.dart';
 import 'package:fahhhh/theme_data/design_system.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+
   runApp(const MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
@@ -19,14 +21,12 @@ class MyApp extends StatelessWidget {
 
       theme: DesignSystem.lightTheme,
 
-      routes: {
+      initialRoute: AppRoutes.splash,
 
-        '/login': (context) => const LoginPage(),
-
-      },
-
-      home: const SplashScreen(),
+      onGenerateRoute: AppRoutes.onGenerateRoute,
 
     );
+
   }
+
 }
