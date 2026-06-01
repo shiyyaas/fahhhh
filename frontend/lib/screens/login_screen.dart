@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+// Routes
+import 'package:fahhhh/app_routes.dart';
+
+// Design system
 import '../theme_data/app_colors.dart';
 import '../theme_data/app_text_styles.dart';
 import '../widgets/input_fields.dart';
@@ -100,7 +104,12 @@ class _LoginPageState extends State<LoginPage> {
 
                 child: ElevatedButton(
 
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.home,
+                    );
+                  },
 
                   child: const Text(
                     'Login',

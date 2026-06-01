@@ -1,6 +1,8 @@
-
 import 'dart:async';
 import 'package:flutter/material.dart';
+
+// Routes
+import 'package:fahhhh/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -41,7 +43,10 @@ class _SplashScreenState extends State<SplashScreen>
         _controller.reverse().then((_) {
 
           // Step 4: Navigate
-          Navigator.pushReplacementNamed(context, '/login');
+          Navigator.pushReplacementNamed(
+            context,
+            AppRoutes.login,
+          );
 
         });
       });
@@ -61,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Image.asset(
-            'assets/logo.png',
+            'assets/images/logo.png',
             width: 180,
           ),
         ),
