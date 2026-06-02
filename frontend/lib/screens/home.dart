@@ -1,9 +1,9 @@
 import 'package:fahhhh/widgets/header_section.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class Home extends StatelessWidget {
 
-  const HomeScreen({super.key});
+  const Home({super.key});
 
   @override
   Widget build(BuildContext context) {

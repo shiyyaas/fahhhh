@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () {
                     Navigator.pushReplacementNamed(
                       context,
-                      AppRoutes.home,
+                      AppRoutes.main,
                     );
                   },
 
