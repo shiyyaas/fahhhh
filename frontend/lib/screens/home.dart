@@ -1,5 +1,8 @@
+//widgets
+import 'package:fahhhh/widgets/home/date_timetable.dart';
 import 'package:fahhhh/widgets/home/header_section.dart';
 import 'package:fahhhh/widgets/home/week_calendar.dart';
+
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -21,10 +24,8 @@ class _HomeState extends State<Home> {
           children: [
 
             const SizedBox(height: 5),
-            
-            const HeaderSection(),
 
-            const SizedBox(height: 3),
+            const HeaderSection(),
 
             WeekCalendar(
               selectedDate: selectedDate,
@@ -34,6 +35,10 @@ class _HomeState extends State<Home> {
                 });
               },
             ),
+
+            const SizedBox(height: 25),
+
+            DateTimetable(selectedDate: selectedDate)
 
           ],
         ),
