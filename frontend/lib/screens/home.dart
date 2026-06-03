@@ -19,7 +19,13 @@ class _HomeState extends State<Home> {
       body: SafeArea(
         child: Column(
           children: [
+
+            const SizedBox(height: 5),
+            
             const HeaderSection(),
+
+            const SizedBox(height: 3),
+
             WeekCalendar(
               selectedDate: selectedDate,
               onDateSelected: (date) {
@@ -28,11 +34,12 @@ class _HomeState extends State<Home> {
                 });
               },
             ),
+
           ],
         ),
       ),
     );
 
   }
-  
+
 }
