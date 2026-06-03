@@ -30,6 +30,7 @@ class WeekCalendar extends StatelessWidget {
       height: 70,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        // padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: weekDays.length,
         itemBuilder: (context, index) {
           final DateTime date = weekDays[index];
@@ -45,7 +46,8 @@ class WeekCalendar extends StatelessWidget {
             child: Container(
               width: 80,
               margin: const EdgeInsets.only(
-                right: 10,
+                left: 10,
+                // right: 5,
               ),
               decoration: BoxDecoration(
 
