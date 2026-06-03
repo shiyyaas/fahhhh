@@ -31,7 +31,7 @@ class DateTimetable extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isToday ? 'TODAY' : _getWeekDay(selectedDate),
+                      isToday ? 'Today' : _getWeekDay(selectedDate),
                       style: AppTextStyles.heading.copyWith(height: 0.9, fontSize: 22),
                     ),
                     const SizedBox(height: 0),
@@ -76,13 +76,13 @@ class DateTimetable extends StatelessWidget {
 
   String _getWeekDay(DateTime date) {
     const days = [
-      'MONDAY',
-      'TUESDAY',
-      'WEDNESDAY',
-      'THURSDAY',
-      'FRIDAY',
-      'SATURDAY',
-      'SUNDAY',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
     return days[date.weekday - 1];
   }

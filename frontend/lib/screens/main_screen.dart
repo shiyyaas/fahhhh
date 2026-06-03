@@ -8,6 +8,9 @@ import 'package:fahhhh/screens/my_subject.dart';
 // Widgets
 import 'package:fahhhh/widgets/navbar.dart';
 
+// Models
+import 'package:fahhhh/models/nav_item.dart';
+
 import 'package:flutter/material.dart';
 
 class MainScreen extends StatefulWidget {
@@ -23,13 +26,37 @@ class _MainScreenState extends State<MainScreen> {
 
   int selectedIndex = 0;
 
-  final List<Widget> pages = [
+  final List<NavItem> items = [
 
-    const Home(),
-    const Department(),
-    const MyClass(),
-    const MySubject(),
-    const Profile(),
+    NavItem(
+      icon: Icons.home_outlined,
+      label: 'Home',
+      page: const Home(),
+    ),
+
+    NavItem(
+      icon: Icons.apartment_outlined,
+      label: 'Department',
+      page: const Department(),
+    ),
+
+    NavItem(
+      icon: Icons.groups_outlined,
+      label: 'Class',
+      page: const MyClass(),
+    ),
+
+    NavItem(
+      icon: Icons.menu_book_outlined,
+      label: 'Subjects',
+      page: const MySubject(),
+    ),
+
+    NavItem(
+      icon: Icons.person_outline,
+      label: 'Profile',
+      page: const Profile(),
+    ),
 
   ];
 
@@ -46,10 +73,11 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
 
-      body: pages[selectedIndex],
+      body: items[selectedIndex].page,
       bottomNavigationBar: Navbar(
         selectedIndex: selectedIndex,
         onItemTapped: onItemTapped,
+        items: items,
       ),
 
     );
