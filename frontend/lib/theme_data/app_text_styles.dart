@@ -7,7 +7,7 @@ class AppTextStyles {
 
   static TextStyle heading = GoogleFonts.poppins(
     fontWeight: FontWeight.w600,
-    color: AppColors.headingText,
+    color: const Color.fromARGB(255, 19, 18, 18),
   );
 
   static TextStyle small = GoogleFonts.itim(

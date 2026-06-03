@@ -9,11 +9,14 @@ class WhiteBtn extends StatefulWidget {
   final String text;
   final IconData? icon;
   final VoidCallback onPressed;
+  final TextStyle? textStyle;
+
   const WhiteBtn({
     super.key,
     required this.text,
     required this.onPressed,
     this.icon,
+    this.textStyle,
   });
 
   @override
@@ -52,7 +55,7 @@ class _WhiteBtnState extends State<WhiteBtn> {
         duration: const Duration(milliseconds: 120),
         padding: const EdgeInsets.symmetric(
           horizontal: 18,
-          vertical: 14,
+          vertical: 12,
         ),
 
         decoration: BoxDecoration(
@@ -94,7 +97,7 @@ class _WhiteBtnState extends State<WhiteBtn> {
 
             Text(
               widget.text,
-              style: AppTextStyles.small.copyWith(
+              style: (widget.textStyle ?? AppTextStyles.heading).copyWith(
                 color: isPressed
                     ? Colors.black54
                     : Colors.black,

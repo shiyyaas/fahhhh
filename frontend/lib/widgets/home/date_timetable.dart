@@ -1,5 +1,11 @@
+// App_Routes
+import 'package:fahhhh/app_routes.dart';
+
 // Designs
 import 'package:fahhhh/theme_data/app_text_styles.dart';
+
+// Widgets
+import 'package:fahhhh/widgets/white_btn.dart';
 
 import 'package:flutter/material.dart';
 
@@ -18,6 +24,7 @@ class DateTimetable extends StatelessWidget {
     return Container(   
       margin: EdgeInsets.symmetric(horizontal: 30 , vertical: 10),
             child:Row(
+              crossAxisAlignment: CrossAxisAlignment.end,  //'end' works
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
@@ -34,9 +41,15 @@ class DateTimetable extends StatelessWidget {
                     ),
                   ],
                 ),
-                Text(
-                  isToday ? 'TODAY' : _getWeekDay(selectedDate),
-                  style: AppTextStyles.heading.copyWith(height: 0.9, fontSize: 22),
+                WhiteBtn(
+                  icon: Icons.calendar_today,
+                  text: 'Time Table', 
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.login, //Need to change this to TIMETABLE-PAGE
+                    );
+                }
                 ),
               ],
             ),
