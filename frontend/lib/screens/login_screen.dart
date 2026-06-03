@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
 
         child: Padding(
