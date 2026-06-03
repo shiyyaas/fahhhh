@@ -10,13 +10,9 @@ class DesignSystem {
   static ThemeData lightTheme = ThemeData(
 
     useMaterial3: true,
-
     fontFamily: "Poppins",
-
     scaffoldBackgroundColor: AppColors.background,
-
     primaryColor: AppColors.primary,
-
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       surface: AppColors.background,
@@ -29,14 +25,11 @@ class DesignSystem {
     ),
 
     
-    textTheme: GoogleFonts.poppinsTextTheme().copyWith(  // 👈 change this
+    textTheme: GoogleFonts.poppinsTextTheme().copyWith(
 
       headlineLarge: AppTextStyles.heading,
-
       headlineMedium: AppTextStyles.heading,
-
       titleMedium: AppTextStyles.small,
-
       bodyMedium: AppTextStyles.small,
 
     ),
@@ -44,9 +37,7 @@ class DesignSystem {
     inputDecorationTheme: InputDecorationTheme(
 
       filled: true,
-
       fillColor: Colors.white,
-
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 20,
         vertical: 16,
