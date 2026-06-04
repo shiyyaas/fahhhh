@@ -15,7 +15,25 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
   DateTime selectedDate = DateTime.now();
+
+  final List<Map<String, dynamic>> timetable = [
+            {
+              'subjectName': 'Software Engineering',
+              'secondaryText': 'S2BCA',
+              'status': AttendanceStatus.recorded,
+              'startTime': const TimeOfDay(
+                hour: 9,
+                minute: 30,
+              ),
+              'endTime': const TimeOfDay(
+                hour: 10,
+                minute: 15,
+              ),
+              'profileImage': 'assets/images/profile.png',
+            },
+          ];
 
   @override
   Widget build(BuildContext context) {
@@ -42,20 +60,22 @@ class _HomeState extends State<Home> {
 
             DateBtn(selectedDate: selectedDate),
 
-            TimetableCard(
-              profileImage: 'assets/images/profile.png',
-              subjectName: 'Software Engineering',
-              secondaryText: "S2BCA",
-              status:AttendanceStatus.recorded,
-              startTime: const TimeOfDay(
-                hour: 9,
-                minute: 30,
+            Expanded(
+              child: ListView.builder(
+                itemCount: timetable.length,
+                itemBuilder: (context, index) {
+                final item = timetable[index];
+                return TimetableCard(
+                  profileImage: item['profileImage'],
+                  subjectName: item['subjectName'],
+                  secondaryText: item['secondaryText'],
+                  status: item['status'],
+                  startTime: item['startTime'],
+                  endTime: item['endTime'],
+                );
+                },
+                ),
               ),
-              endTime: const TimeOfDay(
-                hour: 10,
-                minute: 15,
-              ),
-            ),
           ],
         ),
       ),
