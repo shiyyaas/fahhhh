@@ -9,9 +9,9 @@ import 'package:fahhhh/widgets/white_btn.dart';
 
 import 'package:flutter/material.dart';
 
-class DateTimetable extends StatelessWidget {
+class DateBtn extends StatelessWidget {
   final DateTime selectedDate;
-  const DateTimetable({super.key, required this.selectedDate});
+  const DateBtn({super.key, required this.selectedDate});
 
   @override
   Widget build(BuildContext context) {
