@@ -66,7 +66,7 @@ class _HomeState extends State<Home> {
                 itemBuilder: (context, index) {
                 final item = timetable[index];
                 return TimetableCard(
-                  profileImage: item['profileImage'],
+                  // profileImage: item['profileImage'],
                   subjectName: item['subjectName'],
                   secondaryText: item['secondaryText'],
                   status: item['status'],

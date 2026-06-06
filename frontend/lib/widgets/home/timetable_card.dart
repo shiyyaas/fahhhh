@@ -47,7 +47,7 @@ class TimetableCard extends StatelessWidget {
               radius: 24,
               backgroundImage: AssetImage(profileImage!),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 5),
           ],
 
         Expanded(
@@ -83,7 +83,7 @@ class TimetableCard extends StatelessWidget {
             ),
             
 
-            const SizedBox(height: 14),
+            const SizedBox(width: 10),
 
             Column(          //THIRD ITEM
                 children: [
