@@ -1,9 +1,9 @@
 //widgets
-import 'package:fahhhh/widgets/home/date_btn.dart';
-import 'package:fahhhh/widgets/home/header_section.dart';
-import 'package:fahhhh/widgets/home/week_calendar.dart';
-import 'package:fahhhh/widgets/home/timetable_card.dart';
-import 'package:fahhhh/widgets/home/status_badge.dart'; //For timetable_card.dart
+import 'package:fahhhh/features/home/widgets/date_btn.dart';
+import 'package:fahhhh/features/home/widgets/header_section.dart';
+import 'package:fahhhh/features/home/widgets/week_calendar.dart';
+import 'package:fahhhh/features/home/widgets/timetable_card.dart';
+import 'package:fahhhh/features/home/widgets/status_badge.dart'; //For timetable_card.dart
 
 import 'package:flutter/material.dart';
 

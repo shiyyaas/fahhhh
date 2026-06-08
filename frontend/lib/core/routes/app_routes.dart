@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 // pages
-import 'package:fahhhh/screens/splash_screen.dart';
-import 'package:fahhhh/screens/login_screen.dart';
-import 'package:fahhhh/screens/main_screen.dart';
+import 'package:fahhhh/features/auth/screens/splash_screen.dart';
+import 'package:fahhhh/features/auth/screens/login_screen.dart';
+import 'package:fahhhh/features/navigation/screens/main_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';

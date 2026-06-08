@@ -1,10 +1,10 @@
 //Design
-import 'package:fahhhh/theme_data/app_colors.dart';
-import 'package:fahhhh/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
-import 'package:fahhhh/widgets/home/status_badge.dart';
-import 'package:fahhhh/widgets/home/time_badge.dart';
+import 'package:fahhhh/features/home/widgets/status_badge.dart';
+import 'package:fahhhh/features/home/widgets/time_badge.dart';
 
 import 'package:flutter/material.dart';
 

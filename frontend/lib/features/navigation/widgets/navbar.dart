@@ -1,4 +1,4 @@
-import 'package:fahhhh/models/nav_item.dart';
+import 'package:fahhhh/features/navigation/models/nav_item.dart';
 import 'package:flutter/material.dart';
 
 class Navbar extends StatelessWidget {

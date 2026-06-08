@@ -1,11 +1,11 @@
 // App_Routes
-import 'package:fahhhh/app_routes.dart';
+import 'package:fahhhh/core/routes/app_routes.dart';
 
 // Designs
-import 'package:fahhhh/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Widgets
-import 'package:fahhhh/widgets/white_btn.dart';
+import 'package:fahhhh/core/widgets/white_btn.dart';
 
 import 'package:flutter/material.dart';
 

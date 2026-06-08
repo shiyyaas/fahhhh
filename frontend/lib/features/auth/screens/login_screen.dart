@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 // Routes
-import 'package:fahhhh/app_routes.dart';
+import 'package:fahhhh/core/routes/app_routes.dart';
 
 // Design system
-import '../theme_data/app_colors.dart';
-import '../theme_data/app_text_styles.dart';
-import '../widgets/input_fields.dart';
+import '../../../core/theme_data/app_colors.dart';
+import '../../../core/theme_data/app_text_styles.dart';
+import '../../../core/widgets/input_fields.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

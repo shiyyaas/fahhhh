@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme_data/app_text_styles.dart';
+import '../../../core/theme_data/app_text_styles.dart';
 
 class HeaderSection extends StatelessWidget {
 

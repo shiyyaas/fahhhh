@@ -1,5 +1,5 @@
-import 'package:fahhhh/app_routes.dart';
-import 'package:fahhhh/theme_data/design_system.dart';
+import 'package:fahhhh/core/routes/app_routes.dart';
+import 'package:fahhhh/core/theme_data/design_system.dart';
 import 'package:flutter/material.dart';
 
 void main() {

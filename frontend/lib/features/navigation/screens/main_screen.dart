@@ -1,15 +1,15 @@
 // Screens
-import 'package:fahhhh/screens/home.dart';
-import 'package:fahhhh/screens/my_class.dart';
-import 'package:fahhhh/screens/department.dart';
-import 'package:fahhhh/screens/profile.dart';
-import 'package:fahhhh/screens/my_subject.dart';
+import 'package:fahhhh/features/home/screens/home.dart';
+import 'package:fahhhh/features/My_class/screens/my_class.dart';
+import 'package:fahhhh/features/Department/screens/department.dart';
+import 'package:fahhhh/features/profile/screens/profile.dart';
+import 'package:fahhhh/features/My_subjects/screens/my_subject.dart';
 
 // Widgets
-import 'package:fahhhh/widgets/navbar.dart';
+import 'package:fahhhh/features/navigation/widgets/navbar.dart';
 
 // Models
-import 'package:fahhhh/models/nav_item.dart';
+import 'package:fahhhh/features/navigation/models/nav_item.dart';
 
 import 'package:flutter/material.dart';
 
