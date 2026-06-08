@@ -1,0 +1,56 @@
+ERP Project Notes
+
+Ithuvare cheythath:
+
+* Backend setup complete aakki.
+* MongoDB connect cheythu.
+* Authentication system create cheythu.
+* HOD login working aanu.
+* JWT token generation working aanu.
+* Student CRUD create cheythu.
+* Student create, view, update, delete APIs ready aanu.
+* Password bcrypt use cheythu hash cheyyunnu.
+* Batch system create cheythu.
+* Batch create cheyyan API und.
+* Batch list fetch cheyyan API und.
+* Semester promotion system working aanu.
+
+Batch System:
+
+Batch 2026-2029 create cheythu.
+
+Current semester batch-il aanu store cheyyunnath.
+
+Example:
+
+2026-2029 → Semester 1
+
+Promote cheyyumbol:
+
+Semester 1 → Semester 2
+
+Ith kond batchile ella studentsinum automatic aayi semester update aavum. Oro studentinte semester manually update cheyyenda avashyam illa.
+
+Current Progress:
+
+Authentication - Done
+
+Student CRUD - Done
+
+Batch CRUD - Done
+
+Semester Promotion - Done
+
+Next Tasks:
+
+* Student ↔ Batch integration
+* Teacher CRUD
+* Subject CRUD
+* Teacher-Subject assignment
+* Attendance Module
+* Timetable Module
+* Reports & Analytics
+
+Current Focus:
+
+Student model batch system-umayi connect cheyyuka. Athinu shesham Teacher CRUD start cheyyum.
