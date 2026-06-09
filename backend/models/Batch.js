@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const batchSchema = new mongoose.Schema({
+
     batchName: {
         type: String,
         required: true,
@@ -8,10 +9,21 @@ const batchSchema = new mongoose.Schema({
         trim: true
     },
 
+    program: {
+        type: String,
+        default: "BCA",
+        trim: true
+    },
+
     department: {
         type: String,
         required: true,
         trim: true
+    },
+
+    admissionYear: {
+        type: Number,
+        default: 2024
     },
 
     currentSemester: {
@@ -35,8 +47,12 @@ const batchSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     }
+
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model("Batch", batchSchema);
+module.exports = mongoose.model(
+    "Batch",
+    batchSchema
+);

@@ -1,5 +1,6 @@
 const Student = require("../models/Student");
 const bcrypt = require("bcryptjs");
+const Batch = require("../models/Batch");
 
 exports.createStudent = async (req, res) => {
 
@@ -14,6 +15,7 @@ exports.createStudent = async (req, res) => {
             aadhaarNo,
             batchId
         } = req.body;
+        
         const existingStudent =
             await Student.findOne({
                 $or: [
@@ -28,8 +30,15 @@ exports.createStudent = async (req, res) => {
                 message: "Student already exists"
             });
         }
+        const batch = await Batch.findById(batchId);
 
-        // Temporary password = last 5 digits of Aadhaar
+        if (!batch) {
+            return res.status(404).json({
+                success: false,
+                message: "Batch not found"
+            });
+        }
+        //  password = last 5 digits of Aadhaar
 
         const tempPassword =
             aadhaarNo.slice(-5);

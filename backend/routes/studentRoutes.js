@@ -3,6 +3,11 @@ const express = require("express");
 const router = express.Router();
 
 const {
+    verifyToken,
+    authorizeRoles
+} = require("../middleware/authMiddleware");
+
+const {
     createStudent,
     getStudents,
     getStudent,
@@ -10,14 +15,16 @@ const {
     deleteStudent
 } = require("../controllers/studentController");
 
-router.post("/", createStudent);
+// HOD Only
 
-router.get("/", getStudents);
+router.post("/",verifyToken, authorizeRoles("HOD"), createStudent);
 
-router.get("/:id", getStudent);
+router.get( "/", verifyToken, authorizeRoles("HOD","TEACHER"), getStudents);
 
-router.put("/:id", updateStudent);
+router.get( "/:id", verifyToken, getStudent );
 
-router.delete("/:id", deleteStudent);
+router.put( "/:id", verifyToken, authorizeRoles("HOD"), updateStudent);
+
+router.delete( "/:id", verifyToken, authorizeRoles("HOD"),deleteStudent);
 
 module.exports = router;
