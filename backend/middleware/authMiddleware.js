@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 
+// Verify JWT Token
+
 exports.verifyToken = (req, res, next) => {
 
     try {
@@ -8,9 +10,12 @@ exports.verifyToken = (req, res, next) => {
             req.headers.authorization?.split(" ")[1];
 
         if (!token) {
+
             return res.status(401).json({
+                success: false,
                 message: "Access denied"
             });
+
         }
 
         const decoded = jwt.verify(
@@ -25,8 +30,40 @@ exports.verifyToken = (req, res, next) => {
     } catch (error) {
 
         return res.status(401).json({
+            success: false,
             message: "Invalid token"
         });
 
     }
+
 };
+
+// Role Authorization
+
+exports.authorizeRoles =
+    (...roles) => {
+
+        return (
+            req,
+            res,
+            next
+        ) => {
+
+            if (
+                !roles.includes(
+                    req.user.role
+                )
+            ) {
+
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden"
+                });
+
+            }
+
+            next();
+
+        };
+
+    };
