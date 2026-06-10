@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-//
+//provider
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
 // Routes
@@ -117,6 +117,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       Navigator.pushReplacementNamed(
                         context,
                         AppRoutes.main,
+                      );
+                    }else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Invalid credentials"),
+                        ),
                       );
                     }
                   },
