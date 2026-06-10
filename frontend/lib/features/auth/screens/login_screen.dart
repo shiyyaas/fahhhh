@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 
+//
+import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+
 // Routes
 import 'package:fahhhh/core/routes/app_routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Design system
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/input_fields.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -105,10 +109,16 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
 
                   onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.main,
-                    );
+                    if (
+                      emailController.text == "shiyas" &&
+                      passwordController.text == "shiyas"
+                    ){
+                      ref.read(authProvider.notifier).state = true;
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.main,
+                      );
+                    }
                   },
 
                   child: const Text(
