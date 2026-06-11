@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/student_model.dart';
+import '../../auth/models/user_role.dart';
 
 final studentProvider =
     Provider<StudentModel>((ref) {
 
   return StudentModel(
-    name: "Ms Sheethal",
-    email: "sheetal@mescas.org",
-    phone: "8796543231",
+
+    name: "Shiyas ps",
+    email: "shiyas@mescas.org",
+    phone: "6235223761",
     department: "Department of Computer Science",
     className: "S2 BCA",
+    imageUrl: "assets/images/shiyas.jpg",
+    role: UserRole.student,
   );
 
 });

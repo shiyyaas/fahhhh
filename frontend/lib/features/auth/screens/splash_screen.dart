@@ -23,7 +23,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
-    final isoLoggedIn = ref.read(authProvider);
+    final auth = ref.read(authProvider);
 
     _controller = AnimationController(
       vsync: this,
@@ -42,7 +42,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         // Step 3: Fade OUT
         _controller.reverse().then((_) {
           // Step 4: Navigate
-          if(isoLoggedIn){
+          if(auth.isLoggedIn){
             Navigator.pushReplacementNamed(context, AppRoutes.main);
           }else{
             Navigator.pushReplacementNamed(context, AppRoutes.login);

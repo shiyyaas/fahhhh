@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 //provider
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
+//
+import 'package:fahhhh/features/auth/models/auth_state.dart';
+import 'package:fahhhh/features/auth/models/user_role.dart';
+
 // Routes
 import 'package:fahhhh/core/routes/app_routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,7 +117,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       emailController.text == "shiyas" &&
                       passwordController.text == "shiyas"
                     ){
-                      ref.read(authProvider.notifier).state = true;
+                      ref.read(authProvider.notifier).state =
+                        const AuthState(
+                          isLoggedIn: true,
+                          role: UserRole.student,
+                        );
                       Navigator.pushReplacementNamed(
                         context,
                         AppRoutes.main,

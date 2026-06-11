@@ -8,6 +8,10 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/profile/provider/teacher_provider.dart';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
+//
+import 'package:fahhhh/features/auth/models/auth_state.dart';
+import 'package:fahhhh/features/auth/models/user_role.dart';
+
 // Routes
 import 'package:fahhhh/core/routes/app_routes.dart';
 
@@ -190,7 +194,11 @@ class Profile extends ConsumerWidget {
               BlueBtn(
                 text: "Logout",
                 onPressed: () {
-                  ref.read(authProvider.notifier).state = false;
+                  ref.read(authProvider.notifier).state =
+                    const AuthState(
+                      isLoggedIn: false,
+                      role: UserRole.student,
+                    );
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     AppRoutes.login,
