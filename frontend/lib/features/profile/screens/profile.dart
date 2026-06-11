@@ -6,6 +6,10 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Providers
 import 'package:fahhhh/features/profile/provider/teacher_provider.dart';
+import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+
+// Routes
+import 'package:fahhhh/core/routes/app_routes.dart';
 
 // Widgets
 import 'package:fahhhh/core/widgets/white_btn.dart';
@@ -185,7 +189,14 @@ class Profile extends ConsumerWidget {
               const SizedBox(height: 30),
               BlueBtn(
                 text: "Logout",
-                onPressed: () {},
+                onPressed: () {
+                  ref.read(authProvider.notifier).state = false;
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                    (route) => false,
+                  );
+                },
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
