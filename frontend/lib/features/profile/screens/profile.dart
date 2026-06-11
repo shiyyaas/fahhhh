@@ -79,6 +79,7 @@ class Profile extends ConsumerWidget {
                   ],
                 ),
               ),
+              
               const SizedBox(height: 25),
               WhiteBtn(
                 text: "Edit Profile",
