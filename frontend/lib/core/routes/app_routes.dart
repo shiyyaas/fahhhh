@@ -20,7 +20,7 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const LoginPage());
 
       case main:
-        return MaterialPageRoute(builder: (_) => const MainScreen());
+        return MaterialPageRoute(builder: (_) =>  MainScreen());
 
       default:
         return MaterialPageRoute(

@@ -126,6 +126,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         context,
                         AppRoutes.main,
                       );
+                    }else if(
+                      emailController.text == "teacher" &&
+                      passwordController.text == "teacher"
+                    ){
+                      ref.read(authProvider.notifier).state =
+                        const AuthState(
+                          isLoggedIn: true,
+                          role: UserRole.teacher,
+                        );
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.main,
+                      );
                     }else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

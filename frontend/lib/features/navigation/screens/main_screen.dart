@@ -11,6 +11,11 @@ import 'package:fahhhh/features/navigation/widgets/navbar.dart';
 // Models
 import 'package:fahhhh/features/navigation/models/nav_item.dart';
 
+//Providers
+import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+import 'package:fahhhh/features/auth/models/user_role.dart';
+import 'package:fahhhh/features/profile/provider/teacher_provider.dart';
+
 // Riverpod
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/navigation_provider.dart';
@@ -24,43 +29,78 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(navigationIndexProvider);
 
-    final List<NavItem> items = [
-      NavItem(icon: Icons.home_outlined, label: 'Home', page: const Home()),
+    final auth = ref.watch(authProvider);
+    final teacher = ref.watch(teacherProvider);
 
-      NavItem(
-        icon: Icons.apartment_outlined,
-        label: 'Department',
-        page: const Department(),
-      ),
+    final List<NavItem> items = [];
 
-      NavItem(
-        icon: Icons.groups_outlined,
-        label: 'Class',
-        page: const MyClass(),
-      ),
+    if (auth.role == UserRole.student) {
+      items.addAll([
+        NavItem(icon: Icons.home_outlined, label: 'Home', page: const Home()),
+        NavItem(
+          icon: Icons.menu_book_outlined,
+          label: 'Subjects',
+          page: const MySubject(),
+        ),
+        NavItem(
+          icon: Icons.person_outline,
+          label: 'Profile',
+          page: const Profile(),
+        ),
+      ]);
+    }
 
-      NavItem(
-        icon: Icons.menu_book_outlined,
-        label: 'Subjects',
-        page: const MySubject(),
-      ),
+    if (auth.role == UserRole.teacher) {
+      items.add(
+        NavItem(icon: Icons.home_outlined, label: 'Home', page: const Home()),
+      );
 
-      NavItem(
-        icon: Icons.person_outline,
-        label: 'Profile',
-        page: const Profile(),
-      ),
-    ];
+      if (teacher.isHod) {
+        items.add(
+          NavItem(
+            icon: Icons.apartment_outlined,
+            label: 'Department',
+            page: const Department(),
+          ),
+        );
+      }
 
-      return Scaffold(
-        body: items[selectedIndex].page,
-        bottomNavigationBar: Navbar(
-          selectedIndex: selectedIndex,
-          onItemTapped: (index) {
-            ref.read(navigationIndexProvider.notifier).state = index;
-          },
-          items: items,
+      if (teacher.isClassTeacher) {
+        items.add(
+          NavItem(
+            icon: Icons.groups_outlined,
+            label: 'Class',
+            page: const MyClass(),
+          ),
+        );
+      }
+
+      items.add(
+        NavItem(
+          icon: Icons.menu_book_outlined,
+          label: 'Subjects',
+          page: const MySubject(),
         ),
       );
+
+      items.add(
+        NavItem(
+          icon: Icons.person_outline,
+          label: 'Profile',
+          page: const Profile(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: items[selectedIndex].page,
+      bottomNavigationBar: Navbar(
+        selectedIndex: selectedIndex,
+        onItemTapped: (index) {
+          ref.read(navigationIndexProvider.notifier).state = index;
+        },
+        items: items,
+      ),
+    );
   }
 }
