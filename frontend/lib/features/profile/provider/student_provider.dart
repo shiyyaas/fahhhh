@@ -13,7 +13,7 @@ final studentProvider =
     phone: "6235223761",
     department: "Department of Computer Science",
     className: "S2 BCA",
-    imageUrl: "assets/images/shiyas.jpg",
+    imageUrl: "assets/images/student.png",
     role: UserRole.student,
   );
 

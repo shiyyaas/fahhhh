@@ -1,4 +1,5 @@
 import 'package:fahhhh/features/navigation/providers/navigation_provider.dart';
+import 'package:fahhhh/features/profile/provider/student_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,13 +23,24 @@ import 'package:fahhhh/core/widgets/blue_btn.dart';
 import 'package:fahhhh/features/profile/widgets/white_box.dart';
 
 class Profile extends ConsumerWidget {
-
   const Profile({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+    final isTeacher = auth.role == UserRole.teacher;
 
-    final teacher = ref.watch(teacherProvider);
+    final teacher = isTeacher ? ref.watch(teacherProvider) : null;
+    final student = !isTeacher ? ref.watch(studentProvider) : null;
+
+    // Common values depending on role
+    final String name = isTeacher ? teacher!.name : student!.name;
+    final String? imageUrl = isTeacher ? teacher!.imageUrl : student!.imageUrl;
+    final String subTitle = isTeacher ? teacher!.designation : student!.className;
+    final String department = isTeacher ? teacher!.department : student!.department;
+    final String email = isTeacher ? teacher!.email : student!.email;
+    final String phone = isTeacher ? teacher!.phone : student!.phone;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -49,13 +61,10 @@ class Profile extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 55,
-                      backgroundImage:
-                          teacher.imageUrl != null
-                              ? AssetImage(
-                                  teacher.imageUrl!,
-                                )
-                              : null,
-                      child: teacher.imageUrl == null
+                      backgroundImage: imageUrl != null
+                          ? AssetImage(imageUrl)
+                          : null,
+                      child: imageUrl == null
                           ? const Icon(
                               Icons.person,
                               size: 60,
@@ -65,7 +74,7 @@ class Profile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      teacher.name,
+                      name,
                       style: AppTextStyles.heading.copyWith(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -73,22 +82,17 @@ class Profile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      teacher.designation,
-                      style: const TextStyle(
-                        fontSize: 18,
-                      ),
+                      subTitle,
+                      style: const TextStyle(fontSize: 18),
                     ),
                     Text(
-                      teacher.department,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      department,
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 25),
               WhiteBtn(
                 text: "Edit Profile",
@@ -110,54 +114,59 @@ class Profile extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Column(
                   children: [
-                    WhiteBox(
-                      icon: Icons.email_outlined,
-                      title: teacher.email,
-                    ),
+                    WhiteBox(icon: Icons.email_outlined, title: email),
                     _divider(),
-                    WhiteBox(
-                      icon: Icons.phone_outlined,
-                      title: teacher.phone,
-                    ),
+                    WhiteBox(icon: Icons.phone_outlined, title: phone),
                     _divider(),
                     WhiteBox(
                       icon: Icons.school_outlined,
-                      title: teacher.department,
+                      title: department,
                     ),
-                    if (teacher.isClassTeacher) ...[
+
+                    // Teacher-only fields
+                    if (isTeacher && teacher!.isClassTeacher) ...[
                       _divider(),
                       WhiteBox(
                         icon: Icons.groups_outlined,
                         title: teacher.classTeacherOf!,
                       ),
                     ],
-                    if (teacher.isHod) ...[
+                    if (isTeacher && teacher!.isHod) ...[
                       _divider(),
                       WhiteBox(
-                        icon:
-                            Icons.admin_panel_settings_outlined,
+                        icon: Icons.admin_panel_settings_outlined,
                         title: "Head Of Department",
                       ),
                     ],
+
+                    // Student-only fields
+                    // if (!isTeacher) ...[
+                    //   _divider(),
+                    //   WhiteBox(
+                    //     icon: Icons.badge_outlined,
+                    //     title: student!.rollNumber,
+                    //   ),
+                    //   _divider(),
+                    //   WhiteBox(
+                    //     icon: Icons.calendar_today_outlined,
+                    //     title: "Semester ${student.semester}",
+                    //   ),
+                    // ],
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // SETTINGS CONTAINER
+              // SETTINGS CONTAINER (same for both roles)
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Column(
                   children: [
@@ -168,13 +177,11 @@ class Profile extends ConsumerWidget {
                     ),
                     _divider(),
                     WhiteBox(
-                      icon:
-                          Icons.notifications_none_outlined,
+                      icon: Icons.notifications_none_outlined,
                       title: "Notifications",
                       showSwitch: true,
                       switchValue: true,
-                      onSwitchChanged: (value) {
-                      },
+                      onSwitchChanged: (value) {},
                     ),
                     _divider(),
                     WhiteBox(
@@ -196,11 +203,10 @@ class Profile extends ConsumerWidget {
                 text: "Logout",
                 onPressed: () {
                   ref.read(navigationIndexProvider.notifier).state = 0;
-                  ref.read(authProvider.notifier).state =
-                    const AuthState(
-                      isLoggedIn: false,
-                      role: UserRole.student,
-                    );
+                  ref.read(authProvider.notifier).state = const AuthState(
+                    isLoggedIn: false,
+                    role: UserRole.student,
+                  );
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     AppRoutes.login,
@@ -224,8 +230,5 @@ class Profile extends ConsumerWidget {
 }
 
 Widget _divider() {
-  return Divider(
-    height: 1,
-    color: Colors.grey.shade300,
-  );
+  return Divider(height: 1, color: Colors.grey.shade300);
 }
