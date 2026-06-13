@@ -10,6 +10,7 @@ import 'package:fahhhh/features/auth/models/user_role.dart';
 // Routes
 import 'package:fahhhh/core/routes/app_routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fahhhh/features/auth/services/auth_service.dart';
 
 // Design system
 import '../../../core/theme_data/app_colors.dart';
@@ -112,40 +113,55 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                 child: ElevatedButton(
 
-                  onPressed: () {
-                    if (
-                      emailController.text == "shiyas" &&
-                      passwordController.text == "shiyas"
-                    ){
-                      ref.read(authProvider.notifier).state =
-                        const AuthState(
-                          isLoggedIn: true,
-                          role: UserRole.student,
-                        );
-                      Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.main,
-                      );
-                    }else if(
-                      emailController.text == "teacher" &&
-                      passwordController.text == "teacher"
-                    ){
-                      ref.read(authProvider.notifier).state =
-                        const AuthState(
-                          isLoggedIn: true,
-                          role: UserRole.teacher,
-                        );
-                      Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.main,
-                      );
-                    }else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Invalid credentials"),
-                        ),
-                      );
+                  onPressed: () async {try {
+
+                    final result = await AuthService().login(
+                      email: emailController.text.trim(),
+                      password: passwordController.text.trim(),
+                    );
+
+                    final user = result["user"];
+                    final roleFromApi = user["role"];
+
+                    UserRole role;
+
+                    switch (roleFromApi) {
+
+                      case "TEACHER":
+                        role = UserRole.teacher;
+                        break;
+
+                      case "HOD":
+                        role = UserRole.hod; // or UserRole.hod if you add it
+                        break;
+
+                      default:
+                        role = UserRole.student;
                     }
+
+                    ref.read(authProvider.notifier).state =
+                        AuthState(
+                          isLoggedIn: true,
+                          role: role,
+                        );
+
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.main,
+                    );
+
+                  }catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Invalid email or password",
+                        ),
+                      ),
+                    );
+
+                    debugPrint(e.toString());
+
+                  }
                   },
 
                   child: const Text(
