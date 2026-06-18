@@ -1,5 +1,5 @@
 enum UserRole {
   student,
   teacher,
-  admin,
+  hod,
 }

@@ -91,6 +91,32 @@ class MainScreen extends ConsumerWidget {
         ),
       );
     }
+    if (auth.role == UserRole.hod) {
+      items.addAll([
+        NavItem(
+          icon: Icons.home_outlined,
+          label: 'Home',
+          page: const Home(),
+        ),
+        NavItem(
+          icon: Icons.apartment_outlined,
+          label: 'Department',
+          page: const Department(),
+        ),
+        NavItem(
+          icon: Icons.person_outline,
+          label: 'Profile',
+          page: const Profile(),
+        ),
+      ]);
+    }
+    if (items.isEmpty) {
+      return const Scaffold(
+        body: Center(
+          child: Text("No navigation items found"),
+        ),
+      );
+    }
 
     return Scaffold(
       body: items[selectedIndex].page,
