@@ -199,12 +199,19 @@ class Profile extends ConsumerWidget {
               const SizedBox(height: 30),
               BlueBtn(
                 text: "Logout",
-                onPressed: () {
+                onPressed: () async {
+                  final prefs = ref.read(sharedPreferencesProvider);
+                  await prefs.remove("auth_token");
+                  await prefs.remove("user_email");
+                  await prefs.remove("user_role");
+
                   ref.read(authProvider.notifier).state = const AuthState(
                     isLoggedIn: false,
                     role: UserRole.student,
                   );
-                  context.go('/login');
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 },
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
