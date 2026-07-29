@@ -1,26 +1,40 @@
-import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-
-  final Dio dio = Dio(
-    BaseOptions(
-      baseUrl: "http://localhost:5000/api",
-    ),
-  );
-
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
+    // Simulate short network delay
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    final response = await dio.post(
-      "/auth/login",
-      data: {
+    String roleString = "STUDENT";
+    final lowercaseEmail = email.toLowerCase();
+    if (lowercaseEmail.contains("hod")) {
+      roleString = "HOD";
+    } else if (lowercaseEmail.contains("teacher")) {
+      roleString = "TEACHER";
+    }
+
+    // Persist login state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("auth_token", "mock_token_abc123");
+    await prefs.setString("user_email", email);
+    await prefs.setString("user_role", roleString);
+
+    return {
+      "token": "mock_token_abc123",
+      "user": {
         "email": email,
-        "password": password,
+        "role": roleString,
       },
-    );
+    };
+  }
 
-    return response.data;
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("auth_token");
+    await prefs.remove("user_email");
+    await prefs.remove("user_role");
   }
 }
