@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-
-//provider
-import 'package:fahhhh/features/auth/providers/auth_provider.dart';
-
-//
-import 'package:fahhhh/features/auth/models/auth_state.dart';
-import 'package:fahhhh/features/auth/models/user_role.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fahhhh/features/auth/services/auth_service.dart';
+
+// provider
+import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+
+// models
+import 'package:fahhhh/features/auth/models/auth_state.dart';
+
+// widgets
+import 'package:fahhhh/features/auth/widgets/debug_role_selector.dart';
 
 // Design system
 import '../../../core/theme_data/app_colors.dart';
@@ -24,29 +24,49 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      floatingActionButton: FloatingActionButton(
+        mini: true,
+        backgroundColor: AppColors.primary,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            builder: (context) => DebugRoleSelector(
+              onSelect: (email, password) {
+                emailController.text = email;
+                passwordController.text = password;
+              },
+            ),
+          );
+        },
+        child: const Icon(Icons.bug_report, color: Colors.white),
+      ),
       body: SafeArea(
-
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: 32,
           ),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
-
               const SizedBox(height: 80),
-
               Text(
                 'Welcome',
                 style: Theme.of(context)
@@ -55,9 +75,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ?.copyWith(
                       fontSize: 40,
                       height: 1.1,
-                      ),
+                    ),
               ),
-
               Padding(
                 padding: const EdgeInsets.only(
                   left: 4, // ← only left padding
@@ -70,32 +89,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       .titleMedium,
                 ),
               ),
-
               const SizedBox(height: 80),
-
               InputField(
                 controller: emailController,
                 label: "Email address",
-                hintText: "Enter your email address"
-                ),
-
+                hintText: "Enter your email address",
+              ),
               const SizedBox(height: 10),
-
               InputField(
                 controller: passwordController,
-                label: "Password", 
+                label: "Password",
                 hintText: "Enter your password",
                 obscureText: true,
-                ),
-
+              ),
               const SizedBox(height: 6),
-
               Align(
                 alignment: Alignment.centerRight,
-
                 child: TextButton(
                   onPressed: () {},
-
                   child: Text(
                     'Forgot password?',
                     style: AppTextStyles.small.copyWith(
@@ -104,76 +115,76 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
               ),
-
               const Spacer(),
-
               SizedBox(
                 width: double.infinity,
-
                 child: ElevatedButton(
+                  onPressed: authState is Authenticating
+                      ? null
+                      : () async {
+                          try {
+                            final email = emailController.text.trim();
+                            final password = passwordController.text.trim();
 
-                  onPressed: () async {try {
+                            if (email.isEmpty) {
+                              throw Exception("Email cannot be empty");
+                            }
+                            if (!email.contains('@')) {
+                              throw Exception("Invalid email address format");
+                            }
+                            if (password.isEmpty) {
+                              throw Exception("Password cannot be empty");
+                            }
+                            if (password.length < 4) {
+                              throw Exception("Password must be at least 4 characters");
+                            }
 
-                    final result = await AuthService().login(
-                      email: emailController.text.trim(),
-                      password: passwordController.text.trim(),
-                    );
+                            await ref
+                                .read(authNotifierProvider.notifier)
+                                .login(email, password);
 
-                    final user = result["user"];
-                    final roleFromApi = user["role"];
+                            final latestState = ref.read(authNotifierProvider);
 
-                    UserRole role;
+                            if (latestState is AuthenticationFailed) {
+                              throw Exception(latestState.message);
+                            }
 
-                    switch (roleFromApi) {
+                            if (!context.mounted) return;
 
-                      case "TEACHER":
-                        role = UserRole.teacher;
-                        break;
-
-                      case "HOD":
-                        role = UserRole.hod; // or UserRole.hod if you add it
-                        break;
-
-                      default:
-                        role = UserRole.student;
-                    }
-
-                    ref.read(authProvider.notifier).state =
-                        AuthState(
-                          isLoggedIn: true,
-                          role: role,
-                        );
-
-                    if (!context.mounted) return;
-
-                    context.go('/home');
-
-                  }catch (e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Invalid email or password",
+                            if (latestState is Authenticated) {
+                              context.go('/home');
+                            }
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  e.toString().replaceAll('Exception: ', ''),
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            debugPrint(e.toString());
+                          }
+                        },
+                  child: authState is Authenticating
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 20,
+                          ),
                         ),
-                      ),
-                    );
-
-                    debugPrint(e.toString());
-
-                  }
-                  },
-
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 20, 
-                    ),
-                  ),
                 ),
               ),
-
               const SizedBox(height: 40),
-
             ],
           ),
         ),

@@ -1,36 +1,72 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_state.dart';
-import '../models/user_role.dart';
+import '../models/current_user.dart';
+import '../repositories/auth_repository.dart';
+import '../repositories/mock_auth_repository.dart';
 
+part 'auth_provider.g.dart';
+
+// Maintain the existing global SharedPreferences provider
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError();
+  throw UnimplementedError("sharedPreferencesProvider must be overridden in main.dart");
 });
 
-final authProvider = StateProvider<AuthState>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  final token = prefs.getString("auth_token");
-  final roleStr = prefs.getString("user_role");
-  if (token != null && roleStr != null) {
-    UserRole role;
-    switch (roleStr) {
-      case "TEACHER":
-        role = UserRole.teacher;
-        break;
-      case "HOD":
-        role = UserRole.hod;
-        break;
-      default:
-        role = UserRole.student;
+// Code generated AuthRepository provider
+@riverpod
+AuthRepository authRepository(AuthRepositoryRef ref) {
+  return MockAuthRepository();
+}
+
+// Code generated AuthNotifier provider using Riverpod Generator annotations
+@riverpod
+class AuthNotifier extends _$AuthNotifier {
+  @override
+  AuthState build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final cachedUserJson = prefs.getString('cached_user_profile');
+    if (cachedUserJson != null) {
+      try {
+        final Map<String, dynamic> userMap = jsonDecode(cachedUserJson);
+        final user = CurrentUser.fromJson(userMap);
+        return Authenticated(user);
+      } catch (e) {
+        // Clear corrupt data
+        prefs.remove('cached_user_profile');
+      }
     }
-    return AuthState(
-      isLoggedIn: true,
-      role: role,
-    );
+    return const Unauthenticated();
   }
-  return const AuthState(
-    isLoggedIn: false,
-    role: UserRole.student,
-  );
+
+  Future<void> login(String email, String password) async {
+    state = const Authenticating();
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final user = await repository.login(email, password);
+
+      // Cache user session in SharedPreferences
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setString('cached_user_profile', jsonEncode(user.toJson()));
+
+      state = Authenticated(user);
+    } catch (e) {
+      state = AuthenticationFailed(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
+  Future<void> logout() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove('cached_user_profile');
+    state = const Unauthenticated();
+  }
+}
+
+// Keep a backward-compatible authProvider so existing files don't break
+final authProvider = StateProvider<AuthState>((ref) {
+  // Watch the modern code-generated AuthNotifier
+  final state = ref.watch(authNotifierProvider);
+  return state;
 });

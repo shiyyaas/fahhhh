@@ -13,7 +13,7 @@ class HeaderSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
-    final isTeacher = auth.role == UserRole.teacher || auth.role == UserRole.hod;
+    final isTeacher = auth.role == UserRole.teacher;
 
     final teacher = isTeacher ? ref.watch(teacherProvider) : null;
     final student = !isTeacher ? ref.watch(studentProvider) : null;
