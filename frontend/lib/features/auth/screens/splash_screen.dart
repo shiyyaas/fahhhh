@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
-  
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
@@ -17,11 +16,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
-
   @override
   void initState() {
     super.initState();
-    final auth = ref.read(authProvider);
 
     _controller = AnimationController(
       vsync: this,
@@ -39,7 +36,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       Timer(const Duration(milliseconds: 1000), () {
         // Step 3: Fade OUT
         _controller.reverse().then((_) {
-          // Step 4: Navigate
+          if (!context.mounted) return;
+
+          // Read current authenticated state directly
+          final auth = ref.read(authNotifierProvider);
           if (auth.isLoggedIn) {
             context.go('/home');
           } else {

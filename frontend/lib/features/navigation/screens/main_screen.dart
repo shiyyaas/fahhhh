@@ -79,20 +79,6 @@ class MainScreen extends ConsumerWidget {
           branchIndex: 4,
         ),
       ]);
-    } else if (auth.role == UserRole.hod) {
-      items.addAll([
-        const NavItem(icon: Icons.home_outlined, label: 'Home', branchIndex: 0),
-        const NavItem(
-          icon: Icons.apartment_outlined,
-          label: 'Department',
-          branchIndex: 1,
-        ),
-        const NavItem(
-          icon: Icons.person_outline,
-          label: 'Profile',
-          branchIndex: 4,
-        ),
-      ]);
     }
 
     if (items.isEmpty) {
