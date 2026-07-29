@@ -1,4 +1,3 @@
-import 'package:fahhhh/features/navigation/providers/navigation_provider.dart';
 import 'package:fahhhh/features/profile/provider/student_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +13,7 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/auth_state.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
 
-// Routes
-import 'package:fahhhh/core/routes/app_routes.dart';
+import 'package:go_router/go_router.dart';
 
 // Widgets
 import 'package:fahhhh/core/widgets/white_btn.dart';
@@ -202,16 +200,11 @@ class Profile extends ConsumerWidget {
               BlueBtn(
                 text: "Logout",
                 onPressed: () {
-                  ref.read(navigationIndexProvider.notifier).state = 0;
                   ref.read(authProvider.notifier).state = const AuthState(
                     isLoggedIn: false,
                     role: UserRole.student,
                   );
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AppRoutes.login,
-                    (route) => false,
-                  );
+                  context.go('/login');
                 },
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(

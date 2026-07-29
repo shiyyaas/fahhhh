@@ -7,9 +7,8 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/auth_state.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
 
-// Routes
-import 'package:fahhhh/core/routes/app_routes.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fahhhh/features/auth/services/auth_service.dart';
 
 // Design system
@@ -145,12 +144,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           role: role,
                         );
 
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.main,
-                    );
+                    if (!context.mounted) return;
+
+                    context.go('/home');
 
                   }catch (e) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
