@@ -11,7 +11,6 @@ import 'package:fahhhh/features/navigation/models/nav_item.dart';
 // Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
-import 'package:fahhhh/features/profile/provider/teacher_provider.dart';
 
 class MainScreen extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -24,7 +23,7 @@ class MainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
-    final teacher = ref.watch(teacherProvider);
+    final user = auth.user;
 
     final List<NavItem> items = [];
 
@@ -47,7 +46,7 @@ class MainScreen extends ConsumerWidget {
         const NavItem(icon: Icons.home_outlined, label: 'Home', branchIndex: 0),
       );
 
-      if (teacher.isHod) {
+      if (user?.isHOD ?? false) {
         items.add(
           const NavItem(
             icon: Icons.apartment_outlined,
@@ -57,7 +56,7 @@ class MainScreen extends ConsumerWidget {
         );
       }
 
-      if (teacher.isClassTeacher) {
+      if (user?.isClassTeacher ?? false) {
         items.add(
           const NavItem(
             icon: Icons.groups_outlined,

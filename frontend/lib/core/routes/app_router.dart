@@ -10,6 +10,7 @@ import '../../features/department/screens/department.dart';
 import '../../features/my_class/screens/my_class.dart';
 import '../../features/my_subjects/screens/my_subject.dart';
 import '../../features/profile/screens/profile.dart';
+import '../../features/profile/screens/edit_profile.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -65,6 +66,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const Profile(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),
