@@ -31,6 +31,12 @@ class MockAuthRepository implements AuthRepository {
         email: "student@mescas.org",
         name: "Shiyas ps",
         role: UserRole.student,
+        phone: "6235223761",
+        imageUrl: "assets/images/student.png",
+        rollNumber: "21/BCA/04",
+        semester: "2",
+        className: "S2 BCA",
+        departmentId: "Department of Computer Science",
       );
     }
 
@@ -40,6 +46,11 @@ class MockAuthRepository implements AuthRepository {
         email: "teacher@mescas.org",
         name: "Pure Teacher",
         role: UserRole.teacher,
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Assistant Professor",
+        departmentId: "Department of Computer Science",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     }
 
@@ -52,6 +63,11 @@ class MockAuthRepository implements AuthRepository {
         isClassTeacher: true,
         assignedClassId: "S2 BCA",
         isHOD: false,
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Assistant Professor",
+        departmentId: "Department of Computer Science",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     }
 
@@ -65,6 +81,10 @@ class MockAuthRepository implements AuthRepository {
         assignedClassId: "S2 BCA",
         isHOD: true,
         departmentId: "Department of Computer Science",
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Head Of Department",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     }
 
@@ -79,6 +99,10 @@ class MockAuthRepository implements AuthRepository {
         assignedClassId: "S2 BCA",
         isHOD: true,
         departmentId: "Department of Computer Science",
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Head Of Department",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     } else if (lower.contains("class")) {
       return CurrentUser(
@@ -88,6 +112,11 @@ class MockAuthRepository implements AuthRepository {
         isClassTeacher: true,
         assignedClassId: "S2 BCA",
         isHOD: false,
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Assistant Professor",
+        departmentId: "Department of Computer Science",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     } else if (lower.contains("teacher")) {
       return CurrentUser(
@@ -96,12 +125,23 @@ class MockAuthRepository implements AuthRepository {
         role: UserRole.teacher,
         isClassTeacher: false,
         isHOD: false,
+        phone: "8796543231",
+        imageUrl: "assets/images/profile.png",
+        designation: "Assistant Professor",
+        departmentId: "Department of Computer Science",
+        activeSubjects: ["Computer Networks", "Software Engineering"],
       );
     } else {
       return CurrentUser(
         email: trimmedEmail,
         name: "Dynamic Student",
         role: UserRole.student,
+        phone: "6235223761",
+        imageUrl: "assets/images/student.png",
+        rollNumber: "21/BCA/04",
+        semester: "2",
+        className: "S2 BCA",
+        departmentId: "Department of Computer Science",
       );
     }
   }

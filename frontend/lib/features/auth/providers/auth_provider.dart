@@ -62,6 +62,27 @@ class AuthNotifier extends _$AuthNotifier {
     await prefs.remove('cached_user_profile');
     state = const Unauthenticated();
   }
+
+  Future<void> updateProfile({
+    required String name,
+    required String email,
+    required String phone,
+  }) async {
+    final currentState = state;
+    if (currentState is Authenticated) {
+      final updatedUser = currentState.user.copyWith(
+        name: name,
+        email: email,
+        phone: phone,
+      );
+
+      // Cache user session in SharedPreferences
+      final prefs = ref.read(sharedPreferencesProvider);
+      await prefs.setString('cached_user_profile', jsonEncode(updatedUser.toJson()));
+
+      state = Authenticated(updatedUser);
+    }
+  }
 }
 
 // Keep a backward-compatible authProvider so existing files don't break

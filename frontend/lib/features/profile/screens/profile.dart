@@ -1,23 +1,23 @@
-import 'package:fahhhh/features/profile/provider/student_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 // Design
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Providers
-import 'package:fahhhh/features/profile/provider/teacher_provider.dart';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
-//
+// Models
 import 'package:fahhhh/features/auth/models/user_role.dart';
-
-import 'package:go_router/go_router.dart';
 
 // Widgets
 import 'package:fahhhh/core/widgets/white_btn.dart';
 import 'package:fahhhh/core/widgets/blue_btn.dart';
 import 'package:fahhhh/features/profile/widgets/white_box.dart';
+
+// Local state provider for notifications
+final notificationsEnabledProvider = StateProvider<bool>((ref) => true);
 
 class Profile extends ConsumerWidget {
   const Profile({super.key});
@@ -25,18 +25,30 @@ class Profile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
-    final isTeacher = auth.role == UserRole.teacher;
+    final user = auth.user;
 
-    final teacher = isTeacher ? ref.watch(teacherProvider) : null;
-    final student = !isTeacher ? ref.watch(studentProvider) : null;
+    // Fallback if not authenticated
+    if (user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('No authenticated user session found.'),
+        ),
+      );
+    }
+
+    final isTeacher = user.role == UserRole.teacher;
 
     // Common values depending on role
-    final String name = isTeacher ? teacher!.name : student!.name;
-    final String? imageUrl = isTeacher ? teacher!.imageUrl : student!.imageUrl;
-    final String subTitle = isTeacher ? teacher!.designation : student!.className;
-    final String department = isTeacher ? teacher!.department : student!.department;
-    final String email = isTeacher ? teacher!.email : student!.email;
-    final String phone = isTeacher ? teacher!.phone : student!.phone;
+    final String name = user.name;
+    final String? imageUrl = user.imageUrl;
+    final String subTitle = isTeacher
+        ? (user.isHOD ? "Head Of Department" : "Assistant Professor")
+        : (user.className ?? "S2 BCA");
+    final String department = user.departmentId ?? "Department of Computer Science";
+    final String email = user.email;
+    final String phone = user.phone;
+
+    final notificationsEnabled = ref.watch(notificationsEnabledProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -94,7 +106,9 @@ class Profile extends ConsumerWidget {
               WhiteBtn(
                 text: "Edit Profile",
                 icon: Icons.edit,
-                onPressed: () {},
+                onPressed: () {
+                  context.go('/profile/edit');
+                },
                 width: double.infinity,
                 borderRadius: 50,
                 iconSize: 16,
@@ -125,34 +139,43 @@ class Profile extends ConsumerWidget {
                     ),
 
                     // Teacher-only fields
-                    if (isTeacher && teacher!.isClassTeacher) ...[
-                      _divider(),
-                      WhiteBox(
-                        icon: Icons.groups_outlined,
-                        title: teacher.classTeacherOf!,
-                      ),
-                    ],
-                    if (isTeacher && teacher!.isHod) ...[
-                      _divider(),
-                      WhiteBox(
-                        icon: Icons.admin_panel_settings_outlined,
-                        title: "Head Of Department",
-                      ),
+                    if (isTeacher) ...[
+                      if (user.isClassTeacher) ...[
+                        _divider(),
+                        WhiteBox(
+                          icon: Icons.groups_outlined,
+                          title: user.assignedClassId ?? "S2 BCA",
+                        ),
+                      ],
+                      if (user.isHOD) ...[
+                        _divider(),
+                        WhiteBox(
+                          icon: Icons.admin_panel_settings_outlined,
+                          title: "Head Of Department",
+                        ),
+                      ],
+                      if (user.activeSubjects != null && user.activeSubjects!.isNotEmpty) ...[
+                        _divider(),
+                        WhiteBox(
+                          icon: Icons.book_outlined,
+                          title: "Subjects: ${user.activeSubjects!.join(', ')}",
+                        ),
+                      ],
                     ],
 
                     // Student-only fields
-                    // if (!isTeacher) ...[
-                    //   _divider(),
-                    //   WhiteBox(
-                    //     icon: Icons.badge_outlined,
-                    //     title: student!.rollNumber,
-                    //   ),
-                    //   _divider(),
-                    //   WhiteBox(
-                    //     icon: Icons.calendar_today_outlined,
-                    //     title: "Semester ${student.semester}",
-                    //   ),
-                    // ],
+                    if (!isTeacher) ...[
+                      _divider(),
+                      WhiteBox(
+                        icon: Icons.badge_outlined,
+                        title: user.rollNumber ?? "21/BCA/04",
+                      ),
+                      _divider(),
+                      WhiteBox(
+                        icon: Icons.calendar_today_outlined,
+                        title: "Semester ${user.semester ?? '2'}",
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -177,8 +200,10 @@ class Profile extends ConsumerWidget {
                       icon: Icons.notifications_none_outlined,
                       title: "Notifications",
                       showSwitch: true,
-                      switchValue: true,
-                      onSwitchChanged: (value) {},
+                      switchValue: notificationsEnabled,
+                      onSwitchChanged: (value) {
+                        ref.read(notificationsEnabledProvider.notifier).state = value;
+                      },
                     ),
                     _divider(),
                     WhiteBox(
