@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme_data/app_text_styles.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../auth/models/user_role.dart';
+import '../../profile/provider/teacher_provider.dart';
+import '../../profile/provider/student_provider.dart';
 
-class HeaderSection extends StatelessWidget {
+class HeaderSection extends ConsumerWidget {
 
   const HeaderSection({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+    final isTeacher = auth.role == UserRole.teacher || auth.role == UserRole.hod;
+
+    final teacher = isTeacher ? ref.watch(teacherProvider) : null;
+    final student = !isTeacher ? ref.watch(studentProvider) : null;
+
+    final String name = isTeacher ? teacher!.name : student!.name;
+    final String subTitle = isTeacher ? (teacher!.isHod ? 'HOD - ${teacher.department}' : teacher.designation) : student!.className;
+    final String? imageUrl = isTeacher ? teacher!.imageUrl : student!.imageUrl;
 
     return Padding(
 
@@ -30,17 +44,18 @@ class HeaderSection extends StatelessWidget {
 
               color: Colors.grey.shade300,
 
-              image: const DecorationImage(
+              image: imageUrl != null ? DecorationImage(
 
                 image: AssetImage(
-                  'assets/images/profile.png',
+                  imageUrl,
                 ),
 
                 fit: BoxFit.cover,
 
-              ),
+              ) : null,
 
             ),
+            child: imageUrl == null ? const Icon(Icons.person, color: Colors.white, size: 30) : null,
 
           ),
 
@@ -54,13 +69,13 @@ class HeaderSection extends StatelessWidget {
 
               children: [
                 Text(
-                  'Anu Varghese',
+                  name,
                   style: AppTextStyles.heading.copyWith(
                     height: 0.9,
                   ),
                 ),
                 Text(
-                  'HOD - Computer Science',
+                  subTitle,
                   style: AppTextStyles.small.copyWith(
                     height: 1,
                   ),

@@ -3,40 +3,24 @@ import 'package:fahhhh/features/home/widgets/date_btn.dart';
 import 'package:fahhhh/features/home/widgets/header_section.dart';
 import 'package:fahhhh/features/home/widgets/week_calendar.dart';
 import 'package:fahhhh/features/home/widgets/timetable_card.dart';
-import 'package:fahhhh/features/home/widgets/status_badge.dart'; //For timetable_card.dart
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import '../providers/timetable_provider.dart';
 
-class Home extends StatefulWidget {
-
+class Home extends ConsumerStatefulWidget {
   const Home({super.key});
+
   @override
-  State<Home> createState() => _HomeState();
+  ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
-
+class _HomeState extends ConsumerState<Home> {
   DateTime selectedDate = DateTime.now();
-
-  final List<Map<String, dynamic>> timetable = [
-            {
-              'subjectName': 'Software Engineering',
-              'secondaryText': 'S2BCA',
-              'status': AttendanceStatus.recorded,
-              'startTime': const TimeOfDay(
-                hour: 9,
-                minute: 30,
-              ),
-              'endTime': const TimeOfDay(
-                hour: 10,
-                minute: 15,
-              ),
-              'profileImage': 'assets/images/profile.png',
-            },
-          ];
 
   @override
   Widget build(BuildContext context) {
+    final timetable = ref.watch(timetableProvider);
 
     return Scaffold(
       body: SafeArea(

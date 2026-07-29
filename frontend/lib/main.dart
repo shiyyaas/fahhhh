@@ -1,4 +1,4 @@
-import 'package:fahhhh/core/routes/app_routes.dart';
+import 'package:fahhhh/core/routes/app_router.dart';
 import 'package:fahhhh/core/theme_data/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,20 +11,17 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
-
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
 
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: DesignSystem.lightTheme,
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute: AppRoutes.onGenerateRoute,
+      routerConfig: router,
     );
-
   }
-
 }

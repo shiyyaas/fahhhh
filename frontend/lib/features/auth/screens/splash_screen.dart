@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-
-// Routes
-import 'package:fahhhh/core/routes/app_routes.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -42,10 +40,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         // Step 3: Fade OUT
         _controller.reverse().then((_) {
           // Step 4: Navigate
-          if(auth.isLoggedIn){
-            Navigator.pushReplacementNamed(context, AppRoutes.main);
-          }else{
-            Navigator.pushReplacementNamed(context, AppRoutes.login);
+          if (auth.isLoggedIn) {
+            context.go('/home');
+          } else {
+            context.go('/login');
           }
         });
       });

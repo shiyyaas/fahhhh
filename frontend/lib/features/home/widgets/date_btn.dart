@@ -1,6 +1,3 @@
-// App_Routes
-import 'package:fahhhh/core/routes/app_routes.dart';
-
 // Designs
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
@@ -8,6 +5,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/white_btn.dart';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DateBtn extends StatelessWidget {
   final DateTime selectedDate;
@@ -45,10 +43,7 @@ class DateBtn extends StatelessWidget {
                   icon: Icons.calendar_today,
                   text: 'Time Table', 
                   onPressed: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.login, //Need to change this to TIMETABLE-PAGE
-                    );
+                    context.go('/login'); //Need to change this to TIMETABLE-PAGE
                 }
                 ),
               ],
