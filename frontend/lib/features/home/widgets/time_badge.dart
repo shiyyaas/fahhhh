@@ -3,32 +3,39 @@ import 'package:flutter/material.dart';
 class TimeBadge extends StatelessWidget {
   final TimeOfDay startTime;
   final TimeOfDay endTime;
+  final bool isToday;
+
   const TimeBadge({
     super.key,
     required this.startTime,
     required this.endTime,
+    required this.isToday,
   });
 
   @override
   Widget build(BuildContext context) {
-    final DateTime now = DateTime.now();
-    final DateTime start = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      startTime.hour,
-      startTime.minute,
-    );
+    bool isNow = false;
 
-    final DateTime end = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      endTime.hour,
-      endTime.minute,
-    );
+    if (isToday) {
+      final DateTime now = DateTime.now();
+      final DateTime start = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        startTime.hour,
+        startTime.minute,
+      );
 
-    final bool isNow = now.isAfter(start) && now.isBefore(end);
+      final DateTime end = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        endTime.hour,
+        endTime.minute,
+      );
+
+      isNow = now.isAfter(start) && now.isBefore(end);
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -46,8 +53,8 @@ class TimeBadge extends StatelessWidget {
 
       child: Text(
         isNow
-            ? 'Now'
-            : '${_formatTime(startTime)} - ${_formatTime(endTime)}',
+            ? 'NOW'
+            : '${_formatTime(startTime)} to ${_formatTime(endTime)}',
 
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.8),
@@ -63,5 +70,4 @@ class TimeBadge extends StatelessWidget {
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-  
 }

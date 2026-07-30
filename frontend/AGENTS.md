@@ -144,3 +144,14 @@ New features should:
 Prefer consistency with the existing codebase over introducing a different pattern.
 
 If multiple approaches are possible, choose the one that is simplest, easiest to maintain, and aligns with the existing architecture.
+
+---
+
+## Timetable & Home Rules
+
+- Build a unified 'TimetableSlot' model and a single global Riverpod notifier to serve as the single source of truth for both features so edits propagate everywhere instantly.
+- Every academic period is fixed at a 1-hour duration block.
+- UI elements like the HOD "Edit" button must programmatically toggle to our primary blue theme color when activated.
+- Only the Home page contains the bottom navigation bar framework. Clicking into sub-features or card details must push to a new page route that hides the bottom navigation bar completely.
+- If a Saturday or Sunday is selected on the horizontal calendar, hide the subject list and display a "No Class" placeholder message.
+- For any upcoming date selected (future dates relative to today's date), modify the cards to hide the attendance or recording status bubble completely, displaying ONLY the subject metadata and the time block.
