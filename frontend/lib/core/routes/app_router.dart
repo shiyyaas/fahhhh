@@ -11,6 +11,9 @@ import '../../features/my_class/screens/my_class.dart';
 import '../../features/my_subjects/screens/my_subject.dart';
 import '../../features/profile/screens/profile.dart';
 import '../../features/profile/screens/edit_profile.dart';
+import '../../features/attendance/screens/attendance_taking_screen.dart';
+import '../../features/attendance/screens/attendance_view_screen.dart';
+import '../../features/timetable/screens/timetable_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -23,6 +26,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      // Timetable Screen Route - outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/timetable',
+        builder: (context, state) => const TimetableScreen(),
+      ),
+      // Attendance Taking Route - outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/attendance-taking/:slotId',
+        builder: (context, state) {
+          final slotId = state.pathParameters['slotId']!;
+          return AttendanceTakingScreen(slotId: slotId);
+        },
+      ),
+      // Attendance View Route - outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/attendance-view/:slotId',
+        builder: (context, state) {
+          final slotId = state.pathParameters['slotId']!;
+          return AttendanceViewScreen(slotId: slotId);
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

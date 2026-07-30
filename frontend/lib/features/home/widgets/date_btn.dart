@@ -20,35 +20,36 @@ class DateBtn extends StatelessWidget {
         selectedDate.year == today.year;
 
     return Container(   
-      margin: EdgeInsets.symmetric(horizontal: 30 , vertical: 10),
-            child:Row(
-              crossAxisAlignment: CrossAxisAlignment.end,  //'end' works
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isToday ? 'Today' : _getWeekDay(selectedDate),
-                      style: AppTextStyles.heading.copyWith(height: 0.9, fontSize: 22),
-                    ),
-                    const SizedBox(height: 0),
-                    Text(
-                      '${selectedDate.day} ${_getMonth(selectedDate.month)}, ${selectedDate.year}',
-                      style: AppTextStyles.small.copyWith(fontSize: 16),
-                    ),
-                  ],
-                ),
-                WhiteBtn(
-                  icon: Icons.calendar_today,
-                  text: 'Time Table', 
-                  onPressed: () {
-                    context.go('/login'); //Need to change this to TIMETABLE-PAGE
-                }
-                ),
-              ],
-            ),
-          );
+      margin: const EdgeInsets.symmetric(horizontal: 30 , vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isToday ? 'Today' : _getWeekDay(selectedDate),
+                style: AppTextStyles.heading.copyWith(height: 0.9, fontSize: 22),
+              ),
+              const SizedBox(height: 0),
+              Text(
+                '${selectedDate.day} ${_getMonth(selectedDate.month)}, ${selectedDate.year}',
+                style: AppTextStyles.small.copyWith(fontSize: 16),
+              ),
+            ],
+          ),
+          WhiteBtn(
+            icon: Icons.calendar_today,
+            text: 'Time Table',
+            onPressed: () {
+              if (!context.mounted) return;
+              context.push('/timetable');
+            }
+          ),
+        ],
+      ),
+    );
   }
 
   String _getMonth(int month) {
