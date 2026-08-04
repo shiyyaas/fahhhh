@@ -50,17 +50,52 @@ class Home extends ConsumerWidget {
     // Profile specific filtering
     final List<TimetableSlot> displaySlots;
     if (isStudent) {
-      final userClass = user?.className ?? "S2 BCA";
-      displaySlots = filteredByDay.where((slot) => slot.classId == userClass).toList();
+      final userClass = (user?.className ?? "S2 BCA").trim().toLowerCase();
+      displaySlots = filteredByDay.where((slot) {
+        final slotClass = slot.classId.trim().toLowerCase();
+        if (slotClass == userClass) return true;
+
+        // Match base semester / prefix (e.g., "s2 pure" matches "s2 bca" because both start with "s2",
+        // or "s4" matches "s4 bca" because "s4 bca" starts with "s4").
+        final userTokens = userClass.split(' ');
+        final slotTokens = slotClass.split(' ');
+        if (userTokens.isNotEmpty && slotTokens.isNotEmpty) {
+          if (userTokens.first == slotTokens.first) return true;
+        }
+        return false;
+      }).toList();
     } else {
-      // Teacher: show slots they teach
+      // Teacher / Class Teacher / HOD: Filter view by matching logged-in user's name
       final teacherName = user?.name ?? "";
       displaySlots = filteredByDay.where((slot) {
-        final nameLower = teacherName.toLowerCase();
-        final slotTeacherLower = slot.teacherName.toLowerCase();
-        return slotTeacherLower == nameLower ||
-            (nameLower.contains("sheethal") && slotTeacherLower.contains("sheethal")) ||
-            (nameLower.contains("sheethal") && slotTeacherLower.contains("sheetal"));
+        final cleanLoggedIn = teacherName.toLowerCase().trim();
+        final cleanSlot = slot.teacherName.toLowerCase().trim();
+
+        if (cleanLoggedIn == cleanSlot) return true;
+
+        final ignoreWords = {'ms', 'mr', 'miss', 'mrs', 'prof', 'dr'};
+
+        final loggedInTokens = cleanLoggedIn
+            .split(' ')
+            .map((t) => t.replaceAll('h', ''))
+            .where((t) => !ignoreWords.contains(t) && t.isNotEmpty)
+            .toList();
+
+        final slotTokens = cleanSlot
+            .split(' ')
+            .map((t) => t.replaceAll('h', ''))
+            .where((t) => !ignoreWords.contains(t) && t.isNotEmpty)
+            .toList();
+
+        for (final token1 in loggedInTokens) {
+          for (final token2 in slotTokens) {
+            if (token1 == token2) {
+              return true;
+            }
+          }
+        }
+
+        return false;
       }).toList();
     }
 

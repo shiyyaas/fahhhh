@@ -29,7 +29,7 @@ class MockAuthRepository implements AuthRepository {
     if (trimmedEmail == "student@mescas.org" || trimmedEmail == "shiyas@mescas.org") {
       return const CurrentUser(
         email: "student@mescas.org",
-        name: "Shiyas ps",
+        name: "shiyas ps",
         role: UserRole.student,
         phone: "6235223761",
         imageUrl: "assets/images/student.png",
@@ -41,11 +41,14 @@ class MockAuthRepository implements AuthRepository {
     }
 
     // 2. Pure Teacher Profile (base role: teacher, flags false)
-    if (trimmedEmail == "teacher@mescas.org") {
+    if (trimmedEmail == "teacher@mescas.org" || trimmedEmail == "sheetal@mescas.org") {
       return const CurrentUser(
-        email: "teacher@mescas.org",
-        name: "Pure Teacher",
+        email: "sheetal@mescas.org",
+        name: "sheetal",
         role: UserRole.teacher,
+        isClassTeacher: false,
+        assignedClassId: "No CLASS",
+        className: "No CLASS",
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
         designation: "Assistant Professor",
@@ -55,13 +58,14 @@ class MockAuthRepository implements AuthRepository {
     }
 
     // 3. Class Teacher Profile (base role: teacher, isClassTeacher: true, isHOD: false)
-    if (trimmedEmail == "classteacher@mescas.org") {
+    if (trimmedEmail == "classteacher@mescas.org" || trimmedEmail == "rijina@mescas.org") {
       return const CurrentUser(
         email: "classteacher@mescas.org",
-        name: "Class Teacher",
+        name: "Rijina",
         role: UserRole.teacher,
         isClassTeacher: true,
         assignedClassId: "S2 BCA",
+        className: "S2 BCA",
         isHOD: false,
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
@@ -71,16 +75,15 @@ class MockAuthRepository implements AuthRepository {
       );
     }
 
-    // 4. HOD + Class Teacher Profile (base role: teacher, isClassTeacher: true, isHOD: true)
-    if (trimmedEmail == "sheetal@mescas.org" || trimmedEmail == "hodteacher@mescas.org") {
+    // 4. HOD Profile (base role: teacher, isClassTeacher: false, isHOD: true)
+    if (trimmedEmail == "hodteacher@mescas.org" || trimmedEmail == "hod@mescas.org" || trimmedEmail == "anu@mescas.org") {
       return const CurrentUser(
-        email: "sheetal@mescas.org",
-        name: "Ms Sheethal",
+        email: "hod@mescas.org",
+        name: "Anu varghese",
         role: UserRole.teacher,
-        isClassTeacher: true,
-        assignedClassId: "S2 BCA",
+        isClassTeacher: false,
         isHOD: true,
-        departmentId: "Department of Computer Science",
+        departmentId: "Computer science",
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
         designation: "Head Of Department",
@@ -90,27 +93,27 @@ class MockAuthRepository implements AuthRepository {
 
     // Default dynamic profile mapping if they typed other email/password combinations
     final lower = trimmedEmail.toLowerCase();
-    if (lower.contains("hod")) {
+    if (lower.contains("hod") || lower.contains("anu")) {
       return CurrentUser(
         email: trimmedEmail,
-        name: "Dynamic HOD Teacher",
+        name: "Anu varghese",
         role: UserRole.teacher,
-        isClassTeacher: true,
-        assignedClassId: "S2 BCA",
+        isClassTeacher: false,
         isHOD: true,
-        departmentId: "Department of Computer Science",
+        departmentId: "Computer science",
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
         designation: "Head Of Department",
         activeSubjects: ["Computer Networks", "Software Engineering"],
       );
-    } else if (lower.contains("class")) {
+    } else if (lower.contains("class") || lower.contains("rijina")) {
       return CurrentUser(
         email: trimmedEmail,
-        name: "Dynamic Class Teacher",
+        name: "Rijina",
         role: UserRole.teacher,
         isClassTeacher: true,
         assignedClassId: "S2 BCA",
+        className: "S2 BCA",
         isHOD: false,
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
@@ -118,13 +121,14 @@ class MockAuthRepository implements AuthRepository {
         departmentId: "Department of Computer Science",
         activeSubjects: ["Computer Networks", "Software Engineering"],
       );
-    } else if (lower.contains("teacher")) {
+    } else if (lower.contains("teacher") || lower.contains("sheetal")) {
       return CurrentUser(
         email: trimmedEmail,
-        name: "Dynamic Pure Teacher",
+        name: "sheetal",
         role: UserRole.teacher,
         isClassTeacher: false,
-        isHOD: false,
+        assignedClassId: "No CLASS",
+        className: "No CLASS",
         phone: "8796543231",
         imageUrl: "assets/images/profile.png",
         designation: "Assistant Professor",
@@ -134,7 +138,7 @@ class MockAuthRepository implements AuthRepository {
     } else {
       return CurrentUser(
         email: trimmedEmail,
-        name: "Dynamic Student",
+        name: "shiyas ps",
         role: UserRole.student,
         phone: "6235223761",
         imageUrl: "assets/images/student.png",

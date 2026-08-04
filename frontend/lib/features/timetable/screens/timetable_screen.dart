@@ -72,6 +72,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final auth = ref.watch(authProvider);
     final user = auth.user;
     final isHOD = user?.isHOD ?? false;
+    final isStudent = auth.role == UserRole.student;
+
+    if (isStudent && user?.className != null) {
+      _selectedSemester = user!.className!;
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -125,78 +130,33 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               const SizedBox(height: 8),
 
               // Action Buttons Row (Sort by & Edit)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    // Sort by Dropdown Menu Button
-                    PopupMenuButton<String>(
-                      onSelected: (val) {
-                        setState(() {
-                          _selectedSemester = val;
-                        });
-                      },
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(value: "S2 BCA", child: Text("S2 BCA")),
-                        const PopupMenuItem(value: "S4 BCA", child: Text("S4 BCA")),
-                        const PopupMenuItem(value: "S6 BCA", child: Text("S6 BCA")),
-                        const PopupMenuItem(value: "S8 BCA", child: Text("S8 BCA")),
-                      ],
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: Colors.black, width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "Sort by: ${_selectedSemester.split(' ').first}",
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // Edit Button (Only visible for HOD)
-                    if (isHOD)
-                      GestureDetector(
-                        onTap: () {
+              if (!isStudent)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      // Sort by Dropdown Menu Button
+                      PopupMenuButton<String>(
+                        onSelected: (val) {
                           setState(() {
-                            _isHodEditing = !_isHodEditing;
+                            _selectedSemester = val;
                           });
                         },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: "S2 BCA", child: Text("S2 BCA")),
+                          const PopupMenuItem(value: "S4 BCA", child: Text("S4 BCA")),
+                          const PopupMenuItem(value: "S6 BCA", child: Text("S6 BCA")),
+                          const PopupMenuItem(value: "S8 BCA", child: Text("S8 BCA")),
+                        ],
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           decoration: BoxDecoration(
-                            color: _isHodEditing ? AppColors.primary : Colors.white,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: _isHodEditing ? AppColors.primary : Colors.black,
-                              width: 1.2,
-                            ),
+                            border: Border.all(color: Colors.black, width: 1.2),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.08),
@@ -208,27 +168,73 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                color: _isHodEditing ? Colors.white : Colors.black,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 6),
                               Text(
-                                "Edit",
-                                style: TextStyle(
-                                  color: _isHodEditing ? Colors.white : Colors.black,
+                                "Sort by: ${_selectedSemester.split(' ').first}",
+                                style: const TextStyle(
+                                  color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
                               ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
                             ],
                           ),
                         ),
                       ),
-                  ],
+
+                      const SizedBox(width: 12),
+
+                      // Edit Button (Only visible for HOD)
+                      if (isHOD)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isHodEditing = !_isHodEditing;
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: _isHodEditing ? AppColors.primary : Colors.white,
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: _isHodEditing ? AppColors.primary : Colors.black,
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.edit_outlined,
+                                  color: _isHodEditing ? Colors.white : Colors.black,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _isHodEditing ? "Save" : "Edit",
+                                  style: TextStyle(
+                                    color: _isHodEditing ? Colors.white : Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
 
               const SizedBox(height: 24),
 
