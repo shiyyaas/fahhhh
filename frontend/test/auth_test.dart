@@ -33,7 +33,7 @@ void main() {
       expect(user.name, 'Rijina');
       expect(user.isClassTeacher, true);
       expect(user.isHOD, false);
-      expect(user.assignedClassId, 'S2 BCA');
+      expect(user.assignedClassId, 'S2');
     });
 
     test('HOD Profile validation and mapping', () async {

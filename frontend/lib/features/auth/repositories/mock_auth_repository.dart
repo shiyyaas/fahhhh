@@ -35,7 +35,7 @@ class MockAuthRepository implements AuthRepository {
         imageUrl: "assets/images/student.png",
         rollNumber: "21/BCA/04",
         semester: "2",
-        className: "S2 BCA",
+        className: "S2 Pure",
         departmentId: "Department of Computer Science",
       );
     }
@@ -144,7 +144,7 @@ class MockAuthRepository implements AuthRepository {
         imageUrl: "assets/images/student.png",
         rollNumber: "21/BCA/04",
         semester: "2",
-        className: "S2 BCA",
+        className: "S2 Pure",
         departmentId: "Department of Computer Science",
       );
     }
