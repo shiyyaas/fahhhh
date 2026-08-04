@@ -17,27 +17,53 @@ class TimetableScreen extends ConsumerStatefulWidget {
   ConsumerState<TimetableScreen> createState() => _TimetableScreenState();
 }
 
-class _TimetableScreenState extends ConsumerState<TimetableScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  // Teacher View States
-  String _teacherScope = "Classes"; // "Classes" or "Teachers"
-  String _selectedClassOption = "S2"; // "S2", "S4", "S6", "S8"
-  String _selectedTeacherOption = "Anju"; // "Anju", "Anu", "Rijina", "Sheetal"
-
-  // HOD View States
-  String _hodSortClass = "All"; // "All", "S2", "S4", "S6", "S8"
+class _TimetableScreenState extends ConsumerState<TimetableScreen> {
+  String _selectedSemester = "S2 BCA";
   bool _isHodEditing = false;
+
+  late ScrollController _scrollController;
+  double _scrollProgress = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Set default selected semester from logged-in user if available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = ref.read(authProvider);
+      final user = auth.user;
+      if (user != null) {
+        if (user.role == UserRole.student && user.className != null) {
+          setState(() {
+            _selectedSemester = user.className!;
+          });
+        } else if (user.role == UserRole.teacher && user.assignedClassId != null) {
+          setState(() {
+            _selectedSemester = user.assignedClassId!;
+          });
+        }
+      }
+    });
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+      if (maxScroll > 0) {
+        setState(() {
+          _scrollProgress = (currentScroll / maxScroll).clamp(0.0, 1.0);
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -45,456 +71,373 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> with SingleTi
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
-    final isStudent = auth.role == UserRole.student;
     final isHOD = user?.isHOD ?? false;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (!context.mounted) return;
-            context.pop();
-          },
-        ),
-        title: Text(
-          isHOD ? "Administrative Timetable" : "Class Timetable",
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Weekday selector tabs (Monday to Friday)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.black54,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                tabs: const [
-                  Tab(text: "Mon"),
-                  Tab(text: "Tue"),
-                  Tab(text: "Wed"),
-                  Tab(text: "Thu"),
-                  Tab(text: "Fri"),
-                ],
-              ),
-            ),
-
-            // Top-level custom UI controls based on roles
-            if (!isStudent) _buildTopControls(isHOD),
-
-            // Timetable grid representation for the active selected day tab
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: List.generate(5, (index) {
-                  final int dayOfWeek = index + 1; // Mon = 1, etc.
-                  return _buildScheduleListForDay(dayOfWeek, isStudent, isHOD);
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Build controls bar for Teacher and HOD
-  Widget _buildTopControls(bool isHOD) {
-    if (isHOD) {
-      // HOD Administrative Top Controls
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Sort By Button
-            PopupMenuButton<String>(
-              onSelected: (val) {
-                setState(() {
-                  _hodSortClass = val;
-                });
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Custom Header aligning with 'Time Table - admin home (1).png'
+              Padding(
+                padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: [
-                    const Icon(Icons.sort_rounded, size: 18, color: Colors.black87),
-                    const SizedBox(width: 6),
-                    Text(
-                      _hodSortClass == "All" ? "Sort By: All" : "Class: $_hodSortClass",
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
+                      onPressed: () {
+                        if (!context.mounted) return;
+                        context.pop();
+                      },
                     ),
-                  ],
-                ),
-              ),
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: "All", child: Text("All Classes")),
-                const PopupMenuItem(value: "S2", child: Text("S2 BCA")),
-                const PopupMenuItem(value: "S4", child: Text("S4 BCA")),
-                const PopupMenuItem(value: "S6", child: Text("S6 BCA")),
-                const PopupMenuItem(value: "S8", child: Text("S8 BCA")),
-              ],
-            ),
-
-            // "Edit" Toggle Button - Turns to solid blue when active programmatically
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isHodEditing = !_isHodEditing;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: _isHodEditing ? AppColors.primary : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _isHodEditing ? AppColors.primary : Colors.grey.shade300,
-                  ),
-                  boxShadow: _isHodEditing
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          )
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _isHodEditing ? Icons.edit_off_rounded : Icons.edit_rounded,
-                      size: 18,
-                      color: _isHodEditing ? Colors.white : Colors.black87,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isHodEditing ? "Editing" : "Edit",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: _isHodEditing ? Colors.white : Colors.black87,
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Time Table",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            isHOD ? "Manage every Time table here" : "View academic class schedules",
+                            style: const TextStyle(
+                              color: Color(0xFF6F5E53),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Teacher Top Controls (Classes / Teachers Toggle and Dropdown)
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            // 2-way toggle button group
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  _buildScopeToggleButton("Classes"),
-                  _buildScopeToggleButton("Teachers"),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
 
-            // Context aware dropdown button
-            Expanded(
-              child: _teacherScope == "Classes"
-                  ? _buildDropdownButton(
-                      value: _selectedClassOption,
-                      options: ["S2", "S4", "S6", "S8"],
-                      onChanged: (val) {
+              const SizedBox(height: 8),
+
+              // Action Buttons Row (Sort by & Edit)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    // Sort by Dropdown Menu Button
+                    PopupMenuButton<String>(
+                      onSelected: (val) {
                         setState(() {
-                          _selectedClassOption = val!;
+                          _selectedSemester = val;
                         });
                       },
-                    )
-                  : _buildDropdownButton(
-                      value: _selectedTeacherOption,
-                      options: ["Anju", "Anu", "Rijina", "Sheetal"],
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedTeacherOption = val!;
-                        });
-                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: "S2 BCA", child: Text("S2 BCA")),
+                        const PopupMenuItem(value: "S4 BCA", child: Text("S4 BCA")),
+                        const PopupMenuItem(value: "S6 BCA", child: Text("S6 BCA")),
+                        const PopupMenuItem(value: "S8 BCA", child: Text("S8 BCA")),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.black, width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Sort by: ${_selectedSemester.split(' ').first}",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
+                          ],
+                        ),
+                      ),
                     ),
-            ),
-          ],
-        ),
-      );
-    }
-  }
 
-  Widget _buildScopeToggleButton(String scope) {
-    final bool isSelected = _teacherScope == scope;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _teacherScope = scope;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
-        ),
-        child: Text(
-          scope,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.black : Colors.black54,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
+                    const SizedBox(width: 12),
 
-  Widget _buildDropdownButton({
-    required String value,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-          onChanged: onChanged,
-          items: options.map<DropdownMenuItem<String>>((String val) {
-            return DropdownMenuItem<String>(
-              value: val,
-              child: Text(_teacherScope == "Classes" ? "$val BCA" : val),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  // Build scrollable list of schedule slots
-  Widget _buildScheduleListForDay(int dayOfWeek, bool isStudent, bool isHOD) {
-    final timetable = ref.watch(timetableNotifierProvider);
-    final user = ref.read(authProvider).user;
-
-    // Filter day's slots
-    final daySlots = timetable.where((slot) => slot.dayOfWeek == dayOfWeek).toList();
-
-    // Sort/Filter based on view configuration
-    List<TimetableSlot> filteredSlots = [];
-
-    if (isStudent) {
-      final userClass = user?.className ?? "S2 BCA";
-      filteredSlots = daySlots.where((slot) => slot.classId == userClass).toList();
-    } else if (isHOD) {
-      if (_hodSortClass == "All") {
-        filteredSlots = daySlots;
-      } else {
-        filteredSlots = daySlots.where((slot) => slot.classId.startsWith(_hodSortClass)).toList();
-      }
-    } else {
-      // Teacher view filters
-      if (_teacherScope == "Classes") {
-        filteredSlots = daySlots.where((slot) => slot.classId.startsWith(_selectedClassOption)).toList();
-      } else {
-        filteredSlots = daySlots.where((slot) {
-          final slotTeacher = slot.teacherName.toLowerCase();
-          final targetTeacher = _selectedTeacherOption.toLowerCase();
-          return slotTeacher.contains(targetTeacher) || (targetTeacher.contains("sheethal") && slotTeacher.contains("sheetal")) || (targetTeacher.contains("sheetal") && slotTeacher.contains("sheethal"));
-        }).toList();
-      }
-    }
-
-    // Sort filtered slots by start time
-    filteredSlots.sort((a, b) {
-      final int aMin = a.startTime.hour * 60 + a.startTime.minute;
-      final int bMin = b.startTime.hour * 60 + b.startTime.minute;
-      return aMin.compareTo(bMin);
-    });
-
-    if (filteredSlots.isEmpty) {
-      return Center(
-        child: Text(
-          "No scheduled periods on this day.",
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: filteredSlots.length,
-      itemBuilder: (context, index) {
-        final slot = filteredSlots[index];
-
-        return Container(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: _isHodEditing && isHOD ? AppColors.primary.withValues(alpha: 0.5) : Colors.grey.shade200,
-              width: _isHodEditing && isHOD ? 2 : 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                    // Edit Button (Only visible for HOD)
+                    if (isHOD)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isHodEditing = !_isHodEditing;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _isHodEditing ? AppColors.primary : Colors.white,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: _isHodEditing ? AppColors.primary : Colors.black,
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.edit_outlined,
+                                color: _isHodEditing ? Colors.white : Colors.black,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                "Edit",
+                                style: TextStyle(
+                                  color: _isHodEditing ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
+
+              const SizedBox(height: 24),
+
+              // Horizontal Scrollable Grid Table Card
+              SingleChildScrollView(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Container(
+                  width: 640,
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(40),
+                      1: FixedColumnWidth(120),
+                      2: FixedColumnWidth(120),
+                      3: FixedColumnWidth(120),
+                      4: FixedColumnWidth(120),
+                      5: FixedColumnWidth(120),
+                    },
+                    border: const TableBorder(
+                      horizontalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                      verticalInside: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
+                    ),
+                    children: [
+                      // Header Row
+                      TableRow(
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF8FAFC),
+                        ),
+                        children: [
+                          const SizedBox(height: 48, child: Center(child: Text(""))),
+                          _buildHeaderCell("MON"),
+                          _buildHeaderCell("TUE"),
+                          _buildHeaderCell("WED"),
+                          _buildHeaderCell("THUS"),
+                          _buildHeaderCell("FRI"),
+                        ],
+                      ),
+                      // 5 Period Rows
+                      for (int period = 1; period <= 5; period++)
+                        TableRow(
+                          children: [
+                            // Leftmost Index Column Cell
+                            SizedBox(
+                              height: 80,
+                              child: Center(
+                                child: Text(
+                                  "$period",
+                                  style: const TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Days Mon (1) to Fri (5)
+                            for (int day = 1; day <= 5; day++)
+                              _buildTableCell(day, period),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Scroll Progress Indicator at the bottom of the table
+              Center(
+                child: _buildScrollIndicator(),
+              ),
+
+              const SizedBox(height: 32),
             ],
           ),
-          child: InkWell(
-            onTap: () {
-              if (isHOD && _isHodEditing) {
-                _showEditModal(slot);
-              }
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Row(
-              children: [
-                // Fixed 1-hour time block column
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _formatTime(slot.startTime),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_downward, size: 12, color: AppColors.primary),
-                      Text(
-                        _formatTime(slot.endTime),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Subject name, Class and Teacher details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        slot.subjectName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(Icons.person_outline, size: 14, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          Text(
-                            slot.teacherName,
-                            style: const TextStyle(color: Colors.black54, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.class_outlined, size: 14, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          Text(
-                            slot.classId,
-                            style: const TextStyle(color: Colors.black54, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Edit pencil indicator if editing is active
-                if (_isHodEditing && isHOD)
-                  const CircleAvatar(
-                    backgroundColor: AppColors.primary,
-                    radius: 14,
-                    child: Icon(Icons.edit, size: 14, color: Colors.white),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  String _formatTime(TimeOfDay time) {
-    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+  Widget _buildHeaderCell(String dayName) {
+    return SizedBox(
+      height: 48,
+      child: Center(
+        child: Text(
+          dayName,
+          style: const TextStyle(
+            color: Color(0xFF475569),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableCell(int day, int period) {
+    final timetable = ref.watch(timetableNotifierProvider);
+    final slotId = "slot_${_selectedSemester.replaceAll(' ', '_')}_${day}_$period";
+    final slotIndex = timetable.indexWhere((s) => s.id == slotId);
+
+    if (slotIndex == -1) {
+      return const SizedBox(
+        height: 80,
+        child: Center(
+          child: Text(
+            "-",
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
+    final slot = timetable[slotIndex];
+
+    return InkWell(
+      onTap: () {
+        final auth = ref.read(authProvider);
+        final isHOD = auth.user?.isHOD ?? false;
+        if (isHOD && _isHodEditing) {
+          _showEditModal(slot);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 80,
+        alignment: Alignment.center,
+        color: _isHodEditing ? AppColors.primary.withValues(alpha: 0.02) : Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              slot.subjectName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              slot.teacherName,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScrollIndicator() {
+    return Container(
+      width: 150,
+      height: 6,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE2E8F0),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Stack(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final trackWidth = constraints.maxWidth;
+              final thumbWidth = trackWidth * 0.4;
+              final maxOffset = trackWidth - thumbWidth;
+              final offset = _scrollProgress * maxOffset;
+              return Positioned(
+                left: offset,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: thumbWidth,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF64748B),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   // Modal overlay to edit slot details
@@ -503,7 +446,15 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> with SingleTi
     String selectedTeacher = slot.teacherName;
 
     // Standard available teachers
-    final List<String> teachers = ["Anju", "Anu", "Rijina", "Ms Sheethal", "Sheetal"];
+    final List<String> teachers = [
+      "Anju miss",
+      "Anu miss",
+      "Rijina miss",
+      "Ms Sheethal",
+      "Sheetal miss",
+      "Deepa miss",
+      "Manju miss",
+    ];
     if (!teachers.contains(selectedTeacher)) {
       teachers.add(selectedTeacher);
     }
@@ -535,7 +486,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> with SingleTi
               ),
               const SizedBox(height: 8),
               Text(
-                "Class: ${slot.classId}  |  Time: ${_formatTime(slot.startTime)} - ${_formatTime(slot.endTime)}",
+                "Class: ${slot.classId}  |  Period: ${slot.id.split('_').last}",
                 style: const TextStyle(color: Colors.black54, fontSize: 13),
               ),
               const SizedBox(height: 20),
