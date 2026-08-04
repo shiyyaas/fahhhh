@@ -13,7 +13,7 @@ void main() {
       expect(user.name, 'shiyas ps');
       expect(user.isHOD, false);
       expect(user.isClassTeacher, false);
-      expect(user.className, 'S2 Pure');
+      expect(user.className, 'S2 BCA');
     });
 
     test('Pure Teacher Profile validation and mapping', () async {
