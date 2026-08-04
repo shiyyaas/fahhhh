@@ -22,7 +22,7 @@ final selectedDateProvider =
     );
 
 typedef _$SelectedDate = AutoDisposeNotifier<DateTime>;
-String _$timetableNotifierHash() => r'f8de94cc2e98fbd792b4cb31629bb270dee0c94c';
+String _$timetableNotifierHash() => r'9f105d7ee2211b6befa528aa0ec72a9089cf8b63';
 
 /// See also [TimetableNotifier].
 @ProviderFor(TimetableNotifier)

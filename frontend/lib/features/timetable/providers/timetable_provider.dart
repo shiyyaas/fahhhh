@@ -59,149 +59,83 @@ List<Student> getStudentsForClass(String classId) {
   return s8BcaStudents;
 }
 
+// Standard Available Subjects by Semester
+const Map<String, List<String>> semesterSubjects = {
+  "S2": ["DS", "OS", "Web Dev", "C", "English", "Malayalam"],
+  "S4": ["Lab", "Maths", "Data Science", "AI", "Python", "Software Engineering"],
+  "S6": ["Digital Marketing", "Disaster Management", "Neural Network", "Computer Networks", "Image Processing", "NLP"],
+  "S8": ["Android", "Flutter", "Java", "Cybersecurity", "English", "Malayalam"],
+};
+
+// Teacher Assignments for Mock Data
+const Map<String, String> subjectTeachers = {
+  // S2
+  "DS": "Anju miss",
+  "OS": "Ms Sheethal",
+  "Web Dev": "Anu miss",
+  "C": "Rijina miss",
+  "English": "Deepa miss",
+  "Malayalam": "Manju miss",
+  // S4
+  "Lab": "Rijina miss",
+  "Maths": "Anju miss",
+  "Data Science": "Sheetal miss",
+  "AI": "Anu miss",
+  "Python": "Anju miss",
+  "Software Engineering": "Ms Sheethal",
+  // S6
+  "Digital Marketing": "Anu miss",
+  "Disaster Management": "Manju miss",
+  "Neural Network": "Sheetal miss",
+  "Computer Networks": "Rijina miss",
+  "Image Processing": "Anju miss",
+  "NLP": "Deepa miss",
+  // S8
+  "Android": "Rijina miss",
+  "Flutter": "Anju miss",
+  "Java": "Anu miss",
+  "Cybersecurity": "Sheetal miss",
+};
+
 @riverpod
 class TimetableNotifier extends _$TimetableNotifier {
   @override
   List<TimetableSlot> build() {
-    // Generate initial timetable schedule slots
     final List<TimetableSlot> initialSlots = [];
+    final List<String> classes = ["S2 BCA", "S4 BCA", "S6 BCA", "S8 BCA"];
 
-    // We populate Monday to Friday (1 to 5)
-    for (int day = 1; day <= 5; day++) {
-      // Period 1: 09:30 - 10:30
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_1_s2",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 9, minute: 30),
-        endTime: const TimeOfDay(hour: 10, minute: 30),
-        subjectName: day == 1 ? "Software Engineering" : (day == 2 ? "Computer Networks" : "Microprocessors"),
-        teacherName: day == 1 ? "Ms Sheethal" : "Rijina",
-        classId: "S2 BCA",
-        status: AttendanceStatus.recordNow,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S2 BCA"),
-      ));
+    // Populate Mon to Fri (1 to 5) for all classes
+    for (final classId in classes) {
+      final semKey = classId.substring(0, 2); // "S2", "S4", etc.
+      final subjects = semesterSubjects[semKey] ?? [];
 
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_1_s4",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 9, minute: 30),
-        endTime: const TimeOfDay(hour: 10, minute: 30),
-        subjectName: "Database Systems",
-        teacherName: "Anu",
-        classId: "S4 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S4 BCA"),
-      ));
+      for (int day = 1; day <= 5; day++) {
+        for (int period = 1; period <= 5; period++) {
+          // Determinstic subject index selection to rotate the 6 subjects nicely across 25 periods
+          final subjectIndex = (day * 2 + period) % subjects.length;
+          final subject = subjects[subjectIndex];
+          final teacher = subjectTeachers[subject] ?? "Anju miss";
 
-      // Period 2: 10:30 - 11:30
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_2_s2",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 10, minute: 30),
-        endTime: const TimeOfDay(hour: 11, minute: 30),
-        subjectName: day % 2 == 0 ? "Software Engineering" : "Mathematics",
-        teacherName: day % 2 == 0 ? "Ms Sheethal" : "Anju",
-        classId: "S2 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S2 BCA"),
-      ));
+          // Period schedule timings
+          final startHours = [9, 10, 11, 13, 14];
+          final startMinutes = [30, 30, 30, 30, 30];
+          final endHours = [10, 11, 12, 14, 15];
+          final endMinutes = [30, 30, 30, 30, 30];
 
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_2_s4",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 10, minute: 30),
-        endTime: const TimeOfDay(hour: 11, minute: 30),
-        subjectName: "Operating Systems",
-        teacherName: "Ms Sheethal",
-        classId: "S4 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S4 BCA"),
-      ));
-
-      // Period 3: 11:30 - 12:30
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_3_s2",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 11, minute: 30),
-        endTime: const TimeOfDay(hour: 12, minute: 30),
-        subjectName: "Python Programming",
-        teacherName: "Rijina",
-        classId: "S2 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S2 BCA"),
-      ));
-
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_3_s6",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 11, minute: 30),
-        endTime: const TimeOfDay(hour: 12, minute: 30),
-        subjectName: "Artificial Intelligence",
-        teacherName: "Sheetal",
-        classId: "S6 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S6 BCA"),
-      ));
-
-      // Period 4: 13:30 - 14:30
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_4_s2",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 13, minute: 30),
-        endTime: const TimeOfDay(hour: 14, minute: 30),
-        subjectName: "Web Technologies",
-        teacherName: "Anu",
-        classId: "S2 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S2 BCA"),
-      ));
-
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_4_s8",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 13, minute: 30),
-        endTime: const TimeOfDay(hour: 14, minute: 30),
-        subjectName: "Cloud Computing",
-        teacherName: "Anju",
-        classId: "S8 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S8 BCA"),
-      ));
-
-      // Period 5: 14:30 - 15:30
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_5_s2",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 14, minute: 30),
-        endTime: const TimeOfDay(hour: 15, minute: 30),
-        subjectName: "Environmental Studies",
-        teacherName: "Anju",
-        classId: "S2 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S2 BCA"),
-      ));
-
-      initialSlots.add(TimetableSlot(
-        id: "slot_${day}_5_s8",
-        dayOfWeek: day,
-        startTime: const TimeOfDay(hour: 14, minute: 30),
-        endTime: const TimeOfDay(hour: 15, minute: 30),
-        subjectName: "Cyber Security",
-        teacherName: "Sheetal",
-        classId: "S8 BCA",
-        status: AttendanceStatus.pending,
-        studentStatus: AttendanceStatus.pending,
-        studentAttendance: _initDefaultAttendance("S8 BCA"),
-      ));
+          initialSlots.add(TimetableSlot(
+            id: "slot_${classId.replaceAll(' ', '_')}_${day}_$period",
+            dayOfWeek: day,
+            startTime: TimeOfDay(hour: startHours[period - 1], minute: startMinutes[period - 1]),
+            endTime: TimeOfDay(hour: endHours[period - 1], minute: endMinutes[period - 1]),
+            subjectName: subject,
+            teacherName: teacher,
+            classId: classId,
+            status: period == 1 && day == 1 ? AttendanceStatus.recordNow : AttendanceStatus.pending,
+            studentStatus: AttendanceStatus.pending,
+            studentAttendance: _initDefaultAttendance(classId),
+          ));
+        }
+      }
     }
 
     return initialSlots;
