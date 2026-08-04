@@ -50,7 +50,7 @@ class DebugRoleSelector extends StatelessWidget {
             _buildProfileButton(
               context,
               title: '1. Student Profile',
-              subtitle: 'student@mescas.org',
+              subtitle: 'student@mescas.org (shiyas ps)',
               color: Colors.blue.shade50,
               textColor: Colors.blue.shade900,
               onTap: () => onSelect('student@mescas.org', 'password123'),
@@ -58,17 +58,17 @@ class DebugRoleSelector extends StatelessWidget {
             const SizedBox(height: 12),
             _buildProfileButton(
               context,
-              title: '2. Pure Teacher Profile',
-              subtitle: 'teacher@mescas.org',
+              title: '2. Teacher Profile (not a Class Teacher)',
+              subtitle: 'sheetal@mescas.org (sheetal)',
               color: Colors.green.shade50,
               textColor: Colors.green.shade900,
-              onTap: () => onSelect('teacher@mescas.org', 'password123'),
+              onTap: () => onSelect('sheetal@mescas.org', 'password123'),
             ),
             const SizedBox(height: 12),
             _buildProfileButton(
               context,
               title: '3. Class Teacher Profile',
-              subtitle: 'classteacher@mescas.org',
+              subtitle: 'classteacher@mescas.org (Rijina)',
               color: Colors.purple.shade50,
               textColor: Colors.purple.shade900,
               onTap: () => onSelect('classteacher@mescas.org', 'password123'),
@@ -76,11 +76,11 @@ class DebugRoleSelector extends StatelessWidget {
             const SizedBox(height: 12),
             _buildProfileButton(
               context,
-              title: '4. HOD + Class Teacher Profile',
-              subtitle: 'sheetal@mescas.org',
+              title: '4. HOD Profile',
+              subtitle: 'hod@mescas.org (Anu varghese)',
               color: Colors.orange.shade50,
               textColor: Colors.orange.shade900,
-              onTap: () => onSelect('sheetal@mescas.org', 'password123'),
+              onTap: () => onSelect('hod@mescas.org', 'password123'),
             ),
             const SizedBox(height: 20),
           ],
@@ -108,7 +108,7 @@ class DebugRoleSelector extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: textColor.withOpacity(0.2)),
+          border: Border.all(color: textColor.withValues(alpha: 0.2)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,7 +128,7 @@ class DebugRoleSelector extends StatelessWidget {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: textColor.withOpacity(0.7),
+                    color: textColor.withValues(alpha: 0.7),
                     fontSize: 13,
                   ),
                 ),
