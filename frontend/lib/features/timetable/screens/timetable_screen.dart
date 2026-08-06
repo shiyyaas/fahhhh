@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/widgets/blue_btn.dart';
-import '../../../core/widgets/white_btn.dart';
+import '../../../core/widgets/input_fields.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';
@@ -615,131 +615,131 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   // Modal overlay to edit slot details
   void _showEditModal(TimetableSlot slot) {
     final TextEditingController subjectController = TextEditingController(text: slot.subjectName);
-    String selectedTeacher = slot.teacherName;
+    final TextEditingController teacherController = TextEditingController(text: slot.teacherName);
+    final String timeString = "${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} - ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}";
+    final TextEditingController timeController = TextEditingController(text: timeString);
 
-    if (!_teachersList.contains(selectedTeacher)) {
-      _teachersList.add(selectedTeacher);
-    }
-
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 24,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Modify Schedule Period",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Class: ${slot.classId}  |  Period: ${slot.id.split('_').last}",
-                style: const TextStyle(color: Colors.black54, fontSize: 13),
-              ),
-              const SizedBox(height: 20),
-
-              // Subject text input
-              const Text(
-                "Subject Name",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: subjectController,
-                decoration: InputDecoration(
-                  hintText: "Enter subject name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Teacher selection dropdown
-              const Text(
-                "Teacher Name",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              StatefulBuilder(
-                builder: (context, setStateModal) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedTeacher,
-                        isExpanded: true,
-                        onChanged: (val) {
-                          setStateModal(() {
-                            selectedTeacher = val!;
-                          });
-                        },
-                        items: _teachersList.map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  );
-                }
-              ),
-              const SizedBox(height: 24),
-
-              // Save & Cancel row
-              Row(
+          backgroundColor: Colors.white,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: WhiteBtn(
-                      text: "Cancel",
-                      onPressed: () {
-                        if (!context.mounted) return;
-                        context.pop();
-                      },
+                  const Text(
+                    "Add details",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: BlueBtn(
-                      text: "Save",
-                      onPressed: () {
-                        final updatedSlot = slot.copyWith(
-                          subjectName: subjectController.text,
-                          teacherName: selectedTeacher,
-                        );
-                        ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
-                        if (!context.mounted) return;
-                        context.pop();
-                      },
-                    ),
+                  const SizedBox(height: 16),
+                  InputField(
+                    controller: subjectController,
+                    label: "Subject Name",
+                    hintText: "Enter subject name",
+                  ),
+                  const SizedBox(height: 16),
+                  InputField(
+                    controller: teacherController,
+                    label: "Teacher Name",
+                    hintText: "Enter teacher name",
+                  ),
+                  const SizedBox(height: 16),
+                  InputField(
+                    controller: timeController,
+                    label: "Time",
+                    hintText: "9:30 - 10:30",
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: BlueBtn(
+                          text: "Cancel",
+                          backgroundColor: const Color(0xFF6E6E6E),
+                          borderColor: const Color(0xFF6E6E6E),
+                          textColor: Colors.white,
+                          borderRadius: 30,
+                          onPressed: () {
+                            if (!context.mounted) return;
+                            context.pop();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: BlueBtn(
+                          text: "Save",
+                          backgroundColor: AppColors.primary,
+                          borderColor: AppColors.primary,
+                          textColor: Colors.white,
+                          borderRadius: 30,
+                          onPressed: () {
+                            TimeOfDay start = slot.startTime;
+                            TimeOfDay end = slot.endTime;
+                            _parseAndSetTime(timeController.text, slot, (s, e) {
+                              start = s;
+                              end = e;
+                            });
+
+                            final updatedSlot = slot.copyWith(
+                              subjectName: subjectController.text,
+                              teacherName: teacherController.text,
+                              startTime: start,
+                              endTime: end,
+                            );
+
+                            ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
+                            if (!context.mounted) return;
+                            context.pop();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         );
       },
     );
+  }
+
+  TimeOfDay _parseTimeOfDay(String s) {
+    final parts = s.trim().split(':');
+    if (parts.length < 2) return const TimeOfDay(hour: 9, minute: 30);
+    final hour = int.tryParse(parts[0]) ?? 9;
+    final minute = int.tryParse(parts[1]) ?? 30;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  void _parseAndSetTime(String text, TimetableSlot slot, Function(TimeOfDay start, TimeOfDay end) onParsed) {
+    final separators = ["-", "to", "–"];
+    String separator = "-";
+    for (var s in separators) {
+      if (text.contains(s)) {
+        separator = s;
+        break;
+      }
+    }
+    final parts = text.split(separator);
+    if (parts.length == 2) {
+      final startStr = parts[0].trim();
+      final endStr = parts[1].trim();
+      onParsed(_parseTimeOfDay(startStr), _parseTimeOfDay(endStr));
+    } else {
+      onParsed(slot.startTime, slot.endTime);
+    }
   }
 }
