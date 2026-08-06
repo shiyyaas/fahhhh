@@ -12,7 +12,6 @@ import '../../features/my_subjects/screens/my_subject.dart';
 import '../../features/profile/screens/profile.dart';
 import '../../features/profile/screens/edit_profile.dart';
 import '../../features/attendance/screens/attendance_taking_screen.dart';
-import '../../features/attendance/screens/attendance_view_screen.dart';
 import '../../features/timetable/screens/timetable_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -45,7 +44,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/attendance-view/:slotId',
         builder: (context, state) {
           final slotId = state.pathParameters['slotId']!;
-          return AttendanceViewScreen(slotId: slotId);
+          return AttendanceTakingScreen(slotId: slotId);
         },
       ),
       StatefulShellRoute.indexedStack(

@@ -27,10 +27,14 @@ The project follows a feature-first architecture and uses Riverpod for state man
 
 - **Frontend-First Development**: Develop complete, responsive, and pixel-perfect layouts using clean UI structures.
 - **Mock Data Until Backend**: Strictly use minimal, realistic mock data for repositories and providers so that future backend integration is simple (just replacing the repositories/mock services).
+- **Future Backend replaces only Data Layer**: The transition to actual backend services must require zero refactoring of UI or widget-tree logic. Only the repository/mock data layers should be replaced.
 - **Reuse Existing Widgets**: Do not duplicate reusable components. Look in `lib/core/widgets` or existing feature widgets before writing custom ones.
 - **Single Source of Truth**: For example, class timetables are the single source of truth; teacher timetables are dynamically derived from them. Never maintain duplicate or split datasets.
 - **Prefer Composition Over Duplication**: Compose shared widgets cleanly rather than duplicating UI code.
 - **Keep Models Minimal**: Do not over-engineer models with unnecessary fields or complex helper methods. Keep them clean and straightforward.
+- **Follow Existing Architecture**: Adhere strictly to the feature-first architectural patterns, with state logic in Riverpod Providers and routes in GoRouter.
+- **Follow Design System**: Maintain full compliance with established colors (e.g. `AppColors.primary`), typography styles (`AppTextStyles`), layouts, dialog behaviors, and spacing constraints.
+- **Do Not Duplicate Components**: Prioritize shared reusable elements like inputs, status buttons, indicators, and header rows over local widget implementations.
 
 ---
 
