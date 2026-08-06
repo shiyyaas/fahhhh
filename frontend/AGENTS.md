@@ -23,6 +23,17 @@ The project follows a feature-first architecture and uses Riverpod for state man
 
 ---
 
+## Core Development Rules
+
+- **Frontend-First Development**: Develop complete, responsive, and pixel-perfect layouts using clean UI structures.
+- **Mock Data Until Backend**: Strictly use minimal, realistic mock data for repositories and providers so that future backend integration is simple (just replacing the repositories/mock services).
+- **Reuse Existing Widgets**: Do not duplicate reusable components. Look in `lib/core/widgets` or existing feature widgets before writing custom ones.
+- **Single Source of Truth**: For example, class timetables are the single source of truth; teacher timetables are dynamically derived from them. Never maintain duplicate or split datasets.
+- **Prefer Composition Over Duplication**: Compose shared widgets cleanly rather than duplicating UI code.
+- **Keep Models Minimal**: Do not over-engineer models with unnecessary fields or complex helper methods. Keep them clean and straightforward.
+
+---
+
 ## Architecture
 
 The project follows a feature-first architecture.
@@ -49,6 +60,7 @@ Shared code belongs inside `core`.
 ## State Management
 
 - Use Riverpod.
+- Follow existing Riverpod patterns already used (e.g. code generation with `riverpod_generator`).
 - Keep providers inside their respective features whenever possible.
 - Global providers should only exist if multiple features depend on them.
 

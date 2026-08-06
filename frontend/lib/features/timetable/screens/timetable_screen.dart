@@ -18,11 +18,24 @@ class TimetableScreen extends ConsumerStatefulWidget {
 }
 
 class _TimetableScreenState extends ConsumerState<TimetableScreen> {
-  String _selectedSemester = "S2 BCA";
+  // Navigation segments: "Classes" vs "Teachers"
+  String _selectedSegment = "Classes"; // "Classes" or "Teachers"
+
+  // Dropdown values based on selection
+  String _selectedClass = "S2 BCA";
+  String _selectedTeacher = "Anu Varghese";
+
   bool _isHodEditing = false;
 
   late ScrollController _scrollController;
   double _scrollProgress = 0.0;
+
+  final List<String> _classesList = ["S2 BCA", "S4 BCA", "S6 BCA", "S8 BCA"];
+  final List<String> _teachersList = [
+    "Anu Varghese",
+    "Rijina NM",
+    "Sheetal",
+  ];
 
   @override
   void initState() {
@@ -30,19 +43,36 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
 
-    // Set default selected semester from logged-in user if available
+    // Set defaults from logged-in user if available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = ref.read(authProvider);
       final user = auth.user;
       if (user != null) {
         if (user.role == UserRole.student && user.className != null) {
           setState(() {
-            _selectedSemester = user.className!;
+            _selectedClass = user.className!;
           });
-        } else if (user.role == UserRole.teacher && user.assignedClassId != null) {
-          setState(() {
-            _selectedSemester = user.assignedClassId!;
-          });
+        } else if (user.role == UserRole.teacher) {
+          if (user.assignedClassId != null && user.assignedClassId != "No CLASS") {
+            setState(() {
+              _selectedClass = user.assignedClassId!;
+            });
+          }
+          if (user.isHOD) {
+            setState(() {
+              _selectedSegment = "Classes";
+            });
+          } else {
+            final cleanName = user.name.trim();
+            final matchingTeacher = _teachersList.firstWhere(
+              (t) => t.toLowerCase() == cleanName.toLowerCase(),
+              orElse: () => _teachersList.first,
+            );
+            setState(() {
+              _selectedTeacher = matchingTeacher;
+              _selectedSegment = "Teachers";
+            });
+          }
         }
       }
     });
@@ -75,7 +105,42 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final isStudent = auth.role == UserRole.student;
 
     if (isStudent && user?.className != null) {
-      _selectedSemester = user!.className!;
+      _selectedClass = user!.className!;
+    }
+
+    // Determine current timetable slots to render
+    final allSlots = ref.watch(timetableNotifierProvider);
+    List<List<TimetableSlot?>> gridSlots = List.generate(
+      5,
+      (_) => List.generate(5, (_) => null),
+    );
+
+    if (isStudent || _selectedSegment == "Classes") {
+      // Find matching slots for this class
+      for (final slot in allSlots) {
+        if (slot.classId == _selectedClass) {
+          final dayIndex = slot.dayOfWeek - 1;
+          final periodIndex = int.tryParse(slot.id.split('_').last) != null
+              ? int.parse(slot.id.split('_').last) - 1
+              : 0;
+          if (dayIndex >= 0 && dayIndex < 5 && periodIndex >= 0 && periodIndex < 5) {
+            gridSlots[periodIndex][dayIndex] = slot;
+          }
+        }
+      }
+    } else {
+      // Find matching slots for this teacher
+      for (final slot in allSlots) {
+        if (slot.teacherName == _selectedTeacher) {
+          final dayIndex = slot.dayOfWeek - 1;
+          final periodIndex = int.tryParse(slot.id.split('_').last) != null
+              ? int.parse(slot.id.split('_').last) - 1
+              : 0;
+          if (dayIndex >= 0 && dayIndex < 5 && periodIndex >= 0 && periodIndex < 5) {
+            gridSlots[periodIndex][dayIndex] = slot;
+          }
+        }
+      }
     }
 
     return Scaffold(
@@ -85,9 +150,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Custom Header aligning with 'Time Table - admin home (1).png'
+              // Custom Header aligning with the design
               Padding(
-                padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 16),
+                padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 8),
                 child: Row(
                   children: [
                     IconButton(
@@ -129,80 +194,122 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
               const SizedBox(height: 8),
 
-              // Action Buttons Row (Sort by & Edit)
+              // Controls row for Teachers / HOD: Segmented Control & Dropdown Selection
               if (!isStudent)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                   child: Row(
                     children: [
-                      // Sort by Dropdown Menu Button
-                      PopupMenuButton<String>(
-                        onSelected: (val) {
-                          setState(() {
-                            _selectedSemester = val;
-                          });
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                      // Segmented Control (Classes | Teachers)
+                      Container(
+                        height: 44,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.grey.shade300, width: 1.2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: "S2 BCA", child: Text("S2 BCA")),
-                          const PopupMenuItem(value: "S4 BCA", child: Text("S4 BCA")),
-                          const PopupMenuItem(value: "S6 BCA", child: Text("S6 BCA")),
-                          const PopupMenuItem(value: "S8 BCA", child: Text("S8 BCA")),
-                        ],
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.black, width: 1.2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Sort by: ${_selectedSemester.split(' ').first}",
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedSegment = "Classes";
+                                  _isHodEditing = false;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _selectedSegment == "Classes"
+                                      ? AppColors.primary
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  "Classes",
+                                  style: TextStyle(
+                                    color: _selectedSegment == "Classes"
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
-                            ],
-                          ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedSegment = "Teachers";
+                                  _isHodEditing = false;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _selectedSegment == "Teachers"
+                                      ? AppColors.primary
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  "Teachers",
+                                  style: TextStyle(
+                                    color: _selectedSegment == "Teachers"
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
 
                       const SizedBox(width: 12),
 
-                      // Edit Button (Only visible for HOD)
-                      if (isHOD)
-                        GestureDetector(
-                          onTap: () {
+                      // Selection Dropdown
+                      Expanded(
+                        child: PopupMenuButton<String>(
+                          onSelected: (val) {
                             setState(() {
-                              _isHodEditing = !_isHodEditing;
+                              if (_selectedSegment == "Classes") {
+                                _selectedClass = val;
+                              } else {
+                                _selectedTeacher = val;
+                              }
                             });
                           },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          itemBuilder: (context) {
+                            final list = _selectedSegment == "Classes" ? _classesList : _teachersList;
+                            return list.map((item) {
+                              return PopupMenuItem<String>(
+                                value: item,
+                                child: Text(item),
+                              );
+                            }).toList();
+                          },
+                          child: Container(
+                            height: 44,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: _isHodEditing ? AppColors.primary : Colors.white,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: _isHodEditing ? AppColors.primary : Colors.black,
-                                width: 1.2,
-                              ),
+                              border: Border.all(color: Colors.black, width: 1.2),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.08),
@@ -212,31 +319,84 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                               ],
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Icon(
-                                  Icons.edit_outlined,
-                                  color: _isHodEditing ? Colors.white : Colors.black,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _isHodEditing ? "Save" : "Edit",
-                                  style: TextStyle(
-                                    color: _isHodEditing ? Colors.white : Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                                Expanded(
+                                  child: Text(
+                                    _selectedSegment == "Classes" ? _selectedClass : _selectedTeacher,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
+                                const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
                               ],
                             ),
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
 
-              const SizedBox(height: 24),
+              // Edit button for HOD (Only shows in Classes mode when logged in as HOD)
+              if (isHOD && _selectedSegment == "Classes")
+                Padding(
+                  padding: const EdgeInsets.only(left: 24, right: 24, top: 4, bottom: 8),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isHodEditing = !_isHodEditing;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _isHodEditing ? AppColors.primary : Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: _isHodEditing ? AppColors.primary : Colors.black,
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: _isHodEditing ? Colors.white : Colors.black,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _isHodEditing ? "Save" : "Edit",
+                              style: TextStyle(
+                                color: _isHodEditing ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 16),
 
               // Horizontal Scrollable Grid Table Card
               SingleChildScrollView(
@@ -307,7 +467,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             ),
                             // Days Mon (1) to Fri (5)
                             for (int day = 1; day <= 5; day++)
-                              _buildTableCell(day, period),
+                              _buildTableCell(gridSlots[period - 1][day - 1], day, period),
                           ],
                         ),
                     ],
@@ -347,30 +507,34 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     );
   }
 
-  Widget _buildTableCell(int day, int period) {
-    final timetable = ref.watch(timetableNotifierProvider);
-    final slotId = "slot_${_selectedSemester.replaceAll(' ', '_')}_${day}_$period";
-    final slotIndex = timetable.indexWhere((s) => s.id == slotId);
-
-    if (slotIndex == -1) {
+  Widget _buildTableCell(TimetableSlot? slot, int day, int period) {
+    if (slot == null) {
       return const SizedBox(
         height: 80,
         child: Center(
           child: Text(
             "-",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 14,
+            ),
           ),
         ),
       );
     }
 
-    final slot = timetable[slotIndex];
+    final isStudentView = ref.read(authProvider).role == UserRole.student;
+    // In Classes mode (and for student), show Subject + Teacher Name.
+    // In Teachers mode, show Subject + Class Name.
+    final secondaryText = (isStudentView || _selectedSegment == "Classes")
+        ? slot.teacherName
+        : slot.classId;
 
     return InkWell(
       onTap: () {
         final auth = ref.read(authProvider);
         final isHOD = auth.user?.isHOD ?? false;
-        if (isHOD && _isHodEditing) {
+        if (isHOD && _isHodEditing && _selectedSegment == "Classes") {
           _showEditModal(slot);
         }
       },
@@ -378,7 +542,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         duration: const Duration(milliseconds: 150),
         height: 80,
         alignment: Alignment.center,
-        color: _isHodEditing ? AppColors.primary.withValues(alpha: 0.02) : Colors.white,
+        color: _isHodEditing && _selectedSegment == "Classes"
+            ? AppColors.primary.withValues(alpha: 0.04)
+            : Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -396,7 +562,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              slot.teacherName,
+              secondaryText,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -419,15 +585,15 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         color: const Color(0xFFE2E8F0),
         borderRadius: BorderRadius.circular(3),
       ),
-      child: Stack(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final trackWidth = constraints.maxWidth;
-              final thumbWidth = trackWidth * 0.4;
-              final maxOffset = trackWidth - thumbWidth;
-              final offset = _scrollProgress * maxOffset;
-              return Positioned(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final trackWidth = constraints.maxWidth;
+          final thumbWidth = trackWidth * 0.4;
+          final maxOffset = trackWidth - thumbWidth;
+          final offset = _scrollProgress * maxOffset;
+          return Stack(
+            children: [
+              Positioned(
                 left: offset,
                 top: 0,
                 bottom: 0,
@@ -438,10 +604,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
-              );
-            },
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -451,18 +617,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final TextEditingController subjectController = TextEditingController(text: slot.subjectName);
     String selectedTeacher = slot.teacherName;
 
-    // Standard available teachers
-    final List<String> teachers = [
-      "Anju miss",
-      "Anu miss",
-      "Rijina miss",
-      "Ms Sheethal",
-      "Sheetal miss",
-      "Deepa miss",
-      "Manju miss",
-    ];
-    if (!teachers.contains(selectedTeacher)) {
-      teachers.add(selectedTeacher);
+    if (!_teachersList.contains(selectedTeacher)) {
+      _teachersList.add(selectedTeacher);
     }
 
     showModalBottomSheet(
@@ -538,7 +694,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             selectedTeacher = val!;
                           });
                         },
-                        items: teachers.map<DropdownMenuItem<String>>((String value) {
+                        items: _teachersList.map<DropdownMenuItem<String>>((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
