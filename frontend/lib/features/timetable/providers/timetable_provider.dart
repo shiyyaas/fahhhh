@@ -70,31 +70,31 @@ const Map<String, List<String>> semesterSubjects = {
 // Teacher Assignments for Mock Data
 const Map<String, String> subjectTeachers = {
   // S2
-  "DS": "Anju miss",
-  "OS": "Ms Sheethal",
-  "Web Dev": "Anu miss",
-  "C": "Rijina miss",
-  "English": "Deepa miss",
-  "Malayalam": "Manju miss",
+  "DS": "Anu Varghese",
+  "OS": "Sheetal",
+  "Web Dev": "Anu Varghese",
+  "C": "Rijina NM",
+  "English": "Rijina NM",
+  "Malayalam": "Sheetal",
   // S4
-  "Lab": "Rijina miss",
-  "Maths": "Anju miss",
-  "Data Science": "Sheetal miss",
-  "AI": "Anu miss",
-  "Python": "Anju miss",
-  "Software Engineering": "Ms Sheethal",
+  "Lab": "Rijina NM",
+  "Maths": "Anu Varghese",
+  "Data Science": "Sheetal",
+  "AI": "Anu Varghese",
+  "Python": "Anu Varghese",
+  "Software Engineering": "Sheetal",
   // S6
-  "Digital Marketing": "Anu miss",
-  "Disaster Management": "Manju miss",
-  "Neural Network": "Sheetal miss",
-  "Computer Networks": "Rijina miss",
-  "Image Processing": "Anju miss",
-  "NLP": "Deepa miss",
+  "Digital Marketing": "Anu Varghese",
+  "Disaster Management": "Sheetal",
+  "Neural Network": "Sheetal",
+  "Computer Networks": "Rijina NM",
+  "Image Processing": "Anu Varghese",
+  "NLP": "Rijina NM",
   // S8
-  "Android": "Rijina miss",
-  "Flutter": "Anju miss",
-  "Java": "Anu miss",
-  "Cybersecurity": "Sheetal miss",
+  "Android": "Rijina NM",
+  "Flutter": "Anu Varghese",
+  "Java": "Anu Varghese",
+  "Cybersecurity": "Sheetal",
 };
 
 @riverpod
@@ -114,7 +114,7 @@ class TimetableNotifier extends _$TimetableNotifier {
           // Determinstic subject index selection to rotate the 6 subjects nicely across 25 periods
           final subjectIndex = (day * 2 + period) % subjects.length;
           final subject = subjects[subjectIndex];
-          final teacher = subjectTeachers[subject] ?? "Anju miss";
+          final teacher = subjectTeachers[subject] ?? "Anu Varghese";
 
           // Period schedule timings
           final startHours = [9, 10, 11, 13, 14];
