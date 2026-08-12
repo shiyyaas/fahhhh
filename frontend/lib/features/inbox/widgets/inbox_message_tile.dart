@@ -6,8 +6,8 @@ import 'package:fahhhh/features/inbox/models/inbox_message.dart';
 
 import 'package:flutter/material.dart';
 
-/// Inbox message card: avatar, sender name, message body and
-/// Accept/Review + Reject actions (matches the admin inbox design).
+/// Inbox message card: avatar, sender name, message body and either
+/// Accept/Review + Reject actions (actionable) or a colored status label.
 class InboxMessageTile extends StatelessWidget {
   final InboxMessage message;
   final VoidCallback? onAccept;
@@ -20,9 +20,24 @@ class InboxMessageTile extends StatelessWidget {
     this.onReject,
   });
 
+  bool get _isStudent => message.type == InboxMessageType.student;
+
+  String get _imageAsset {
+    if (message.type == InboxMessageType.student) {
+      return 'assets/images/student.png';
+    }
+    if (message.type == InboxMessageType.leave) {
+      return 'assets/images/teacher.png';
+    }
+    return message.status == InboxMessageStatus.accepted ||
+            message.status == InboxMessageStatus.rejected
+        ? 'assets/images/teacher.png'
+        : 'assets/images/teacher.png';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool isStudent = message.type == InboxMessageType.student;
+    final bool hasStatus = message.status != InboxMessageStatus.none;
 
     return Container(
       width: double.infinity,
@@ -48,13 +63,12 @@ class InboxMessageTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,
-                    border: Border.all(color: const Color(0xFF141212), width: 0.8),
+                    border: Border.all(
+                      color: const Color(0xFF141212),
+                      width: 0.8,
+                    ),
                     image: DecorationImage(
-                      image: AssetImage(
-                        isStudent
-                            ? 'assets/images/student.png'
-                            : 'assets/images/teacher.png',
-                      ),
+                      image: AssetImage(_imageAsset),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -88,60 +102,76 @@ class InboxMessageTile extends StatelessWidget {
               ],
             ),
           ),
-          // Actions
-          Row(
-            children: [
-              GestureDetector(
-                onTap: onAccept,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isStudent
-                          ? Icons.arrow_forward_rounded
-                          : Icons.check_rounded,
-                      size: 16,
-                      color: const Color(0xFF0B55F8),
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      isStudent ? 'Review' : 'Accept',
-                      style: AppTextStyles.small.copyWith(
-                        fontSize: 17.7,
+          // Status or actions
+          if (hasStatus)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                message.status == InboxMessageStatus.accepted
+                    ? 'Accepted'
+                    : 'Rejected',
+                style: AppTextStyles.small.copyWith(
+                  fontSize: 17.7,
+                  color: message.status == InboxMessageStatus.accepted
+                      ? const Color(0xFF0B55F8)
+                      : const Color(0xFFEB2E2E),
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: onAccept,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _isStudent
+                            ? Icons.arrow_forward_rounded
+                            : Icons.check_rounded,
+                        size: 16,
                         color: const Color(0xFF0B55F8),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              GestureDetector(
-                onTap: onReject,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'x',
-                      style: TextStyle(
-                        fontFamily: 'Quicksand',
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18.7,
-                        color: Color(0xFFEB2E2E),
+                      const SizedBox(width: 3),
+                      Text(
+                        _isStudent ? 'Review' : 'Accept',
+                        style: AppTextStyles.small.copyWith(
+                          fontSize: 17.7,
+                          color: const Color(0xFF0B55F8),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Reject',
-                      style: AppTextStyles.small.copyWith(
-                        fontSize: 17.7,
-                        color: const Color(0xFFEB2E2E),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: onReject,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'x',
+                        style: TextStyle(
+                          fontFamily: 'Quicksand',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18.7,
+                          color: Color(0xFFEB2E2E),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Reject',
+                        style: AppTextStyles.small.copyWith(
+                          fontSize: 17.7,
+                          color: const Color(0xFFEB2E2E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

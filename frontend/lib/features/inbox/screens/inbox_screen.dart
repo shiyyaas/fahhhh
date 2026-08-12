@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
@@ -11,44 +12,90 @@ import 'package:fahhhh/features/inbox/widgets/inbox_message_tile.dart';
 //Models
 import 'package:fahhhh/features/inbox/models/inbox_message.dart';
 
-/// Admin inbox: filter tabs + notification cards.
+//Providers
+import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+import 'package:fahhhh/features/auth/models/user_role.dart';
+
+/// Inbox screen: role-specific filters and notifications.
+/// Admin sees All / Teacher / Student / leave with swap & issue requests.
+/// Teacher sees All / Accepted / Rejected / leave with their request statuses.
 /// Pushed from the notification bell (hides bottom nav).
-class InboxScreen extends StatefulWidget {
+class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
   @override
-  State<InboxScreen> createState() => _InboxScreenState();
+  ConsumerState<InboxScreen> createState() => _InboxScreenState();
 }
 
-class _InboxScreenState extends State<InboxScreen> {
+class _InboxScreenState extends ConsumerState<InboxScreen> {
   int _selectedFilter = 0;
-  final List<String> _messages = mockInboxMessages.map((m) => m.id).toList();
+  final List<String> _adminIds = mockAdminInboxMessages.map((m) => m.id).toList();
+  final List<String> _teacherIds = mockTeacherInboxMessages.map((m) => m.id).toList();
 
-  static const List<String> _filters = ['All', 'Teacher', 'Student', 'leave'];
+  static const List<String> _adminFilters = ['All', 'Teacher', 'Student', 'leave'];
+  static const List<String> _teacherFilters = ['All', 'Accepted', 'Rejected', 'leave'];
 
-  void _removeMessage(String id) {
-    setState(() => _messages.remove(id));
+  List<String> get _visibleIds {
+    final bool isAdmin = _isAdmin;
+    final ids = isAdmin ? _adminIds : _teacherIds;
+    final all = isAdmin ? mockAdminInboxMessages : mockTeacherInboxMessages;
+    final activeIds = ids.toSet().toList();
+
+    if (_selectedFilter == 0) {
+      return activeIds;
+    }
+
+    final InboxMessageType? type = isAdmin
+        ? (_selectedFilter == 1
+            ? InboxMessageType.teacher
+            : _selectedFilter == 2
+                ? InboxMessageType.student
+                : InboxMessageType.leave)
+        : (_selectedFilter == 1
+            ? InboxMessageType.swap
+            : _selectedFilter == 3
+                ? InboxMessageType.leave
+                : null);
+
+    if (!isAdmin && (_selectedFilter == 1 || _selectedFilter == 2)) {
+      // Teacher: Accepted / Rejected filters by status.
+      final status = _selectedFilter == 1
+          ? InboxMessageStatus.accepted
+          : InboxMessageStatus.rejected;
+      return all
+          .where((m) => m.status == status && activeIds.contains(m.id))
+          .map((m) => m.id)
+          .toList();
+    }
+
+    if (type == null) return activeIds;
+    return all
+        .where((m) => m.type == type && activeIds.contains(m.id))
+        .map((m) => m.id)
+        .toList();
   }
 
-  List<InboxMessage> get _visibleMessages {
-    final List<InboxMessage> all = mockInboxMessages
-        .where((m) => _messages.contains(m.id))
-        .toList();
+  bool get _isAdmin => ref.read(authProvider).role == UserRole.teacher &&
+      (ref.read(authProvider).user?.isHOD ?? false);
 
-    if (_selectedFilter == 0) return all;
-
-    final type = _selectedFilter == 1
-        ? InboxMessageType.teacher
-        : _selectedFilter == 2
-            ? InboxMessageType.student
-            : InboxMessageType.leave;
-
-    return all.where((m) => m.type == type).toList();
+  void _removeMessage(String id) {
+    setState(() {
+      if (_isAdmin) {
+        _adminIds.remove(id);
+      } else {
+        _teacherIds.remove(id);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final messages = _visibleMessages;
+    final isAdmin = _isAdmin;
+    final filters = isAdmin ? _adminFilters : _teacherFilters;
+    final all = isAdmin ? mockAdminInboxMessages : mockTeacherInboxMessages;
+    final visibleIds = _visibleIds;
+    final messages =
+        all.where((m) => visibleIds.contains(m.id)).toList();
 
     return Scaffold(
       body: Container(
@@ -101,7 +148,7 @@ class _InboxScreenState extends State<InboxScreen> {
               ),
               const SizedBox(height: 14),
               InboxFilterBar(
-                labels: _filters,
+                labels: filters,
                 selectedIndex: _selectedFilter,
                 onChanged: (index) => setState(() => _selectedFilter = index),
               ),
