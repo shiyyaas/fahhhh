@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -94,7 +95,9 @@ class HeaderSection extends ConsumerWidget {
               ),
             ),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                context.push('/inbox');
+              },
               icon: const Icon(
                 Icons.notifications_none_rounded,
                 color: Colors.white,

@@ -36,6 +36,7 @@ class SubjectDetailsScreen extends ConsumerStatefulWidget {
 
 class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
   int _month = 3; // start at March like the design
+  bool _showPreview = false;
 
   static const List<String> _months = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -75,53 +76,65 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                _SubjectHeader(
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    _SubjectHeader(
+                      subjectName: widget.subjectName,
+                      className: widget.className,
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 29),
+                      child: Text(
+                        'View Attendance Analysis',
+                        style: AppTextStyles.small.copyWith(fontSize: 17.7),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _MonthSelector(
+                      month: _months[_month - 1],
+                      onPrevious: () => setState(
+                        () => _month = _month > 1 ? _month - 1 : 12,
+                      ),
+                      onNext: () => setState(
+                        () => _month = _month < 12 ? _month + 1 : 1,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const AttendanceChart(),
+                    const SizedBox(height: 10),
+                    _PreviewDownloadRow(
+                      onPreview: () => setState(() => _showPreview = true),
+                    ),
+                    const SizedBox(height: 2),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 27),
+                      child: Text(
+                        'Based on week , month & Overall',
+                        style: AppTextStyles.small.copyWith(fontSize: 15.7),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const SearchSortBar(),
+                    const SizedBox(height: 6),
+                    for (final student in students)
+                      StudentListTile(student: student),
+                  ],
+                ),
+              ),
+              if (_showPreview)
+                _PreviewOverlay(
                   subjectName: widget.subjectName,
                   className: widget.className,
+                  onDismiss: () => setState(() => _showPreview = false),
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 29),
-                  child: Text(
-                    'View Attendance Analysis',
-                    style: AppTextStyles.small.copyWith(fontSize: 17.7),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _MonthSelector(
-                  month: _months[_month - 1],
-                  onPrevious: () => setState(
-                    () => _month = _month > 1 ? _month - 1 : 12,
-                  ),
-                  onNext: () => setState(
-                    () => _month = _month < 12 ? _month + 1 : 1,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const AttendanceChart(),
-                const SizedBox(height: 10),
-                const _PreviewDownloadRow(),
-                const SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 27),
-                  child: Text(
-                    'Based on week , month & Overall',
-                    style: AppTextStyles.small.copyWith(fontSize: 15.7),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const SearchSortBar(),
-                const SizedBox(height: 6),
-                for (final student in students)
-                  StudentListTile(student: student),
-              ],
-            ),
+            ],
           ),
         ),
       ),
@@ -243,38 +256,42 @@ class _MonthSelector extends StatelessWidget {
 }
 
 class _PreviewDownloadRow extends StatelessWidget {
-  const _PreviewDownloadRow();
+  final VoidCallback? onPreview;
+  const _PreviewDownloadRow({this.onPreview});
 
-  Widget _button(BuildContext context, String label) {
-    return Container(
-      width: 168,
-      height: 29,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(1061),
-        border: Border.all(color: Colors.black, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 1.5,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Center(
-        child: ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black, Color(0xFF666666)],
-          ).createShader(bounds),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12.8,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+  Widget _button(BuildContext context, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 168,
+        height: 29,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(1061),
+          border: Border.all(color: Colors.black, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 1.5,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Center(
+          child: ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.black, Color(0xFF666666)],
+            ).createShader(bounds),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.8,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -289,9 +306,110 @@ class _PreviewDownloadRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _button(context, 'Show Preview'),
+          _button(context, 'Show Preview', onTap: onPreview),
           _button(context, 'Download'),
         ],
+      ),
+    );
+  }
+}
+
+/// Full-screen scrim with a centered report preview card.
+class _PreviewOverlay extends StatelessWidget {
+  final String subjectName;
+  final String className;
+  final VoidCallback onDismiss;
+
+  const _PreviewOverlay({
+    required this.subjectName,
+    required this.className,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: onDismiss,
+        child: Container(
+          color: const Color(0x804C4747),
+          child: Center(
+            child: Container(
+              width: 362,
+              height: 468,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: Colors.black, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subjectName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.heading.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    className,
+                    style: AppTextStyles.small.copyWith(fontSize: 15),
+                  ),
+                  const SizedBox(height: 16),
+                  const AttendanceChart(),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Present',
+                        style: AppTextStyles.sfPRO.copyWith(fontSize: 14),
+                      ),
+                      Text(
+                        '95%',
+                        style: AppTextStyles.sfPRO.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF9EEDBB),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Absent',
+                        style: AppTextStyles.sfPRO.copyWith(fontSize: 14),
+                      ),
+                      Text(
+                        '5%',
+                        style: AppTextStyles.sfPRO.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFFCDCE),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Center(
+                    child: Text(
+                      'Tap to close',
+                      style: AppTextStyles.small.copyWith(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

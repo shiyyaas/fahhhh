@@ -12,6 +12,9 @@ import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 //Models
 import 'package:fahhhh/features/department/models/department_class.dart';
 
+//Providers
+import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
+
 /// "Choose the class" screen: lists the classes a subject is taught in.
 /// Shown when a subject is assigned to more than one class. Tapping a class
 /// opens the subject detail page for that class. Pushed route (hides bottom nav).

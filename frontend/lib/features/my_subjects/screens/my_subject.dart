@@ -12,6 +12,7 @@ import 'package:fahhhh/features/my_subjects/widgets/my_subject_list_tile.dart';
 
 //Models
 import 'package:fahhhh/features/my_subjects/models/my_subject_item.dart';
+import 'package:fahhhh/features/department/models/department_class.dart';
 
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
@@ -72,15 +73,31 @@ class MySubject extends ConsumerWidget {
                   itemCount: subjects.length,
                   itemBuilder: (context, index) {
                     final item = subjects[index];
-                    final className =
-                        item.classes.split(',').first.trim().toUpperCase();
+                    // Build the class list for this subject.
+                    final classList = item.classes.isEmpty
+                        ? <String>[]
+                        : item.classes
+                            .split(',')
+                            .map((c) => c.trim())
+                            .where((c) => c.isNotEmpty)
+                            .toList();
+                    // If the subject is taught in 2+ classes, show the class chooser.
+                    final bool hasMultipleClasses = classList.length > 1;
+                    final String primaryClass =
+                        hasMultipleClasses ? '' : classList.first;
                     return MySubjectListTile(
                       item: item,
                       onTap: () {
                         if (!context.mounted) return;
-                        context.push(
-                          '/subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(className)}',
-                        );
+                        if (hasMultipleClasses) {
+                          context.push(
+                            '/subject-classes/${Uri.encodeComponent(item.name)}',
+                          );
+                        } else {
+                          context.push(
+                            '/subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(primaryClass)}',
+                          );
+                        }
                       },
                     );
                   },
@@ -123,14 +140,15 @@ class MySubject extends ConsumerWidget {
   }
 
   String _classesForSubject(String subject) {
-    // From semesterSubjects mock data - return all semesters containing this subject.
-    final List<String> matchingSemesters = [];
-    for (final entry in semesterSubjects.entries) {
-      if (entry.value.contains(subject)) {
-        matchingSemesters.add(entry.key); // e.g., "S4"
+    // From mockDepartmentClasses - return the actual class names teaching this subject.
+    final List<String> matchingClasses = [];
+    for (final classData in mockDepartmentClasses) {
+      final semKey = classData.name.substring(0, 2).toUpperCase();
+      if ((semesterSubjects[semKey] ?? []).contains(subject)) {
+        matchingClasses.add(classData.name); // e.g., "S2 BCA"
       }
     }
-    return matchingSemesters.join(', ');
+    return matchingClasses.join(', ');
   }
 }
 

@@ -15,6 +15,8 @@ import '../../features/attendance/screens/attendance_taking_screen.dart';
 import '../../features/timetable/screens/timetable_screen.dart';
 import '../../features/department/screens/department_class_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
+import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
+import '../../features/inbox/screens/inbox_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -70,6 +72,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             className: className,
           );
         },
+      ),
+      // Subject Class Lists Route - shown when a subject is taught in 2+ classes
+      // outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/subject-classes/:subjectName',
+        builder: (context, state) {
+          final subjectName = Uri.decodeComponent(
+              state.pathParameters['subjectName']!);
+          return SubjectClassListsScreen(subjectName: subjectName);
+        },
+      ),
+      // Inbox Route - outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/inbox',
+        builder: (context, state) => const InboxScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
