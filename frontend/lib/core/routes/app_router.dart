@@ -19,6 +19,7 @@ import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../features/profile/models/student_profile.dart';
+import '../../features/my_subjects/screens/student_subject_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -103,6 +104,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               rollNumber: rollNumber,
               className: className,
             ),
+          );
+        },
+      ),
+      // Student Personal Subject Details Route - pushed when a student selects a subject
+      GoRoute(
+        path: '/student-subject-details/:subjectName/:teacherName',
+        builder: (context, state) {
+          final subjectName =
+              Uri.decodeComponent(state.pathParameters['subjectName']!);
+          final teacherName =
+              Uri.decodeComponent(state.pathParameters['teacherName']!);
+          return StudentSubjectDetailScreen(
+            subjectName: subjectName,
+            teacherName: teacherName,
           );
         },
       ),

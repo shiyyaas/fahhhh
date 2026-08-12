@@ -17,6 +17,7 @@ import 'package:fahhhh/features/department/models/department_class.dart';
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/current_user.dart';
+import 'package:fahhhh/features/auth/models/user_role.dart';
 import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 /// My Subjects screen for teacher: shows teacher's assigned subjects with attendance overview.
@@ -27,14 +28,17 @@ class MySubject extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
+    final bool isStudent = auth.role == UserRole.student;
 
     // Deterministic mock attendance pattern.
     const List<int> attendancePattern = [
       95, 82, 90, 65, 88, 74, 95, 78, 85, 70, 92, 80, 66,
     ];
 
-    // Build teacher's subjects from activeSubjects or subjectTeachers map.
-    final List<MySubjectItem> subjects = _buildSubjects(user, attendancePattern);
+    // Build subjects list based on role.
+    final List<MySubjectItem> subjects = isStudent
+        ? _buildStudentSubjects(user, attendancePattern)
+        : _buildSubjects(user, attendancePattern);
 
     return Scaffold(
       body: Container(
@@ -73,7 +77,18 @@ class MySubject extends ConsumerWidget {
                   itemCount: subjects.length,
                   itemBuilder: (context, index) {
                     final item = subjects[index];
-                    // Build the class list for this subject.
+                    if (isStudent) {
+                      return MySubjectListTile(
+                        item: item,
+                        onTap: () {
+                          if (!context.mounted) return;
+                          context.push(
+                            '/student-subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(item.classes)}',
+                          );
+                        },
+                      );
+                    }
+                    // Teacher / Class Teacher flow
                     final classList = item.classes.isEmpty
                         ? <String>[]
                         : item.classes
@@ -81,7 +96,6 @@ class MySubject extends ConsumerWidget {
                             .map((c) => c.trim())
                             .where((c) => c.isNotEmpty)
                             .toList();
-                    // If the subject is taught in 2+ classes, show the class chooser.
                     final bool hasMultipleClasses = classList.length > 1;
                     final String primaryClass =
                         hasMultipleClasses ? '' : classList.first;
@@ -108,6 +122,22 @@ class MySubject extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  List<MySubjectItem> _buildStudentSubjects(
+      CurrentUser? user, List<int> pattern) {
+    final String sem = user?.semester ?? '2';
+    final semKey = 'S$sem';
+    final names = semesterSubjects[semKey] ?? semesterSubjects['S2']!;
+    return List.generate(names.length, (index) {
+      final name = names[index];
+      final teacher = subjectTeachers[name] ?? 'Sheetal';
+      return MySubjectItem(
+        name: name,
+        classes: teacher,
+        attendancePercent: pattern[index % pattern.length],
+      );
+    });
   }
 
   List<MySubjectItem> _buildSubjects(CurrentUser? user, List<int> pattern) {
