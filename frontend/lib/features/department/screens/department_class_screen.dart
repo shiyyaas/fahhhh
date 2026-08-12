@@ -98,7 +98,10 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
               const SizedBox(height: 14),
               Expanded(
                 child: _selectedTab == 0
-                    ? _StudentsView(students: _students)
+                    ? _StudentsView(
+                        students: _students,
+                        classId: widget.classId,
+                      )
                     : _SubjectsView(
                         subjects: _subjects,
                         classId: widget.classId,
@@ -164,7 +167,8 @@ class _ClassHeader extends StatelessWidget {
 
 class _StudentsView extends StatefulWidget {
   final List<DepartmentStudent> students;
-  const _StudentsView({required this.students});
+  final String classId;
+  const _StudentsView({required this.students, required this.classId});
 
   @override
   State<_StudentsView> createState() => _StudentsViewState();
@@ -214,8 +218,20 @@ class _StudentsViewState extends State<_StudentsView> {
           child: ListView.builder(
             padding: const EdgeInsets.only(bottom: 30),
             itemCount: students.length,
-            itemBuilder: (context, index) =>
-                StudentListTile(student: students[index]),
+            itemBuilder: (context, index) {
+              final student = students[index];
+              return StudentListTile(
+                student: student,
+                onTap: () {
+                  if (!context.mounted) return;
+                  context.push(
+                    '/student-profile/${Uri.encodeComponent(widget.classId)}/'
+                    '${Uri.encodeComponent(student.rollNumber)}/'
+                    '${Uri.encodeComponent(student.name)}',
+                  );
+                },
+              );
+            },
           ),
         ),
       ],

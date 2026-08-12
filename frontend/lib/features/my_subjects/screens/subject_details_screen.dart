@@ -124,7 +124,17 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
                     const SearchSortBar(),
                     const SizedBox(height: 6),
                     for (final student in students)
-                      StudentListTile(student: student),
+                      StudentListTile(
+                        student: student,
+                        onTap: () {
+                          if (!context.mounted) return;
+                          context.push(
+                            '/student-profile/${Uri.encodeComponent(widget.className)}/'
+                            '${Uri.encodeComponent(student.rollNumber)}/'
+                            '${Uri.encodeComponent(student.name)}',
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),

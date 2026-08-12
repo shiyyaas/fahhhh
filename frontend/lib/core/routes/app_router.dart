@@ -17,6 +17,8 @@ import '../../features/department/screens/department_class_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
+import '../../features/profile/screens/student_profile_screen.dart';
+import '../../features/profile/models/student_profile.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -87,6 +89,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/inbox',
         builder: (context, state) => const InboxScreen(),
+      ),
+      // Student Profile Route - pushed from a student card, hides bottom nav
+      GoRoute(
+        path: '/student-profile/:className/:rollNumber/:name',
+        builder: (context, state) {
+          final className = Uri.decodeComponent(state.pathParameters['className']!);
+          final rollNumber = Uri.decodeComponent(state.pathParameters['rollNumber']!);
+          final name = Uri.decodeComponent(state.pathParameters['name']!);
+          return StudentProfileScreen(
+            profile: buildStudentProfile(
+              name: name,
+              rollNumber: rollNumber,
+              className: className,
+            ),
+          );
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
