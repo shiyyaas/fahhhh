@@ -6,6 +6,13 @@ class AppColors {
   static const Color primary = Color(0xFF136BB3);
   static const Color background = Colors.white;
 
+  // Brand Gradients
+  static const Color gradientTop = Color(0xFF7198EE);
+  static const Color gradientBottom = Color(0xFF163B8E);
+
+  // Navigation Bar
+  static const Color navBar = Color(0xFF262525);
+
   // Text Colors
   static const Color headingText = Colors.black;
   static const Color smallText = Color(0xFF635959);

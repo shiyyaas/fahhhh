@@ -20,9 +20,9 @@ class DateBtn extends StatelessWidget {
         selectedDate.year == today.year;
 
     return Container(   
-      margin: const EdgeInsets.symmetric(horizontal: 30 , vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 30 , vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
@@ -30,12 +30,11 @@ class DateBtn extends StatelessWidget {
             children: [
               Text(
                 isToday ? 'Today' : _getWeekDay(selectedDate),
-                style: AppTextStyles.heading.copyWith(height: 0.9, fontSize: 22),
+                style: AppTextStyles.heading.copyWith(height: 1.1, fontSize: 24),
               ),
-              const SizedBox(height: 0),
               Text(
-                '${selectedDate.day} ${_getMonth(selectedDate.month)}, ${selectedDate.year}',
-                style: AppTextStyles.small.copyWith(fontSize: 16),
+                '${_getMonth(selectedDate.month)} ${selectedDate.day.toString().padLeft(2, '0')},${selectedDate.year}',
+                style: AppTextStyles.small.copyWith(fontSize: 18),
               ),
             ],
           ),
@@ -45,7 +44,20 @@ class DateBtn extends StatelessWidget {
             onPressed: () {
               if (!context.mounted) return;
               context.push('/timetable');
-            }
+            },
+            width: 139,
+            height: 40,
+            borderRadius: 10,
+            iconSize: 20,
+            borderColor: const Color(0xFF666666),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
         ],
       ),

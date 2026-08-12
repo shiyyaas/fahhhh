@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
@@ -22,13 +23,13 @@ class HeaderSection extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 24,
-        vertical: 16,
+        vertical: 12,
       ),
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 58,
+            height: 58,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.grey.shade300,
@@ -49,30 +50,33 @@ class HeaderSection extends ConsumerWidget {
                 Text(
                   name,
                   style: AppTextStyles.heading.copyWith(
-                    height: 0.9,
+                    fontSize: 23,
+                    height: 1.1,
                   ),
                 ),
                 Text(
                   subTitle,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.small.copyWith(
-                    height: 1,
+                    fontSize: 16,
+                    height: 1.1,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            width: 55,
-            height: 55,
+            width: 50,
+            height: 46,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF4A7DFF),
-                  Color(0xFF1B3EA7),
+                  AppColors.gradientTop,
+                  AppColors.gradientBottom,
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
             child: IconButton(
@@ -80,7 +84,7 @@ class HeaderSection extends ConsumerWidget {
               icon: const Icon(
                 Icons.notifications_none_rounded,
                 color: Colors.white,
-                size: 28,
+                size: 26,
               ),
             ),
           ),

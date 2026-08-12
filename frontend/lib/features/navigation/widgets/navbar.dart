@@ -23,8 +23,8 @@ class Navbar extends StatelessWidget {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF1F1F1F),
-        borderRadius: BorderRadius.circular(40),
+        color: const Color(0xFF262525),
+        borderRadius: BorderRadius.circular(52),
       ),
 
       child: Row(
@@ -35,16 +35,26 @@ class Navbar extends StatelessWidget {
             onTap: () => onItemTapped(index),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              height: 46,
+              height: 48,
               padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 16 : 10,
+                horizontal: isSelected ? 16 : 12,
               ),
 
               decoration: BoxDecoration(
+                gradient: isSelected
+                    ? const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Color(0xFFAAA0A0),
+                        ],
+                      )
+                    : null,
                 color: isSelected
-                    ? Colors.white
+                    ? null
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(21),
               ),
 
               child: Row(
@@ -58,7 +68,7 @@ class Navbar extends StatelessWidget {
                     color: isSelected
                         ? Colors.black
                         : Colors.white,
-                    size: 22,
+                    size: 24,
                   ),
 
                   if (isSelected) ...[
@@ -66,9 +76,9 @@ class Navbar extends StatelessWidget {
                     Text(
                       items[index].label,
                       style: const TextStyle(
-                        color: Colors.black,
+                        color: Color(0xFF262525),
                         fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                        fontSize: 12.8,
                       ),
 
                     ),

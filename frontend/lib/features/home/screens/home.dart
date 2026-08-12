@@ -100,88 +100,97 @@ class Home extends ConsumerWidget {
     }
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 5),
-            const HeaderSection(),
-            WeekCalendar(
-              selectedDate: selectedDate,
-              onDateSelected: (date) {
-                ref.read(selectedDateProvider.notifier).selectDate(date);
-              },
-            ),
-            const SizedBox(height: 25),
-            DateBtn(selectedDate: selectedDate),
-            Expanded(
-              child: isWeekend
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.weekend_rounded,
-                            size: 64,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No Class',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade600,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Color(0xFFAAA0A0)],
+            stops: [0.25, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const HeaderSection(),
+              WeekCalendar(
+                selectedDate: selectedDate,
+                onDateSelected: (date) {
+                  ref.read(selectedDateProvider.notifier).selectDate(date);
+                },
+              ),
+              const SizedBox(height: 12),
+              DateBtn(selectedDate: selectedDate),
+              Expanded(
+                child: isWeekend
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.weekend_rounded,
+                              size: 64,
+                              color: Colors.grey.shade400,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Enjoy your weekend!',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade500,
+                            const SizedBox(height: 16),
+                            Text(
+                              'No Class',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade600,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : displaySlots.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No scheduled periods found for this day.',
-                            style: TextStyle(color: Colors.grey.shade500),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: displaySlots.length,
-                          itemBuilder: (context, index) {
-                            final slot = displaySlots[index];
-                            final isNow = _isPeriodNow(slot.startTime, slot.endTime, isToday);
-
-                            return TimetableCard(
-                              subjectName: slot.subjectName,
-                              secondaryText: isStudent ? slot.teacherName : slot.classId,
-                              status: isStudent ? slot.studentStatus : slot.status,
-                              startTime: slot.startTime,
-                              endTime: slot.endTime,
-                              profileImage: isStudent ? "assets/images/student.png" : null,
-                              isStudent: isStudent,
-                              isToday: isToday,
-                              isFuture: isFuture,
-                              onTap: isStudent
-                                  ? null
-                                  : () {
-                                      if (!context.mounted) return;
-                                      if (isNow) {
-                                        context.push('/attendance-taking/${slot.id}');
-                                      } else {
-                                        context.push('/attendance-view/${slot.id}');
-                                      }
-                                    },
-                            );
-                          },
+                            const SizedBox(height: 8),
+                            Text(
+                              'Enjoy your weekend!',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
                         ),
-            ),
-          ],
+                      )
+                    : displaySlots.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No scheduled periods found for this day.',
+                              style: TextStyle(color: Colors.grey.shade500),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: displaySlots.length,
+                            itemBuilder: (context, index) {
+                              final slot = displaySlots[index];
+                              final isNow = _isPeriodNow(slot.startTime, slot.endTime, isToday);
+
+                              return TimetableCard(
+                                subjectName: slot.subjectName,
+                                secondaryText: isStudent ? slot.teacherName : slot.classId,
+                                status: isStudent ? slot.studentStatus : slot.status,
+                                startTime: slot.startTime,
+                                endTime: slot.endTime,
+                                profileImage: isStudent ? "assets/images/student.png" : null,
+                                isStudent: isStudent,
+                                isToday: isToday,
+                                isFuture: isFuture,
+                                onTap: isStudent
+                                    ? null
+                                    : () {
+                                        if (!context.mounted) return;
+                                        if (isNow) {
+                                          context.push('/attendance-taking/${slot.id}');
+                                        } else {
+                                          context.push('/attendance-view/${slot.id}');
+                                        }
+                                      },
+                              );
+                            },
+                          ),
+              ),
+            ],
+          ),
         ),
       ),
     );

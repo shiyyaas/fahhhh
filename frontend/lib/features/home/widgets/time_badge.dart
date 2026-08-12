@@ -39,27 +39,28 @@ class TimeBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
+        horizontal: 8,
+        vertical: 4,
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: Colors.black.withValues(alpha: 0.2),
+          color: Colors.black.withValues(alpha: 0.4),
+          width: 0.75,
         ),
       ),
 
       child: Text(
         isNow
-            ? 'NOW'
-            : '${_formatTime(startTime)} to ${_formatTime(endTime)}',
+            ? 'Now'
+            : '${_formatTime(startTime)} - ${_formatTime(endTime)}',
 
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.8),
-          fontWeight: FontWeight.w600,
-          fontSize: 10,
+          color: Colors.white.withValues(alpha: 0.45),
+          fontWeight: FontWeight.bold,
+          fontSize: 9.7,
         ),
       ),
     );

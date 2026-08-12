@@ -20,26 +20,36 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color backgroundColor = _getBackgroundColor();
     final Color textColor = _getTextColor();
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 6,
+        horizontal: 12,
+        vertical: 4,
       ),
 
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        color: _getBackgroundColor(),
+        gradient: status == AttendanceStatus.pending
+            ? const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF647286), Color(0xFF496388)],
+              )
+            : null,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.black.withValues(alpha: 0.55),
+          width: 0.75,
+        ),
       ),
 
       child: Text(
         _getStatusText(),
         style: TextStyle(
           color: textColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          fontSize: 11.25,
         ),
       ),
     );
@@ -76,31 +86,25 @@ class StatusBadge extends StatelessWidget {
 
   }
 
-  Color _getBackgroundColor() {
+  Color? _getBackgroundColor() {
     switch (status) {
       case AttendanceStatus.recorded:
-        return const Color(0xFFE7F8EC);
-
       case AttendanceStatus.present:
-        return const Color(0xFFE7F8EC);
+        return const Color(0xFF6BDB72).withValues(alpha: 0.6);
 
       case AttendanceStatus.recordNow:
-        return const Color(0xFFEAF2FF);
-
       case AttendanceStatus.ongoing:
-        return const Color(0xFFEAF2FF);
+        return const Color(0xFF6E97DA);
 
       case AttendanceStatus.pending:
-        return const Color(0xFFF3F4F6);
+        return null; // gradient used instead
 
       case AttendanceStatus.late:
-        return const Color(0xFFFFF4E5);
+        return const Color(0xFFE59B00).withValues(alpha: 0.6);
 
       case AttendanceStatus.missed:
-        return const Color(0xFFFFEBEB);
-
       case AttendanceStatus.absent:
-        return const Color(0xFFFFEBEB);
+        return const Color(0xFFBA4545).withValues(alpha: 0.6);
 
     }
 
@@ -111,28 +115,22 @@ class StatusBadge extends StatelessWidget {
     switch (status) {
       
       case AttendanceStatus.recorded:
-        return const Color(0xFF1F8B4C);
-
       case AttendanceStatus.present:
-        return const Color(0xFF1F8B4C);
+        return const Color(0xFFE8E8E8);
 
       case AttendanceStatus.recordNow:
-        return const Color(0xFF2F6BFF);
-
       case AttendanceStatus.ongoing:
-        return const Color(0xFF2F6BFF);
+        return const Color(0xFFF1F1F1);
 
       case AttendanceStatus.pending:
-        return const Color(0xFF6B7280);
+        return const Color(0xFFE6E6E6);
 
       case AttendanceStatus.late:
-        return const Color(0xFFE59B00);
+        return const Color(0xFFFFE8C7);
 
       case AttendanceStatus.missed:
-        return const Color(0xFFD92D20);
-
       case AttendanceStatus.absent:
-        return const Color(0xFFD92D20);
+        return const Color(0xFFF9C4C4);
 
     }
 

@@ -27,10 +27,9 @@ class WeekCalendar extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 70,
+      height: 76,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        // padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: weekDays.length,
         itemBuilder: (context, index) {
           final DateTime date = weekDays[index];
@@ -44,18 +43,18 @@ class WeekCalendar extends StatelessWidget {
             },
 
             child: Container(
-              width: 80,
+              width: 72,
+              height: 56,
               margin: const EdgeInsets.only(
-                left: 10,
-                // right: 5,
+                left: 7,
+                right: 7,
               ),
               decoration: BoxDecoration(
-
                 gradient: isSelected
                     ? const LinearGradient(
                         colors: [
-                          Color(0xFF5B8CFF),
-                          Color(0xFF1E4DB7),
+                          AppColors.gradientTop,
+                          AppColors.gradientBottom,
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -64,12 +63,20 @@ class WeekCalendar extends StatelessWidget {
                 color: isSelected
                     ? null
                     : Colors.white,
-
-                borderRadius: BorderRadius.circular(14),
-                border: isSelected ? null : Border.all(
-                                                color: AppColors.border,
-                                                width: 0.6,
-                                              ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  width: isSelected ? 0.9 : 1,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
 
               child: Column(
@@ -79,21 +86,21 @@ class WeekCalendar extends StatelessWidget {
                       date.day.toString().padLeft(2, '0'),
                     style: AppTextStyles.sfPRO.copyWith(
                       fontSize: 26,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                       height: 1.0,
                       color: isSelected
                           ? Colors.white
-                          : Colors.black87,
+                          : const Color(0xFF364153),
                     ),
                   ),
-                  const SizedBox(height: 0),
+                  const SizedBox(height: 2),
                   Text(
                     _getWeekDay(date),
                     style: AppTextStyles.sfPRO.copyWith(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: isSelected
-                          ? Colors.white70
-                          : Colors.black54,
+                          ? Colors.white
+                          : const Color(0xFF364153),
                     ),
                   ),
                 ],

@@ -37,11 +37,17 @@ class TimetableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget cardContent = Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      padding: const EdgeInsets.only(
+        left: 12,
+        right: 12,
+        top: 11,
+        bottom: 10,
+      ),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: Colors.black, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -60,17 +66,18 @@ class TimetableCard extends StatelessWidget {
                     subjectName,
                     style: AppTextStyles.heading.copyWith(
                       color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 16.6,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   secondaryText,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13,
+                    color: Colors.white,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -91,7 +98,7 @@ class TimetableCard extends StatelessWidget {
                 isToday: isToday,
               ),
               if (!isFuture) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 StatusBadge(
                   status: status,
                 ),
