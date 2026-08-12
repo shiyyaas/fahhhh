@@ -14,6 +14,7 @@ import '../../features/profile/screens/edit_profile.dart';
 import '../../features/attendance/screens/attendance_taking_screen.dart';
 import '../../features/timetable/screens/timetable_screen.dart';
 import '../../features/department/screens/department_class_screen.dart';
+import '../../features/my_subjects/screens/subject_details_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -54,6 +55,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final classId = state.pathParameters['classId']!;
           return DepartmentClassScreen(classId: Uri.decodeComponent(classId));
+        },
+      ),
+      // Subject Details Route - outside StatefulShellRoute to hide bottom navigation bar completely
+      GoRoute(
+        path: '/subject-details/:subjectName/:className',
+        builder: (context, state) {
+          final subjectName = Uri.decodeComponent(
+              state.pathParameters['subjectName']!);
+          final className = Uri.decodeComponent(
+              state.pathParameters['className']!);
+          return SubjectDetailsScreen(
+            subjectName: subjectName,
+            className: className,
+          );
         },
       ),
       StatefulShellRoute.indexedStack(

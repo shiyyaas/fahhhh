@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 //Design
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
@@ -69,8 +70,20 @@ class MySubject extends ConsumerWidget {
                 child: ListView.builder(
                   padding: const EdgeInsets.only(bottom: 30),
                   itemCount: subjects.length,
-                  itemBuilder: (context, index) =>
-                      MySubjectListTile(item: subjects[index]),
+                  itemBuilder: (context, index) {
+                    final item = subjects[index];
+                    final className =
+                        item.classes.split(',').first.trim().toUpperCase();
+                    return MySubjectListTile(
+                      item: item,
+                      onTap: () {
+                        if (!context.mounted) return;
+                        context.push(
+                          '/subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(className)}',
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],
