@@ -9,7 +9,12 @@ import 'package:go_router/go_router.dart';
 
 class DateBtn extends StatelessWidget {
   final DateTime selectedDate;
-  const DateBtn({super.key, required this.selectedDate});
+  final bool horizontal;
+  const DateBtn({
+    super.key,
+    required this.selectedDate,
+    this.horizontal = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +23,34 @@ class DateBtn extends StatelessWidget {
         selectedDate.day == today.day &&
         selectedDate.month == today.month &&
         selectedDate.year == today.year;
+
+    final String dateText =
+        '${_getMonth(selectedDate.month)} ${selectedDate.day.toString().padLeft(2, '0')},${selectedDate.year}';
+
+    // Teacher home: "Today" and the date share a single row, no Time Table button.
+    if (horizontal) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              isToday ? 'Today' : _getWeekDay(selectedDate),
+              style: AppTextStyles.heading.copyWith(
+                height: 1.1,
+                fontSize: 26,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              dateText,
+              style: AppTextStyles.small.copyWith(fontSize: 20),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(   
       margin: const EdgeInsets.symmetric(horizontal: 30 , vertical: 8),
@@ -33,7 +66,7 @@ class DateBtn extends StatelessWidget {
                 style: AppTextStyles.heading.copyWith(height: 1.1, fontSize: 24),
               ),
               Text(
-                '${_getMonth(selectedDate.month)} ${selectedDate.day.toString().padLeft(2, '0')},${selectedDate.year}',
+                dateText,
                 style: AppTextStyles.small.copyWith(fontSize: 18),
               ),
             ],

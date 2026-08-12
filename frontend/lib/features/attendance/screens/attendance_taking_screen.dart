@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
+import '../../../core/theme_data/app_text_styles.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -107,8 +108,16 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Color(0xFFAAA0A0)],
+            stops: [0.4, 1.0],
+          ),
+        ),
+        child: SafeArea(
         child: isFuture
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,12 +178,12 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                             Expanded(
                               flex: 3,
                               child: Container(
-                                height: 44,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                height: 34,
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  border: Border.all(color: Colors.grey.shade300, width: 1.2),
+                                  borderRadius: BorderRadius.circular(17),
+                                  border: Border.all(color: Colors.black, width: 0.5),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withValues(alpha: 0.04),
@@ -185,7 +194,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.search, color: Colors.black54, size: 20),
+                                    const Icon(Icons.search, color: Colors.black54, size: 16),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: TextField(
@@ -200,7 +209,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                           isDense: true,
                                           contentPadding: EdgeInsets.zero,
                                         ),
-                                        style: const TextStyle(fontSize: 14, color: Colors.black),
+                                        style: const TextStyle(fontSize: 13, color: Colors.black),
                                       ),
                                     ),
                                   ],
@@ -351,12 +360,17 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                             final currentStatus = _attendanceStates[student.rollNumber] ?? AttendanceStatus.pending;
 
                             return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 24),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 24),
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                                right: 12,
+                                top: 11,
+                                bottom: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(color: Colors.black, width: 1.2),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.black, width: 0.8),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.1),
@@ -371,10 +385,11 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                   Expanded(
                                     child: Text(
                                       student.name,
+                                      overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 20,
                                       ),
                                     ),
                                   ),
@@ -412,10 +427,10 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                           },
                           child: Container(
                             width: 180,
-                            height: 54,
+                            height: 44,
                             decoration: BoxDecoration(
                               color: Colors.black,
-                              borderRadius: BorderRadius.circular(30),
+                              borderRadius: BorderRadius.circular(22),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.3),
@@ -430,7 +445,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 20,
                               ),
                             ),
                           ),
@@ -440,47 +455,48 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                 ],
               ),
       ),
+      ),
     );
   }
 
   Widget _buildHeader(TimetableSlot slot) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-            onPressed: () {
-              if (!context.mounted) return;
-              context.pop();
-            },
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  slot.classId,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    letterSpacing: -0.5,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 26),
+                onPressed: () {
+                  if (!context.mounted) return;
+                  context.pop();
+                },
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      slot.classId,
+                      style: AppTextStyles.heading.copyWith(
+                        color: Colors.black,
+                        fontSize: 30,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "${slot.subjectName} - ${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}",
+                      style: AppTextStyles.small.copyWith(fontSize: 16),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  "${slot.subjectName} - ${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}",
-                  style: const TextStyle(
-                    color: Color(0xFF6F5E53),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -488,30 +504,30 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
   }
 
   Widget _buildStatusCapsule(AttendanceStatus status, bool isReadOnly, String rollNumber) {
-    final Color bg;
+    final Color? bg;
     final Color textCol;
     final String text;
 
     switch (status) {
       case AttendanceStatus.present:
-        bg = const Color(0xFF1B5E20).withValues(alpha: 0.6);
-        textCol = const Color(0xFFE8F5E9);
+        bg = const Color(0xFF6BDB72).withValues(alpha: 0.6);
+        textCol = const Color(0xFFE8E8E8);
         text = "Present";
         break;
       case AttendanceStatus.absent:
-        bg = const Color(0xFFC62828).withValues(alpha: 0.6);
-        textCol = const Color(0xFFFFEBEE);
+        bg = const Color(0xFFA93232).withValues(alpha: 0.6);
+        textCol = const Color(0xFFF9C4C4);
         text = "Absent";
         break;
       case AttendanceStatus.late:
-        bg = const Color(0xFFF57F17).withValues(alpha: 0.6);
-        textCol = const Color(0xFFFFFDE7);
+        bg = const Color(0xFFD0B238).withValues(alpha: 0.8);
+        textCol = Colors.white;
         text = "Late";
         break;
       case AttendanceStatus.pending:
       default:
-        bg = const Color(0xFF455A64).withValues(alpha: 0.6);
-        textCol = const Color(0xFFECEFF1);
+        bg = null;
+        textCol = const Color(0xFFE6E6E6);
         text = "Pending";
         break;
     }
@@ -519,18 +535,30 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
     return GestureDetector(
       onTap: isReadOnly ? null : () => _cycleStatus(rollNumber),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        constraints: const BoxConstraints(minWidth: 85, minHeight: 28),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.black26, width: 1),
+          gradient: status == AttendanceStatus.pending
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF647286), Color(0xFF496388)],
+                )
+              : null,
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+            color: Colors.black.withValues(alpha: 0.55),
+            width: 0.8,
+          ),
         ),
         child: Text(
           text,
           style: TextStyle(
             color: textCol,
             fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: 15,
           ),
         ),
       ),

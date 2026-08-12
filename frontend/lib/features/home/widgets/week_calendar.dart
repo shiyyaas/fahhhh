@@ -9,11 +9,15 @@ class WeekCalendar extends StatelessWidget {
 
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
+  final double chipWidth;
+  final double chipHeight;
 
   const WeekCalendar({
     super.key,
     required this.selectedDate,
     required this.onDateSelected,
+    this.chipWidth = 72,
+    this.chipHeight = 56,
   });
 
   @override
@@ -27,7 +31,7 @@ class WeekCalendar extends StatelessWidget {
     );
 
     return SizedBox(
-      height: 76,
+      height: chipHeight + 20,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: weekDays.length,
@@ -43,12 +47,9 @@ class WeekCalendar extends StatelessWidget {
             },
 
             child: Container(
-              width: 72,
-              height: 56,
-              margin: const EdgeInsets.only(
-                left: 7,
-                right: 7,
-              ),
+              width: chipWidth,
+              height: chipHeight,
+              margin: const EdgeInsets.symmetric(horizontal: 7),
               decoration: BoxDecoration(
                 gradient: isSelected
                     ? const LinearGradient(
