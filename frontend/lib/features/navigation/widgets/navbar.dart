@@ -23,7 +23,7 @@ class Navbar extends StatelessWidget {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: const Color(0xFF262525),
         borderRadius: BorderRadius.circular(52),
       ),
 
