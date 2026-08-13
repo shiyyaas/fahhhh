@@ -96,16 +96,22 @@ class MainScreen extends ConsumerWidget {
     }
 
     return Scaffold(
+      // Let page content draw under the nav so the dark pill floats
+      // with no solid white bar behind it.
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Navbar(
-        selectedIndex: selectedIndex,
-        onItemTapped: (index) {
-          navigationShell.goBranch(
-            items[index].branchIndex,
-            initialLocation: index == selectedIndex,
-          );
-        },
-        items: items,
+      bottomNavigationBar: Material(
+        type: MaterialType.transparency,
+        child: Navbar(
+          selectedIndex: selectedIndex,
+          onItemTapped: (index) {
+            navigationShell.goBranch(
+              items[index].branchIndex,
+              initialLocation: index == selectedIndex,
+            );
+          },
+          items: items,
+        ),
       ),
     );
   }
