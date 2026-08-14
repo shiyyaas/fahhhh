@@ -30,7 +30,6 @@ class Home extends ConsumerWidget {
     final auth = ref.watch(authProvider);
     final user = auth.user;
     final isStudent = auth.role == UserRole.student;
-    final isClassTeacher = user?.isClassTeacher ?? false;
 
     final selectedDate = ref.watch(selectedDateProvider);
     final timetable = ref.watch(timetableNotifierProvider);
@@ -56,22 +55,14 @@ class Home extends ConsumerWidget {
         final slotClass = slot.classId.trim().toLowerCase();
         if (slotClass == userClass) return true;
 
-        final userTokens = userClass.split(' ');
-        final slotTokens = slotClass.split(' ');
-        if (userTokens.isNotEmpty && slotTokens.isNotEmpty) {
-          if (userTokens.first == slotTokens.first) return true;
-        }
+        final cleanUserClass = userClass.replaceAll(RegExp(r'[\s\.\-]'), '');
+        final cleanSlotClass = slotClass.replaceAll(RegExp(r'[\s\.\-]'), '');
+        if (cleanUserClass == cleanSlotClass) return true;
+
         return false;
       }).toList();
-    } else if (isClassTeacher) {
-      // Class Teacher: show ONLY their assigned class's slots for the day
-      final assignedClass = (user?.assignedClassId ?? "").trim().toLowerCase();
-      displaySlots = filteredByDay.where((slot) {
-        final slotClass = slot.classId.trim().toLowerCase();
-        return slotClass == assignedClass;
-      }).toList();
     } else {
-      // Teacher / HOD: Filter view by matching logged-in user's name
+      // Teacher / Class Teacher / HOD: Filter view by matching logged-in user's name
       final teacherName = user?.name ?? "";
       displaySlots = filteredByDay.where((slot) {
         final cleanLoggedIn = teacherName.toLowerCase().trim();
