@@ -98,7 +98,7 @@ class MySubject extends ConsumerWidget {
                             .toList();
                     final bool hasMultipleClasses = classList.length > 1;
                     final String primaryClass =
-                        hasMultipleClasses ? '' : classList.first;
+                        hasMultipleClasses ? '' : (classList.isNotEmpty ? classList.first : 'S2 BCA');
                     return MySubjectListTile(
                       item: item,
                       onTap: () {
