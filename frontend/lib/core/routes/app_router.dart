@@ -20,6 +20,7 @@ import '../../features/inbox/screens/inbox_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
 import '../../features/profile/models/student_profile.dart';
 import '../../features/my_subjects/screens/student_subject_detail_screen.dart';
+import '../../features/profile/screens/attendance_history_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -120,6 +121,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             teacherName: teacherName,
           );
         },
+      ),
+      // Attendance History Route - student attendance calendar
+      GoRoute(
+        path: '/attendance-history',
+        builder: (context, state) => const AttendanceHistoryScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

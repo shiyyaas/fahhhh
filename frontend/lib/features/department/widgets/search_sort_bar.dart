@@ -5,8 +5,16 @@ import 'package:flutter/material.dart';
 class SearchSortBar extends StatelessWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onQueryChanged;
+  final ValueChanged<String>? onSortChanged;
+  final String? initialSort;
 
-  const SearchSortBar({super.key, this.controller, this.onQueryChanged});
+  const SearchSortBar({
+    super.key,
+    this.controller,
+    this.onQueryChanged,
+    this.onSortChanged,
+    this.initialSort,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +33,10 @@ class SearchSortBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const SortDropdown(),
+              SortDropdown(
+                onChanged: onSortChanged,
+                initialSort: initialSort,
+              ),
             ],
           ),
         ],
@@ -91,7 +102,16 @@ class SearchField extends StatelessWidget {
 
 /// White pill "Sort by" dropdown matching the design.
 class SortDropdown extends StatefulWidget {
-  const SortDropdown({super.key});
+  final ValueChanged<String>? onChanged;
+  final String? initialSort;
+  final List<String>? options;
+
+  const SortDropdown({
+    super.key,
+    this.onChanged,
+    this.initialSort,
+    this.options,
+  });
 
   @override
   State<SortDropdown> createState() => _SortDropdownState();
@@ -100,8 +120,24 @@ class SortDropdown extends StatefulWidget {
 class _SortDropdownState extends State<SortDropdown> {
   final OverlayPortalController _controller = OverlayPortalController();
   final _link = LayerLink();
-  String _selectedOption = 'Sort by';
-  final List<String> _options = ['Roll No', 'Highest', 'Lowest'];
+  late String _selectedOption;
+  late List<String> _options;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedOption = widget.initialSort ?? 'Sort by';
+    _options = widget.options ?? ['Roll No', 'Highest', 'Lowest'];
+  }
+
+  @override
+  void didUpdateWidget(SortDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSort != null && widget.initialSort != _selectedOption) {
+      _selectedOption = widget.initialSort!;
+    }
+    _options = widget.options ?? ['Roll No', 'Highest', 'Lowest'];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +177,7 @@ class _SortDropdownState extends State<SortDropdown> {
                         setState(() {
                           _selectedOption = option;
                         });
+                        widget.onChanged?.call(option);
                         _controller.toggle();
                       },
                       child: Container(

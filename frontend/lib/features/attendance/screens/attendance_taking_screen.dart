@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
+import '../../department/widgets/search_sort_bar.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -169,176 +170,54 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                       // Header Section
                       _buildHeader(slot),
 
-                      // Controls section (Search & Mark All / Sort By)
+                      // Controls section (Search & Sort By)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                         child: Row(
                           children: [
-                            // Search Field
                             Expanded(
-                              flex: 3,
-                              child: Container(
-                                height: 34,
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(17),
-                                  border: Border.all(color: Colors.black, width: 0.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.04),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.search, color: Colors.black54, size: 16),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextField(
-                                        onChanged: (val) {
-                                          setState(() {
-                                            searchQuery = val;
-                                          });
-                                        },
-                                        decoration: const InputDecoration(
-                                          hintText: "Search",
-                                          border: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.zero,
-                                        ),
-                                        style: const TextStyle(fontSize: 13, color: Colors.black),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              child: SearchField(
+                                onChanged: (val) {
+                                  setState(() {
+                                    searchQuery = val;
+                                  });
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
-                            // Action Dropdown
-                            Expanded(
-                              flex: 2,
-                              child: isPast
-                                  ? PopupMenuButton<String>(
-                                      onSelected: (val) {
-                                        setState(() {
-                                          _selectedSortFilter = val;
-                                        });
-                                      },
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Container(
-                                        height: 44,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(30),
-                                          border: Border.all(color: Colors.grey.shade300, width: 1.2),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.04),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                _getSortFilterLabel(_selectedSortFilter),
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ),
-                                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
-                                          ],
-                                        ),
-                                      ),
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: "all",
-                                          child: Text("All"),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: "present",
-                                          child: Text("All Present"),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: "absent",
-                                          child: Text("All Absent"),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: "late",
-                                          child: Text("All Late"),
-                                        ),
-                                      ],
-                                    )
-                                  : PopupMenuButton<AttendanceStatus>(
-                                      onSelected: (status) {
-                                        setState(() {
-                                          for (var s in students) {
-                                            _attendanceStates[s.rollNumber] = status;
-                                          }
-                                        });
-                                      },
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Container(
-                                        height: 44,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(30),
-                                          border: Border.all(color: Colors.grey.shade300, width: 1.2),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.04),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Mark All",
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black, size: 16),
-                                          ],
-                                        ),
-                                      ),
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: AttendanceStatus.present,
-                                          child: Text("All Present"),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: AttendanceStatus.absent,
-                                          child: Text("All Absent"),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: AttendanceStatus.late,
-                                          child: Text("All Late"),
-                                        ),
-                                      ],
-                                    ),
-                            ),
+                            if (isPast)
+                              SortDropdown(
+                                initialSort: _getSortFilterLabel(_selectedSortFilter),
+                                options: const ['All', 'Present', 'Absent', 'Late'],
+                                onChanged: (val) {
+                                  setState(() {
+                                    if (val == "All") _selectedSortFilter = "all";
+                                    if (val == "Present") _selectedSortFilter = "present";
+                                    if (val == "Absent") _selectedSortFilter = "absent";
+                                    if (val == "Late") _selectedSortFilter = "late";
+                                  });
+                                },
+                              )
+                            else
+                              SortDropdown(
+                                initialSort: "Mark All",
+                                options: const ['All Present', 'All Absent', 'All Late'],
+                                onChanged: (val) {
+                                  setState(() {
+                                    AttendanceStatus status;
+                                    if (val == "All Present") {
+                                      status = AttendanceStatus.present;
+                                    } else if (val == "All Absent") {
+                                      status = AttendanceStatus.absent;
+                                    } else {
+                                      status = AttendanceStatus.late;
+                                    }
+                                    for (var s in students) {
+                                      _attendanceStates[s.rollNumber] = status;
+                                    }
+                                  });
+                                },
+                              ),
                           ],
                         ),
                       ),
