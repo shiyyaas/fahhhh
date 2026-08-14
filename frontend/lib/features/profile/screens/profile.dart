@@ -192,8 +192,12 @@ class Profile extends ConsumerWidget {
                   children: [
                     WhiteBox(
                       icon: Icons.access_time_outlined,
-                      title: "Time table settings",
+                      title: "Timetable Settings",
                       showArrow: true,
+                      onTap: () {
+                        if (!context.mounted) return;
+                        context.push('/timetable');
+                      },
                     ),
                     _divider(),
                     WhiteBox(
