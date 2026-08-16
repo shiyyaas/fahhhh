@@ -47,7 +47,10 @@ class _DepartmentState extends ConsumerState<Department> {
           child: Column(
             children: [
               const SizedBox(height: 12),
-              DepartmentHeader(countLabel: countLabel),
+              DepartmentHeader(
+                countLabel: countLabel,
+                selectedSegmentIndex: _selectedTab,
+              ),
               const SizedBox(height: 20),
               SegmentedToggle(
                 labels: const ['Classes', 'Teachers'],
@@ -150,4 +153,3 @@ class _TeachersViewState extends State<_TeachersView> {
     );
   }
 }
-
