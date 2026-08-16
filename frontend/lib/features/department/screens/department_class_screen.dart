@@ -11,6 +11,7 @@ import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/more_button.dart';
+import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 
 //Models
 import 'package:fahhhh/features/department/models/department_student.dart';
@@ -88,7 +89,10 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
           child: Column(
             children: [
               const SizedBox(height: 8),
-              _ClassHeader(classId: widget.classId),
+              _ClassHeader(
+                classId: widget.classId,
+                selectedSegmentIndex: _selectedTab,
+              ),
               const SizedBox(height: 14),
               SegmentedToggle(
                 labels: const ['Students', 'Subjects'],
@@ -117,7 +121,12 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
 
 class _ClassHeader extends StatelessWidget {
   final String classId;
-  const _ClassHeader({required this.classId});
+  final int selectedSegmentIndex;
+
+  const _ClassHeader({
+    required this.classId,
+    this.selectedSegmentIndex = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +167,10 @@ class _ClassHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const MoreButton(),
+          MoreButton(
+            pageType: HeaderPageType.myClass,
+            selectedSegmentIndex: selectedSegmentIndex,
+          ),
         ],
       ),
     );

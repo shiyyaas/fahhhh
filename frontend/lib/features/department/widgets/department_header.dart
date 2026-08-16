@@ -4,15 +4,24 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/department/models/department_class.dart';
+import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 import 'package:fahhhh/features/department/widgets/more_button.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Department header: department name + HOD name / class count + more button.
+/// Department header: department name + HOD name / class count + dynamic more button.
 class DepartmentHeader extends ConsumerWidget {
   final String? countLabel;
-  const DepartmentHeader({super.key, this.countLabel});
+  final int selectedSegmentIndex;
+  final ValueChanged<String>? onOptionSelected;
+
+  const DepartmentHeader({
+    super.key,
+    this.countLabel,
+    this.selectedSegmentIndex = 0,
+    this.onOptionSelected,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +55,11 @@ class DepartmentHeader extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const MoreButton(),
+          MoreButton(
+            pageType: HeaderPageType.department,
+            selectedSegmentIndex: selectedSegmentIndex,
+            onOptionSelected: onOptionSelected,
+          ),
         ],
       ),
     );
