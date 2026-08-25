@@ -6,6 +6,7 @@ import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
+import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
 
 class TeacherSettingsScreen extends StatefulWidget {
   const TeacherSettingsScreen({super.key});
@@ -75,9 +76,15 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Row(
                   children: [
-                    const _ActionButton(
+                    _ActionButton(
                       icon: Icons.person_add_alt_1_rounded,
                       label: 'Add',
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const AddTeacherDialog(),
+                        );
+                      },
                     ),
                     const SizedBox(width: 12),
                     _ActionButton(
