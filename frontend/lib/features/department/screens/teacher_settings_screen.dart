@@ -5,6 +5,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 
 class TeacherSettingsScreen extends StatefulWidget {
   const TeacherSettingsScreen({super.key});
@@ -73,15 +74,21 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Row(
-                  children: const [
-                    _ActionButton(
+                  children: [
+                    const _ActionButton(
                       icon: Icons.person_add_alt_1_rounded,
                       label: 'Add',
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     _ActionButton(
                       icon: Icons.upload_rounded,
                       label: 'Upload',
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const UploadTeacherDialog(),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -177,42 +184,46 @@ class _Header extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
-  const _ActionButton({required this.icon, required this.label});
+  const _ActionButton({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 29,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Colors.black.withValues(alpha: 0.1),
-          width: 0.8,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 29,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: Colors.black.withValues(alpha: 0.1),
+            width: 0.8,
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF1C1C21)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: AppTextStyles.heading.copyWith(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF1C1C21)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppTextStyles.heading.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
