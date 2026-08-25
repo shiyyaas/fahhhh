@@ -50,6 +50,17 @@ class _DepartmentState extends ConsumerState<Department> {
               DepartmentHeader(
                 countLabel: countLabel,
                 selectedSegmentIndex: _selectedTab,
+                onOptionSelected: (option) {
+                  if (option == 'Archived Batches') {
+                    if (context.mounted) {
+                      context.push('/archived-batches');
+                    }
+                  } else if (option == 'Teachers Settings') {
+                    if (context.mounted) {
+                      context.push('/teacher-settings');
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 20),
               SegmentedToggle(

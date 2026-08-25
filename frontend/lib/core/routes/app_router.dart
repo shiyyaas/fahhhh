@@ -14,6 +14,9 @@ import '../../features/profile/screens/edit_profile.dart';
 import '../../features/attendance/screens/attendance_taking_screen.dart';
 import '../../features/timetable/screens/timetable_screen.dart';
 import '../../features/department/screens/department_class_screen.dart';
+import '../../features/department/screens/archived_batches_screen.dart';
+import '../../features/department/screens/archived_semester_selection_screen.dart';
+import '../../features/department/screens/teacher_settings_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
@@ -126,6 +129,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/attendance-history',
         builder: (context, state) => const AttendanceHistoryScreen(),
+      ),
+      // Archived Batches Route - previous batches attendance & reports
+      GoRoute(
+        path: '/archived-batches',
+        builder: (context, state) => const ArchivedBatchesScreen(),
+      ),
+      // Archived Batch Semester Selection Route
+      GoRoute(
+        path: '/archived-batch-semesters/:batchName',
+        builder: (context, state) {
+          final batchName = Uri.decodeComponent(state.pathParameters['batchName']!);
+          return ArchivedSemesterSelectionScreen(batchName: batchName);
+        },
+      ),
+      // Teacher Settings Route - manage teacher details
+      GoRoute(
+        path: '/teacher-settings',
+        builder: (context, state) => const TeacherSettingsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
