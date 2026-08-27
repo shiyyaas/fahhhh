@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/ui/app_dropdown.dart';
+import 'package:flutter/material.dart';
 
 class AddTeacherDialog extends StatefulWidget {
   const AddTeacherDialog({super.key});
@@ -289,67 +290,13 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     required ValueChanged<String?> onChanged,
     String? Function(String?)? validator,
   }) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
+    return AppDropdown<String>.formInput(
+      value: value,
+      labelText: label,
+      prefixIcon: icon,
       validator: validator,
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        size: 20,
-        color: Color(0xFF635959),
-      ),
-      style: AppTextStyles.sfPRO.copyWith(
-        fontSize: 14,
-        color: const Color(0xFF373737),
-      ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        labelText: label,
-        labelStyle: AppTextStyles.sfPRO.copyWith(
-          fontSize: 14,
-          color: const Color(0xFF635959),
-        ),
-        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF136BB3)),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF136BB3),
-            width: 1.5,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-            width: 1.5,
-          ),
-        ),
-      ),
       items: items
-          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+          .map((s) => AppDropdownItem<String>(value: s, label: s))
           .toList(),
       onChanged: onChanged,
     );

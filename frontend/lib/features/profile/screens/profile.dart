@@ -12,8 +12,8 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
 
 // Widgets
-import 'package:fahhhh/core/widgets/white_btn.dart';
-import 'package:fahhhh/core/widgets/blue_btn.dart';
+import 'package:fahhhh/core/widgets/ui/white_btn.dart';
+import 'package:fahhhh/core/widgets/ui/blue_btn.dart';
 import 'package:fahhhh/features/profile/widgets/white_box.dart';
 
 // Local state provider for notifications

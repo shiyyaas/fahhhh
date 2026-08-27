@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/core/widgets/functional/search_sort_bar.dart';
 
 class ArchivedBatch {
   final String name;
