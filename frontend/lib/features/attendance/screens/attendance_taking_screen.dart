@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
-import '../../department/widgets/search_sort_bar.dart';
+import '../../../core/widgets/ui/global_search_bar_widget.dart';
+import '../../../core/widgets/functional/search_sort_bar.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -176,7 +177,8 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                         child: Row(
                           children: [
                             Expanded(
-                              child: SearchField(
+                              child: GlobalSearchBarWidget(
+                                height: 27,
                                 onChanged: (val) {
                                   setState(() {
                                     searchQuery = val;

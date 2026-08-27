@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme_data/app_colors.dart';
-import '../theme_data/app_text_styles.dart';
+import '../../theme_data/app_colors.dart';
+import '../../theme_data/app_text_styles.dart';
 
 class BlueBtn extends StatefulWidget {
   final String text;

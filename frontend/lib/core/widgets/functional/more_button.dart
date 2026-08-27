@@ -1,5 +1,6 @@
+import 'package:fahhhh/core/widgets/ui/app_dropdown.dart';
+import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 import 'package:flutter/material.dart';
-import '../utils/header_menu_config.dart';
 
 /// Gradient circle with three white dots used in department/class headers.
 /// When clicked, presents a dynamic dropdown popup menu based on page type and active segment.
@@ -76,56 +77,18 @@ class MoreButton extends StatelessWidget {
       );
     }
 
-    return Theme(
-      data: Theme.of(context).copyWith(
-        popupMenuTheme: PopupMenuThemeData(
-          color: Colors.white,
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
-      child: PopupMenuButton<String>(
-        offset: const Offset(0, 42),
-        padding: EdgeInsets.zero,
-        onSelected: (option) {
+    return AppDropdown<String>.actionMenu(
+      items: items
+          .map((item) => AppDropdownItem<String>(value: item, label: item))
+          .toList(),
+      onChanged: (option) {
+        if (option != null) {
           debugPrint('Selected option: $option');
           onOptionSelected?.call(option);
           onTap?.call();
-        },
-        itemBuilder: (BuildContext context) {
-          final List<PopupMenuEntry<String>> popupEntries = [];
-          for (int i = 0; i < items.length; i++) {
-            if (i > 0) {
-              popupEntries.add(
-                const PopupMenuDivider(
-                  height: 1,
-                ),
-              );
-            }
-            popupEntries.add(
-              PopupMenuItem<String>(
-                value: items[i],
-                height: 44,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Text(
-                    items[i],
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-          return popupEntries;
-        },
-        child: buttonGraphic,
-      ),
+        }
+      },
+      child: buttonGraphic,
     );
   }
 }

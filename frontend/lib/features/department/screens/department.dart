@@ -11,7 +11,7 @@ import 'package:fahhhh/features/department/widgets/segmented_toggle.dart';
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/core/widgets/functional/search_sort_bar.dart';
 
 //Models
 import 'package:fahhhh/features/department/models/department_class.dart';
