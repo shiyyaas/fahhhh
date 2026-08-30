@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
-import 'package:fahhhh/core/widgets/functional/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
 

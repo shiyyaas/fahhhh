@@ -6,7 +6,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
-import 'package:fahhhh/core/widgets/functional/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/my_subjects/widgets/student_attendance_history_tile.dart';
 
 //Models

@@ -2,7 +2,7 @@
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Widgets
-import 'package:fahhhh/core/widgets/ui/white_btn.dart';
+import 'package:fahhhh/core/widgets/white_btn.dart';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

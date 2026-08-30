@@ -5,7 +5,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/department/models/department_class.dart';
 import 'package:fahhhh/features/department/utils/header_menu_config.dart';
-import 'package:fahhhh/core/widgets/functional/more_button.dart';
+import 'package:fahhhh/features/department/widgets/more_button.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
