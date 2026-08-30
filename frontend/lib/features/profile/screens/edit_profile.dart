@@ -9,7 +9,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
 // Widgets
-import 'package:fahhhh/core/widgets/ui/blue_btn.dart';
+import 'package:fahhhh/core/widgets/blue_btn.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});

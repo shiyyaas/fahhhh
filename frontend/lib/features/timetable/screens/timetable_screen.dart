@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
-import '../../../core/widgets/ui/blue_btn.dart';
+import '../../../core/widgets/blue_btn.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';

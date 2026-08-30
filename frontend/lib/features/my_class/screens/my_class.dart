@@ -8,10 +8,10 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 //Widgets
 import 'package:fahhhh/features/department/widgets/segmented_toggle.dart';
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
-import 'package:fahhhh/core/widgets/functional/more_button.dart';
-import 'package:fahhhh/core/widgets/functional/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/subject_list_tile.dart';
+import 'package:fahhhh/features/department/widgets/more_button.dart';
 import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 
 //Models

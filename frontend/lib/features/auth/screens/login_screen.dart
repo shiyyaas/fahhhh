@@ -14,7 +14,7 @@ import 'package:fahhhh/features/auth/widgets/debug_role_selector.dart';
 // Design system
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
-import '../../../core/widgets/ui/input_fields.dart';
+import '../../../core/widgets/input_fields.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
