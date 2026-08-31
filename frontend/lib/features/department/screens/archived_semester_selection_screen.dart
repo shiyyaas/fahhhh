@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 class ArchivedSemesterSelectionScreen extends StatelessWidget {
   final String batchName;
@@ -39,8 +40,9 @@ class ArchivedSemesterSelectionScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 18),
-              _Header(
-                batchName: batchName,
+              AppBackHeader(
+                title: 'Select the semester',
+                subtitle: 'View previous batches Attendance & Reports',
                 onBack: () => context.pop(),
               ),
               const SizedBox(height: 36),
@@ -64,54 +66,6 @@ class ArchivedSemesterSelectionScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final String batchName;
-  final VoidCallback onBack;
-
-  const _Header({
-    required this.batchName,
-    required this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            onPressed: onBack,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 26, height: 41),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Select the semester',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  'View previous batches Attendance & Reports',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -17,6 +17,7 @@ import '../../features/department/screens/department_class_screen.dart';
 import '../../features/department/screens/archived_batches_screen.dart';
 import '../../features/department/screens/archived_semester_selection_screen.dart';
 import '../../features/department/screens/teacher_settings_screen.dart';
+import '../../features/department/screens/teacher_details_settings_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
@@ -147,6 +148,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/teacher-settings',
         builder: (context, state) => const TeacherSettingsScreen(),
+      ),
+      // Teacher Detail Settings Route - edit selected teacher details
+      GoRoute(
+        path: '/teacher-details/:name/:subject',
+        builder: (context, state) {
+          final name = Uri.decodeComponent(state.pathParameters['name']!);
+          final subject = Uri.decodeComponent(state.pathParameters['subject']!);
+          return TeacherDetailsSettingsScreen(name: name, subject: subject);
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

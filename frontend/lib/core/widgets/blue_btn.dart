@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme_data/app_colors.dart';
-import '../theme_data/app_text_styles.dart';
+import 'app_button.dart';
 
-class BlueBtn extends StatefulWidget {
+class BlueBtn extends StatelessWidget {
   final String text;
   final IconData? icon;
   final VoidCallback onPressed;
@@ -46,78 +45,26 @@ class BlueBtn extends StatefulWidget {
   });
 
   @override
-  State<BlueBtn> createState() => _BlueBtnState();
-}
-
-class _BlueBtnState extends State<BlueBtn> {
-  bool isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() => isPressed = true);
-      },
-      onTapUp: (_) {
-        setState(() => isPressed = false);
-        widget.onPressed();
-      },
-      onTapCancel: () {
-        setState(() => isPressed = false);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        height: widget.height,
-        width: widget.width,
-        padding:
-            widget.padding ??
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: isPressed
-              ? (widget.pressedColor ??
-                    AppColors.primary.withValues(alpha: 0.85))
-              : (widget.backgroundColor ?? AppColors.primary),
-          borderRadius: BorderRadius.circular(widget.borderRadius ?? 16),
-          border: Border.all(color: widget.borderColor ?? AppColors.primary),
-          boxShadow:
-              widget.boxShadow ??
-              [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: widget.mainAxisAlignment ??
-                (widget.icon != null
-                    ? MainAxisAlignment.spaceAround
-                    : MainAxisAlignment.center),
-          children: [
-            if (widget.icon != null) ...[
-              Icon(
-                widget.icon,
-                size: widget.iconSize,
-                color: isPressed
-                    ? (widget.pressedIconColor ?? Colors.white70)
-                    : (widget.iconColor ?? Colors.white),
-              ),
-              const SizedBox(width: 10),
-            ],
-            Text(
-              widget.text,
-              style: (widget.textStyle ?? AppTextStyles.heading).copyWith(
-                color: isPressed
-                    ? (widget.pressedTextColor ?? Colors.white70)
-                    : (widget.textColor ?? Colors.white),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return AppButton.primary(
+      text: text,
+      onPressed: onPressed,
+      icon: icon,
+      textStyle: textStyle,
+      height: height,
+      width: width,
+      backgroundColor: backgroundColor,
+      pressedColor: pressedColor,
+      borderColor: borderColor,
+      iconColor: iconColor,
+      pressedIconColor: pressedIconColor,
+      textColor: textColor,
+      pressedTextColor: pressedTextColor,
+      borderRadius: borderRadius,
+      iconSize: iconSize,
+      padding: padding,
+      boxShadow: boxShadow,
+      mainAxisAlignment: mainAxisAlignment,
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 
 //Models
@@ -44,44 +45,11 @@ class SubjectClassListsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                Padding(
+                AppBackHeader(
+                  title: 'Class lists',
+                  subtitle: 'Choose the class',
+                  onBack: () => context.pop(),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (context.mounted) context.pop();
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 26,
-                          minHeight: 26,
-                        ),
-                        icon: const Icon(Icons.arrow_back, size: 26),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Class lists',
-                              style: AppTextStyles.heading.copyWith(
-                                fontSize: 30,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              'Choose the class',
-                              style: AppTextStyles.small.copyWith(
-                                fontSize: 17.7,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const SizedBox(height: 14),
                 const AttendanceChart(),

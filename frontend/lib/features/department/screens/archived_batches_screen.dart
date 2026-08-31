@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 
@@ -89,7 +90,11 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
           child: Column(
             children: [
               const SizedBox(height: 18),
-              _Header(onBack: context.pop),
+              AppBackHeader(
+                title: 'Archived batches',
+                subtitle: 'View previous batches Attendance & Reports',
+                onBack: () => context.pop(),
+              ),
               const SizedBox(height: 18),
               SearchField(
                 controller: _searchController,
@@ -108,50 +113,6 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const _Header({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            onPressed: onBack,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 26, height: 41),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Archived batches',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  'View previous batches Attendance & Reports',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

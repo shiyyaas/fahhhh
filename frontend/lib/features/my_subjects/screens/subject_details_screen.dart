@@ -8,6 +8,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 
 //Models
@@ -84,9 +85,11 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    _SubjectHeader(
-                      subjectName: widget.subjectName,
-                      className: widget.className,
+                    AppBackHeader(
+                      title: widget.subjectName,
+                      subtitle: widget.className,
+                      onBack: () => context.pop(),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
                     const SizedBox(height: 10),
                     Padding(
@@ -147,58 +150,6 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SubjectHeader extends StatelessWidget {
-  final String subjectName;
-  final String className;
-  const _SubjectHeader({
-    required this.subjectName,
-    required this.className,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              if (context.mounted) context.pop();
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 26,
-              minHeight: 26,
-            ),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  subjectName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.heading.copyWith(fontSize: 25),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  className,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(fontSize: 17.7),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

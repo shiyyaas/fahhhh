@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 //Design
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 //Models
 import 'package:fahhhh/features/profile/models/student_profile.dart';
@@ -32,45 +33,13 @@ class StudentProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                AppBackHeader(
+                  title: 'Profile',
+                  subtitle: profile.className,
+                  onBack: () {
+                    if (context.mounted) context.pop();
+                  },
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          if (context.mounted) context.pop();
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 26,
-                          minHeight: 26,
-                        ),
-                        icon: const Icon(Icons.arrow_back, size: 26),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Profile',
-                              style: AppTextStyles.heading.copyWith(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              profile.className,
-                              style: AppTextStyles.small.copyWith(
-                                fontSize: 17.7,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const SizedBox(height: 24),
                 Center(

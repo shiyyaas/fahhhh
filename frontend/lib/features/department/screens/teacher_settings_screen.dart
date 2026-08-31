@@ -8,6 +8,8 @@ import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
 
+import '../../../core/widgets/app_back_header.dart';
+
 class TeacherSettingsScreen extends StatefulWidget {
   const TeacherSettingsScreen({super.key});
 
@@ -53,23 +55,15 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
           child: Column(
             children: [
               const SizedBox(height: 18),
-              _Header(onBack: () => context.pop()),
+              AppBackHeader(
+                title: 'Teacher Settings',
+                subtitle: 'Manage teacher details here',
+                onBack: () => context.pop(),
+              ),
               const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SearchField(
-                        controller: _searchController,
-                        onChanged: (val) =>
-                            setState(() => _query = val),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const SortDropdown(),
-                  ],
-                ),
+              SearchSortBar(
+                controller: _searchController,
+                onQueryChanged: (val) => setState(() => _query = val),
               ),
               const SizedBox(height: 14),
               Padding(
@@ -129,6 +123,11 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                           }
                         });
                       },
+                      onTap: () {
+                        context.push(
+                          '/teacher-details/${Uri.encodeComponent(teacher.name)}/${Uri.encodeComponent(teacher.subject)}',
+                        );
+                      },
                       child: TeacherListTile(
                         teacher: teacher,
                       ),
@@ -139,50 +138,6 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const _Header({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          IconButton(
-            onPressed: onBack,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints.tightFor(width: 26, height: 41),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Teacher Settings',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  'Manage teacher details here',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

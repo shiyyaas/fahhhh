@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/app_dialog.dart';
 
 class UploadTeacherDialog extends StatefulWidget {
   const UploadTeacherDialog({super.key});
@@ -82,215 +83,135 @@ class _UploadTeacherDialogState extends State<UploadTeacherDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 384),
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.black, width: 1),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Upload Teacher Data',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w600,
+    return AppDialog(
+      title: 'Upload Teacher Data',
+      primaryText: 'Confirm Upload',
+      primaryEnabled: _selectedFileName != null,
+      onPrimary: _selectedFileName != null
+          ? () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Uploading $_selectedFileName...',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: _pickFile,
-                  child: Container(
-                    height: 165,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F7FF),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF1A6BB6),
-                        width: 2,
-                        style: BorderStyle.solid,
-                      ),
-                    ),
-                    child: _selectedFileName != null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF1A6BB6),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0x1A000000),
-                                      blurRadius: 6,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  _getFileIcon(_selectedExtension!),
-                                  size: 29,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                _selectedFileName!,
-                                style: AppTextStyles.sfPRO.copyWith(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1A6BB6),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedFileName = null;
-                                    _selectedExtension = null;
-                                  });
-                                },
-                                child: Text(
-                                  'Change file',
-                                  style: AppTextStyles.sfPRO.copyWith(
-                                    fontSize: 13,
-                                    color: const Color(0xFF635959),
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF1A6BB6),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0x1A000000),
-                                      blurRadius: 6,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.cloud_upload_rounded,
-                                  size: 29,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Select file to upload',
-                                style: AppTextStyles.sfPRO.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1A6BB6),
-                                ),
+              );
+            }
+          : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _pickFile,
+            child: Container(
+              height: 165,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F7FF),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF1A6BB6),
+                  width: 2,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: _selectedFileName != null
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1A6BB6),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
                               ),
                             ],
                           ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Supported formats: .pdf, .csv, .xlsx',
-                  style: AppTextStyles.small.copyWith(fontSize: 17.7),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 31,
-                  child: ElevatedButton(
-                    onPressed: _selectedFileName != null
-                        ? () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Uploading $_selectedFileName...',
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF136BB3),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          const Color(0xFF136BB3).withValues(alpha: 0.5),
-                      elevation: 3,
-                      shadowColor: Colors.black.withValues(alpha: 0.15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                        side: const BorderSide(
-                          color: Colors.black,
-                          width: 1,
+                          child: Icon(
+                            _getFileIcon(_selectedExtension!),
+                            size: 29,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _selectedFileName!,
+                          style: AppTextStyles.sfPRO.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1A6BB6),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedFileName = null;
+                              _selectedExtension = null;
+                            });
+                          },
+                          child: Text(
+                            'Change file',
+                            style: AppTextStyles.sfPRO.copyWith(
+                              fontSize: 13,
+                              color: const Color(0xFF635959),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1A6BB6),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x1A000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.cloud_upload_rounded,
+                            size: 29,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Select file to upload',
+                          style: AppTextStyles.sfPRO.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1A6BB6),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'Confirm Upload',
-                      style: AppTextStyles.heading.copyWith(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  height: 28,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF136BB3),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: AppTextStyles.heading.copyWith(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF136BB3),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
-        ),
+          const SizedBox(height: 6),
+          Text(
+            'Supported formats: .pdf, .csv, .xlsx',
+            style: AppTextStyles.small.copyWith(fontSize: 17.7),
+          ),
+        ],
       ),
     );
   }

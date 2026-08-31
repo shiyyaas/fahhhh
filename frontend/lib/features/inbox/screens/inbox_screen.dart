@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-//Design
-import 'package:fahhhh/core/theme_data/app_text_styles.dart';
-
 //Widgets
 import 'package:fahhhh/features/inbox/widgets/inbox_filter_bar.dart';
 import 'package:fahhhh/features/inbox/widgets/inbox_message_tile.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 //Models
 import 'package:fahhhh/features/inbox/models/inbox_message.dart';
@@ -111,40 +109,11 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
+              AppBackHeader(
+                title: 'Inbox',
+                subtitle: 'View messages here',
+                onBack: () => context.pop(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        if (context.mounted) context.pop();
-                      },
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 26,
-                        minHeight: 26,
-                      ),
-                      icon: const Icon(Icons.arrow_back, size: 26),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Inbox',
-                            style: AppTextStyles.heading.copyWith(fontSize: 30),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            'View messages here',
-                            style: AppTextStyles.small.copyWith(fontSize: 17.7),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
               const SizedBox(height: 14),
               InboxFilterBar(

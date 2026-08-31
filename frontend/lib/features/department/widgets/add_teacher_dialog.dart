@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+
+import '../../../core/theme_data/app_colors.dart';
+import '../../../core/theme_data/app_text_styles.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_dropdown_field.dart';
+import '../../../core/widgets/input_fields.dart';
 
 class AddTeacherDialog extends StatefulWidget {
   const AddTeacherDialog({super.key});
@@ -73,7 +78,7 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.black, width: 1),
+              border: Border.all(color: AppColors.border, width: 1),
             ),
             child: SingleChildScrollView(
               child: Form(
@@ -89,119 +94,62 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _buildField(
+                    InputField(
                       controller: _nameController,
                       label: 'Full Name',
-                      icon: Icons.person_outline_rounded,
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Name is required' : null,
+                      hintText: 'Enter teacher name',
                     ),
                     const SizedBox(height: 14),
-                    _buildField(
+                    InputField(
                       controller: _emailController,
                       label: 'Email',
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Email is required';
-                        if (!v.contains('@') || !v.contains('.')) {
-                          return 'Enter a valid email';
-                        }
-                        return null;
-                      },
+                      hintText: 'Enter email address',
                     ),
                     const SizedBox(height: 14),
-                    _buildField(
+                    InputField(
                       controller: _phoneController,
                       label: 'Phone Number',
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Phone number is required';
-                        }
-                        if (v.trim().length < 10) {
-                          return 'Enter a valid phone number';
-                        }
-                        return null;
-                      },
+                      hintText: 'Enter phone number',
                     ),
                     const SizedBox(height: 14),
-                    _buildDropdown(
-                      value: _selectedSubject,
+                    AppDropdownField(
                       label: 'Assigned Subject',
-                      icon: Icons.subject_rounded,
+                      value: _selectedSubject,
                       items: _subjects,
-                      onChanged: (v) => setState(() => _selectedSubject = v),
-                      validator: (v) =>
-                          v == null ? 'Subject is required' : null,
+                      onChanged: (value) => setState(() => _selectedSubject = value),
                     ),
                     const SizedBox(height: 14),
-                    _buildDropdown(
-                      value: _selectedClass,
+                    AppDropdownField(
                       label: 'Assigned Class',
-                      icon: Icons.class_outlined,
+                      value: _selectedClass,
                       items: _classes,
-                      onChanged: (v) => setState(() => _selectedClass = v),
-                      validator: (v) =>
-                          v == null ? 'Class is required' : null,
+                      onChanged: (value) => setState(() => _selectedClass = value),
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      height: 31,
-                      child: ElevatedButton(
+                      child: AppButton.primary(
+                        text: 'Add Teacher',
                         onPressed: _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF136BB3),
-                          foregroundColor: Colors.white,
-                          elevation: 3,
-                          shadowColor: Colors.black.withValues(alpha: 0.15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                            side: const BorderSide(
-                              color: Colors.black,
-                              width: 1,
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                        ),
-                        child: Text(
-                          'Add Teacher',
-                          style: AppTextStyles.heading.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                        borderRadius: 28,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
                         ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
-                      height: 28,
-                      child: TextButton(
+                      child: AppButton.secondary(
+                        text: 'Cancel',
                         onPressed: () => Navigator.pop(context),
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF136BB3),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(26),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: AppTextStyles.heading.copyWith(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF136BB3),
-                          ),
+                        borderRadius: 26,
+                        textColor: AppColors.primary,
+                        borderColor: AppColors.border,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
                         ),
                       ),
                     ),
@@ -212,146 +160,6 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      validator: validator,
-      cursorColor: const Color(0xFF373737),
-      style: AppTextStyles.sfPRO.copyWith(
-        fontSize: 14,
-        color: const Color(0xFF373737),
-      ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        labelText: label,
-        labelStyle: AppTextStyles.sfPRO.copyWith(
-          fontSize: 14,
-          color: const Color(0xFF635959),
-        ),
-        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF136BB3)),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF136BB3),
-            width: 1.5,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-            width: 1.5,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdown({
-    required String? value,
-    required String label,
-    required IconData icon,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-    String? Function(String?)? validator,
-  }) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      validator: validator,
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        size: 20,
-        color: Color(0xFF635959),
-      ),
-      style: AppTextStyles.sfPRO.copyWith(
-        fontSize: 14,
-        color: const Color(0xFF373737),
-      ),
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        labelText: label,
-        labelStyle: AppTextStyles.sfPRO.copyWith(
-          fontSize: 14,
-          color: const Color(0xFF635959),
-        ),
-        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF136BB3)),
-        filled: true,
-        fillColor: const Color(0xFFF8F9FA),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black.withValues(alpha: 0.15),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF136BB3),
-            width: 1.5,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFBA4545),
-            width: 1.5,
-          ),
-        ),
-      ),
-      items: items
-          .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-          .toList(),
-      onChanged: onChanged,
     );
   }
 }

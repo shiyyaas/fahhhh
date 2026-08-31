@@ -7,6 +7,8 @@ class SearchSortBar extends StatelessWidget {
   final ValueChanged<String>? onQueryChanged;
   final ValueChanged<String>? onSortChanged;
   final String? initialSort;
+  final List<String>? sortOptions;
+  final EdgeInsetsGeometry padding;
 
   const SearchSortBar({
     super.key,
@@ -14,12 +16,14 @@ class SearchSortBar extends StatelessWidget {
     this.onQueryChanged,
     this.onSortChanged,
     this.initialSort,
+    this.sortOptions,
+    this.padding = const EdgeInsets.symmetric(horizontal: 22),
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22),
+      padding: padding,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -36,6 +40,7 @@ class SearchSortBar extends StatelessWidget {
               SortDropdown(
                 onChanged: onSortChanged,
                 initialSort: initialSort,
+                options: sortOptions,
               ),
             ],
           ),

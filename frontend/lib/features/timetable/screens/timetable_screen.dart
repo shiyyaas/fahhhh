@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/widgets/blue_btn.dart';
+import '../../../core/widgets/app_back_header.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';
@@ -169,46 +170,14 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Custom Header aligning with the design
-              Padding(
+              AppBackHeader(
+                title: 'Time Table',
+                subtitle: 'View your timetable here',
+                onBack: () {
+                  if (!context.mounted) return;
+                  context.pop();
+                },
                 padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 20),
-                      onPressed: () {
-                        if (!context.mounted) return;
-                        context.pop();
-                      },
-                    ),
-                    const SizedBox(width: 4),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Time Table",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            "View your timetable here",
-                            style: TextStyle(
-                              color: Color(0xFF6F5E53),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
 
               const SizedBox(height: 12),

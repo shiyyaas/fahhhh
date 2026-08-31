@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
-import '../../../core/theme_data/app_text_styles.dart';
 import '../../department/widgets/search_sort_bar.dart';
+import '../../../core/widgets/app_back_header.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
@@ -170,56 +170,40 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                       // Header Section
                       _buildHeader(slot),
 
+
                       // Controls section (Search & Sort By)
-                      Padding(
+                      SearchSortBar(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: SearchField(
-                                onChanged: (val) {
-                                  setState(() {
-                                    searchQuery = val;
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            if (isPast)
-                              SortDropdown(
-                                initialSort: _getSortFilterLabel(_selectedSortFilter),
-                                options: const ['All', 'Present', 'Absent', 'Late'],
-                                onChanged: (val) {
-                                  setState(() {
-                                    if (val == "All") _selectedSortFilter = "all";
-                                    if (val == "Present") _selectedSortFilter = "present";
-                                    if (val == "Absent") _selectedSortFilter = "absent";
-                                    if (val == "Late") _selectedSortFilter = "late";
-                                  });
-                                },
-                              )
-                            else
-                              SortDropdown(
-                                initialSort: "Mark All",
-                                options: const ['All Present', 'All Absent', 'All Late'],
-                                onChanged: (val) {
-                                  setState(() {
-                                    AttendanceStatus status;
-                                    if (val == "All Present") {
-                                      status = AttendanceStatus.present;
-                                    } else if (val == "All Absent") {
-                                      status = AttendanceStatus.absent;
-                                    } else {
-                                      status = AttendanceStatus.late;
-                                    }
-                                    for (var s in students) {
-                                      _attendanceStates[s.rollNumber] = status;
-                                    }
-                                  });
-                                },
-                              ),
-                          ],
-                        ),
+                        onQueryChanged: (val) {
+                          setState(() {
+                            searchQuery = val;
+                          });
+                        },
+                        initialSort: isPast
+                            ? _getSortFilterLabel(_selectedSortFilter)
+                            : 'Mark All',
+                        sortOptions: isPast
+                            ? const ['All', 'Present', 'Absent', 'Late']
+                            : const ['All Present', 'All Absent', 'All Late'],
+                        onSortChanged: (val) {
+                          setState(() {
+                            if (isPast) {
+                              if (val == 'All') _selectedSortFilter = 'all';
+                              if (val == 'Present') _selectedSortFilter = 'present';
+                              if (val == 'Absent') _selectedSortFilter = 'absent';
+                              if (val == 'Late') _selectedSortFilter = 'late';
+                            } else {
+                              final status = val == 'All Present'
+                                  ? AttendanceStatus.present
+                                  : val == 'All Absent'
+                                      ? AttendanceStatus.absent
+                                      : AttendanceStatus.late;
+                              for (final s in students) {
+                                _attendanceStates[s.rollNumber] = status;
+                              }
+                            }
+                          });
+                        },
                       ),
 
                       const SizedBox(height: 8),
@@ -339,46 +323,15 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
   }
 
   Widget _buildHeader(TimetableSlot slot) {
-    return Padding(
+    return AppBackHeader(
+      title: slot.classId,
+      subtitle:
+          "${slot.subjectName} - ${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}",
+      onBack: () {
+        if (!context.mounted) return;
+        context.pop();
+      },
       padding: const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black, size: 26),
-                onPressed: () {
-                  if (!context.mounted) return;
-                  context.pop();
-                },
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      slot.classId,
-                      style: AppTextStyles.heading.copyWith(
-                        color: Colors.black,
-                        fontSize: 30,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "${slot.subjectName} - ${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}",
-                      style: AppTextStyles.small.copyWith(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 

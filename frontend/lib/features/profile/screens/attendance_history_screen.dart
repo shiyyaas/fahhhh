@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/home/widgets/timetable_card.dart';
 import 'package:fahhhh/features/home/widgets/status_badge.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 enum DayAttendanceStatus { present, partial, absent, noClass, none }
 
@@ -107,7 +108,15 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(),
+                      AppBackHeader(
+                        title: 'Attendance History',
+                        subtitle: 'View your attendance here',
+                        onBack: () => context.pop(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       _buildCalendarCard(),
                       const SizedBox(height: 16),
@@ -122,44 +131,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              if (context.mounted) context.pop();
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Attendance History',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 20.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  "View your attendance here",
-                  style: AppTextStyles.small.copyWith(fontSize: 17.7),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

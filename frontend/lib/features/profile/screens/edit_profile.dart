@@ -10,6 +10,7 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 
 // Widgets
 import 'package:fahhhh/core/widgets/blue_btn.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -54,33 +55,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Edit Profile',
-          style: AppTextStyles.heading.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (!context.mounted) return;
-            context.pop();
-          },
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        child: Column(
+          children: [
+            AppBackHeader(
+              title: 'Edit Profile',
+              onBack: () {
+                if (!context.mounted) return;
+                context.pop();
+              },
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 Center(
                   child: Column(
                     children: [
@@ -190,9 +182,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                 ),
                 const SizedBox(height: 20),
-              ],
-            ),
-          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

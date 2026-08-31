@@ -22,6 +22,7 @@ import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/subject_list_tile.dart';
+import '../../../core/widgets/app_back_header.dart';
 
 /// Department CLASS detail screen: attendance chart + class student list.
 /// Opened by pushing to /department-class/:classId (hides bottom nav).
@@ -89,9 +90,15 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
           child: Column(
             children: [
               const SizedBox(height: 8),
-              _ClassHeader(
-                classId: widget.classId,
-                selectedSegmentIndex: _selectedTab,
+              AppBackHeader(
+                title: widget.classId,
+                subtitle: 'Department of Computer Science',
+                onBack: () => context.pop(),
+                trailing: MoreButton(
+                  pageType: HeaderPageType.myClass,
+                  selectedSegmentIndex: _selectedTab,
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 26),
               ),
               const SizedBox(height: 14),
               SegmentedToggle(
@@ -114,64 +121,6 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ClassHeader extends StatelessWidget {
-  final String classId;
-  final int selectedSegmentIndex;
-
-  const _ClassHeader({
-    required this.classId,
-    this.selectedSegmentIndex = 0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 26),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              if (context.mounted) context.pop();
-            },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 26,
-              minHeight: 26,
-            ),
-            icon: const Icon(Icons.arrow_back, size: 26),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  classId,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.heading.copyWith(fontSize: 28.5),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  'Department of Computer Science',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          MoreButton(
-            pageType: HeaderPageType.myClass,
-            selectedSegmentIndex: selectedSegmentIndex,
-          ),
-        ],
       ),
     );
   }

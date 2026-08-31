@@ -1,10 +1,8 @@
-// Designs
-import 'package:fahhhh/core/theme_data/app_colors.dart';
-import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
+import 'app_button.dart';
 
-class WhiteBtn extends StatefulWidget {
+class WhiteBtn extends StatelessWidget {
   final String text;
   final IconData? icon;
   final VoidCallback onPressed;
@@ -23,7 +21,6 @@ class WhiteBtn extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final List<BoxShadow>? boxShadow;
   final MainAxisAlignment? mainAxisAlignment;
-
 
   const WhiteBtn({
     super.key,
@@ -48,89 +45,26 @@ class WhiteBtn extends StatefulWidget {
   });
 
   @override
-  State<WhiteBtn> createState() => _WhiteBtnState();
-
-}
-
-
-
-class _WhiteBtnState extends State<WhiteBtn> {
-
-  bool isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() => isPressed = true);
-      },
-
-      onTapUp: (_) {
-        setState(() => isPressed = false);
-        widget.onPressed();
-      },
-
-      onTapCancel: () {
-        setState(() => isPressed = false);
-      },
-
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        height: widget.height,
-        width: widget.width,
-        padding: widget.padding ??
-            const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 12,
-            ),
-        decoration: BoxDecoration(
-          color: isPressed
-              ? (widget.pressedColor ?? Colors.grey.shade200)
-              : (widget.backgroundColor ?? Colors.white),
-          borderRadius: BorderRadius.circular(widget.borderRadius ?? 16),
-          border: Border.all(
-            color: widget.borderColor ?? AppColors.border,
-          ),
-          boxShadow: widget.boxShadow ??
-              [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-
-        ),
-
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: widget.mainAxisAlignment ??
-                (widget.icon != null
-                    ? MainAxisAlignment.spaceAround
-                    : MainAxisAlignment.center),
-          children: [
-            if (widget.icon != null) ...[
-              Icon(
-                widget.icon,
-                size: widget.iconSize,
-                color: isPressed
-                    ? (widget.pressedIconColor ?? Colors.black54)
-                    : (widget.iconColor ?? Colors.black),
-              ),
-              const SizedBox(width: 10),
-            ],
-            Text(
-              widget.text,
-              style: (widget.textStyle ?? AppTextStyles.heading).copyWith(
-                color: isPressed
-                    ? (widget.pressedTextColor ?? Colors.black54)
-                    : (widget.textColor ?? Colors.black),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return AppButton.secondary(
+      text: text,
+      onPressed: onPressed,
+      icon: icon,
+      textStyle: textStyle,
+      height: height,
+      width: width,
+      backgroundColor: backgroundColor,
+      pressedColor: pressedColor,
+      borderColor: borderColor,
+      iconColor: iconColor,
+      pressedIconColor: pressedIconColor,
+      textColor: textColor,
+      pressedTextColor: pressedTextColor,
+      borderRadius: borderRadius,
+      iconSize: iconSize,
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      boxShadow: boxShadow,
+      mainAxisAlignment: mainAxisAlignment,
     );
   }
 }
