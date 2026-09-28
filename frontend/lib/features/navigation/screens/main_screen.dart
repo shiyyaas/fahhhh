@@ -29,7 +29,11 @@ class MainScreen extends ConsumerWidget {
 
     if (auth.role == UserRole.student) {
       items.addAll([
-        const NavItem(icon: Icons.home_outlined, label: 'Home', branchIndex: 0),
+        const NavItem(
+          icon: Icons.home_outlined,
+          label: 'Home',
+          branchIndex: 0,
+        ),
         const NavItem(
           icon: Icons.menu_book_outlined,
           label: 'Subjects',
@@ -43,7 +47,11 @@ class MainScreen extends ConsumerWidget {
       ]);
     } else if (auth.role == UserRole.teacher) {
       items.add(
-        const NavItem(icon: Icons.home_outlined, label: 'Home', branchIndex: 0),
+        const NavItem(
+          icon: Icons.home_outlined,
+          label: 'Home',
+          branchIndex: 0,
+        ),
       );
 
       if (user?.isHOD ?? false) {
@@ -91,27 +99,33 @@ class MainScreen extends ConsumerWidget {
     int selectedIndex = items.indexWhere(
       (item) => item.branchIndex == navigationShell.currentIndex,
     );
+
     if (selectedIndex == -1) {
       selectedIndex = 0;
     }
 
     return Scaffold(
-      // Let page content draw under the nav so the dark pill floats
-      // with no solid white bar behind it.
-      extendBody: true,
-      body: navigationShell,
-      bottomNavigationBar: Material(
-        type: MaterialType.transparency,
-        child: Navbar(
-          selectedIndex: selectedIndex,
-          onItemTapped: (index) {
-            navigationShell.goBranch(
-              items[index].branchIndex,
-              initialLocation: index == selectedIndex,
-            );
-          },
-          items: items,
-        ),
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          navigationShell,
+
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Navbar(
+              selectedIndex: selectedIndex,
+              onItemTapped: (index) {
+                navigationShell.goBranch(
+                  items[index].branchIndex,
+                  initialLocation: index == selectedIndex,
+                );
+              },
+              items: items,
+            ),
+          ),
+        ],
       ),
     );
   }
