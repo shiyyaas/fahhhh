@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class AppColors {
   // Main Colors
   static const Color primary = Color(0xFF136BB3);
+  static const Color secondary = Color(0xFFD0E1FB);
   static const Color background = Colors.white;
+  static const Color surface = Colors.white;
 
   // Brand Gradients
   static const Color gradientTop = Color(0xFF7198EE);
@@ -19,21 +21,30 @@ class AppColors {
   static const Color labelText = Color.fromARGB(255, 59, 59, 59);
   static const Color hintText = Color.fromARGB(255, 80, 79, 79);
   static const Color darkText = Color(0xFF373737);
+  static const Color textSecondary = Color(0xFF666666);
 
   // Common UI Colors
-  static const Color border = Colors.black;
+  static const Color border = Color(0xFF1A1A1A); // Outline token
+  static const Color outline = Color(0xFF1A1A1A);
   static const Color enabledBorder = Color.fromARGB(255, 172, 172, 172);
 
   // Screen Background
   static const Color screenGradientEnd = Color(0xFFAAA0A0);
 
-  // Status Colors
-  static const Color present = Color(0xFF4CAF50);
-  static const Color absent = Color(0xFFE57373);
-  static const Color ongoing = Color(0xFF7986CB);
-  static const Color pending = Color(0xFF757575);
+  // Semantic Status Colors (from design.md)
+  static const Color success = Color(0xFF48AE8C);
+  static const Color warning = Color(0xFFD0B238);
+  static const Color danger = Color(0xFFE57373);
+  static const Color missed = Color(0xFF775471);
+  static const Color recordNow = Color(0xFF9DB6EE);
+  static const Color pending = Color(0xFF5F6B7A);
 
-  // Attendance Badge Colors
+  // Legacy Aliases (mapped to new semantic tokens)
+  static const Color present = success;
+  static const Color absent = danger;
+  static const Color ongoing = recordNow;
+
+  // Attendance Badge Colors (legacy - leaving intact so we don't break screens not yet refactored)
   static const Color goodAttendance = Color(0x996BDB72);
   static const Color badAttendance = Color(0x99BA4545);
   static const Color goodAttendanceBg = Color(0xFF9EEDBB);

@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
 
@@ -61,9 +62,20 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                 onBack: () => context.pop(),
               ),
               const SizedBox(height: 16),
-              SearchSortBar(
-                controller: _searchController,
-                onQueryChanged: (val) => setState(() => _query = val),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppSearchBar(
+                        controller: _searchController,
+                        onChanged: (val) => setState(() => _query = val),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const SortDropdown(),
+                  ],
+                ),
               ),
               const SizedBox(height: 14),
               Padding(

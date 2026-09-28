@@ -5,7 +5,7 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 
 class ArchivedBatch {
   final String name;
@@ -96,10 +96,13 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
                 onBack: () => context.pop(),
               ),
               const SizedBox(height: 18),
-              SearchField(
-                controller: _searchController,
-                onChanged: (value) => setState(() => _query = value),
-              )._withHorizontalPadding(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 26),
+                child: AppSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
               const SizedBox(height: 17),
               Expanded(
                 child: ListView.builder(
@@ -175,15 +178,6 @@ class _ArchivedBatchTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-extension on Widget {
-  Widget _withHorizontalPadding() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 26),
-      child: this,
     );
   }
 }

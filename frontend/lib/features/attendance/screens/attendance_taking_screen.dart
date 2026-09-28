@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme_data/app_colors.dart';
-import '../../department/widgets/search_sort_bar.dart';
+import '../../department/widgets/app_search_bar.dart';
+import '../../department/widgets/sort_dropdown.dart';
 import '../../../core/widgets/app_back_header.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
@@ -172,38 +173,51 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
 
 
                       // Controls section (Search & Sort By)
-                      SearchSortBar(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        onQueryChanged: (val) {
-                          setState(() {
-                            searchQuery = val;
-                          });
-                        },
-                        initialSort: isPast
-                            ? _getSortFilterLabel(_selectedSortFilter)
-                            : 'Mark All',
-                        sortOptions: isPast
-                            ? const ['All', 'Present', 'Absent', 'Late']
-                            : const ['All Present', 'All Absent', 'All Late'],
-                        onSortChanged: (val) {
-                          setState(() {
-                            if (isPast) {
-                              if (val == 'All') _selectedSortFilter = 'all';
-                              if (val == 'Present') _selectedSortFilter = 'present';
-                              if (val == 'Absent') _selectedSortFilter = 'absent';
-                              if (val == 'Late') _selectedSortFilter = 'late';
-                            } else {
-                              final status = val == 'All Present'
-                                  ? AttendanceStatus.present
-                                  : val == 'All Absent'
-                                      ? AttendanceStatus.absent
-                                      : AttendanceStatus.late;
-                              for (final s in students) {
-                                _attendanceStates[s.rollNumber] = status;
-                              }
-                            }
-                          });
-                        },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AppSearchBar(
+                                onChanged: (val) => setState(() => searchQuery = val),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SortDropdown(
+                              value: isPast
+                                  ? _getSortFilterLabel(_selectedSortFilter)
+                                  : 'Mark All',
+                              placeholder: isPast ? 'Sort by' : 'Mark All',
+                              options: isPast
+                                  ? const ['All', 'Present', 'Absent', 'Late']
+                                  : const ['All Present', 'All Absent', 'All Late'],
+                              onChanged: (val) {
+                                setState(() {
+                                  if (isPast) {
+                                    _selectedSortFilter = switch (val) {
+                                      'Present' => 'present',
+                                      'Absent' => 'absent',
+                                      'Late' => 'late',
+                                      _ => 'all',
+                                    };
+                                  } else {
+                                    final status = val == 'All Present'
+                                        ? AttendanceStatus.present
+                                        : val == 'All Absent'
+                                            ? AttendanceStatus.absent
+                                            : AttendanceStatus.late;
+                                    for (final s in students) {
+                                      _attendanceStates[s.rollNumber] = status;
+                                    }
+                                  }
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 8),

@@ -8,7 +8,8 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 //Widgets
 import 'package:fahhhh/features/department/widgets/segmented_toggle.dart';
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/more_button.dart';
 import 'package:fahhhh/features/department/utils/header_menu_config.dart';
@@ -170,9 +171,20 @@ class _StudentsViewState extends State<_StudentsView> {
           ),
         ),
         const SizedBox(height: 12),
-        SearchSortBar(
-          controller: _searchController,
-          onQueryChanged: (value) => setState(() => _query = value),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: AppSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const SortDropdown(),
+            ],
+          ),
         ),
         const SizedBox(height: 6),
         Expanded(
@@ -244,9 +256,20 @@ class _SubjectsViewState extends State<_SubjectsView> {
           ),
         ),
         const SizedBox(height: 12),
-        SearchSortBar(
-          controller: _searchController,
-          onQueryChanged: (value) => setState(() => _query = value),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: AppSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const SortDropdown(),
+            ],
+          ),
         ),
         const SizedBox(height: 6),
         Expanded(

@@ -6,7 +6,8 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 
@@ -62,7 +63,16 @@ class SubjectClassListsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const SearchSortBar(),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Expanded(child: AppSearchBar()),
+                      SizedBox(width: 10),
+                      SortDropdown(),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 6),
                 for (final classData in classes)
                   ClassListTile(

@@ -11,7 +11,8 @@ import 'package:fahhhh/features/department/widgets/segmented_toggle.dart';
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 
 //Models
 import 'package:fahhhh/features/department/models/department_class.dart';
@@ -102,7 +103,16 @@ class _ClassesView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const SearchSortBar(),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                Expanded(child: AppSearchBar()),
+                SizedBox(width: 10),
+                SortDropdown(),
+              ],
+            ),
+          ),
           const SizedBox(height: 6),
           for (final data in mockDepartmentClasses)
             ClassListTile(
@@ -147,9 +157,20 @@ class _TeachersViewState extends State<_TeachersView> {
 
     return Column(
       children: [
-        SearchSortBar(
-          controller: _searchController,
-          onQueryChanged: (value) => setState(() => _query = value),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: AppSearchBar(
+                  controller: _searchController,
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const SortDropdown(),
+            ],
+          ),
         ),
         const SizedBox(height: 6),
         Expanded(

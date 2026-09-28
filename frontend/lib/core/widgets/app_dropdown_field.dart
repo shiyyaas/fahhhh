@@ -37,7 +37,7 @@ class AppDropdownField extends StatelessWidget {
         ),
         const SizedBox(height: 1),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           isExpanded: isExpanded,
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,

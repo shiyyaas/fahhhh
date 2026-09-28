@@ -6,7 +6,8 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
-import 'package:fahhhh/features/department/widgets/search_sort_bar.dart';
+import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/my_subjects/widgets/student_attendance_history_tile.dart';
 import '../../../core/widgets/app_back_header.dart';
 
@@ -86,9 +87,20 @@ class _StudentSubjectDetailScreenState
                   ),
                 ),
                 const SizedBox(height: 12),
-                SearchSortBar(
-                  controller: _searchController,
-                  onQueryChanged: (val) => setState(() => _query = val),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AppSearchBar(
+                          controller: _searchController,
+                          onChanged: (val) => setState(() => _query = val),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const SortDropdown(),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 6),
                 for (final record in records)
