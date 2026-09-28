@@ -1,4 +1,5 @@
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Models
@@ -64,7 +65,7 @@ class InboxMessageTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: Colors.white,
                     border: Border.all(
-                      color: const Color(0xFF141212),
+                      color: AppColors.border,
                       width: 0.8,
                     ),
                     image: DecorationImage(

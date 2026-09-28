@@ -18,6 +18,10 @@ import '../../features/department/screens/archived_batches_screen.dart';
 import '../../features/department/screens/archived_semester_selection_screen.dart';
 import '../../features/department/screens/teacher_settings_screen.dart';
 import '../../features/department/screens/teacher_details_settings_screen.dart';
+import '../../features/department/screens/student_settings_screen.dart';
+import '../../features/department/screens/student_details_screen.dart';
+import '../../features/department/screens/subject_settings_screen.dart';
+import '../../features/department/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
@@ -156,6 +160,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           final name = Uri.decodeComponent(state.pathParameters['name']!);
           final subject = Uri.decodeComponent(state.pathParameters['subject']!);
           return TeacherDetailsSettingsScreen(name: name, subject: subject);
+        },
+      ),
+      // Student Settings Route
+      GoRoute(
+        path: '/student-settings',
+        builder: (context, state) => const StudentSettingsScreen(),
+      ),
+      // Student Detail Settings Route - edit selected student details
+      GoRoute(
+        path: '/student-details/:rollNumber/:name',
+        builder: (context, state) {
+          final rollNumber = Uri.decodeComponent(state.pathParameters['rollNumber']!);
+          final name = Uri.decodeComponent(state.pathParameters['name']!);
+          return StudentDetailsScreen(rollNumber: rollNumber, name: name);
+        },
+      ),
+      // Subject Settings Route
+      GoRoute(
+        path: '/subject-settings',
+        builder: (context, state) => const SubjectSettingsScreen(),
+      ),
+      // Subject Detail Settings Route - edit selected subject details
+      GoRoute(
+        path: '/subject-details/:name/:teacher/:rollNumber',
+        builder: (context, state) {
+          final name = Uri.decodeComponent(state.pathParameters['name']!);
+          final teacher = Uri.decodeComponent(state.pathParameters['teacher']!);
+          final rollNumber = Uri.decodeComponent(state.pathParameters['rollNumber']!);
+          return SubjectSettingsDetailsScreen(name: name, teacher: teacher, rollNumber: rollNumber);
         },
       ),
       StatefulShellRoute.indexedStack(

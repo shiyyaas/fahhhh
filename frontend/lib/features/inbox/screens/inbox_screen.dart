@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+//Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+
 //Widgets
 import 'package:fahhhh/features/inbox/widgets/inbox_filter_bar.dart';
 import 'package:fahhhh/features/inbox/widgets/inbox_message_tile.dart';
@@ -101,7 +104,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),

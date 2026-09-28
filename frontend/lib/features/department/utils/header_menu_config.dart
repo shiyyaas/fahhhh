@@ -4,6 +4,22 @@ enum HeaderPageType {
 }
 
 class HeaderMenuConfig {
+  /// Route for a header-menu option, or null when the option is not yet wired.
+  static String? routeFor(String option) {
+    switch (option) {
+      case 'Archived Batches':
+        return '/archived-batches';
+      case 'Teachers Settings':
+        return '/teacher-settings';
+      case 'Student settings':
+        return '/student-settings';
+      case 'Subject Settings':
+        return '/subject-settings';
+      default:
+        return null;
+    }
+  }
+
   /// Returns the dynamic menu items based on page type and toggle segment index/label.
   static List<String> getMenuItems({
     required HeaderPageType pageType,

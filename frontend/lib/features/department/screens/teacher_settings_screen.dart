@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
@@ -48,7 +49,7 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),
@@ -178,7 +179,7 @@ class _ActionButton extends StatelessWidget {
           ),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x1A000000),
+              color: AppColors.controlShadow,
               blurRadius: 4,
               offset: Offset(0, 2),
             ),

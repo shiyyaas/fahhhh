@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:fahhhh/features/department/widgets/upload_data_dialog.dart';
 
-class UploadTeacherDialog extends StatelessWidget {
-  const UploadTeacherDialog({super.key});
+class UploadSubjectDialog extends StatelessWidget {
+  const UploadSubjectDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const UploadDataDialog(
-      title: 'Teacher Data',
-      fileBaseName: 'teachers_data',
+      title: 'Subject Data',
+      fileBaseName: 'subjects_data',
     );
   }
 }

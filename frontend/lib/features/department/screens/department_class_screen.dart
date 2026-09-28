@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
@@ -52,8 +53,6 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
       return DepartmentStudent(
         name: student.name,
         rollNumber: student.rollNumber,
-        attendancePercent:
-            _attendancePattern[index % _attendancePattern.length],
       );
     });
   }
@@ -70,6 +69,7 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
       return DepartmentSubject(
         name: name,
         teacher: teacher,
+        rollNumber: '${widget.classId}-${index + 1}',
         attendancePercent: _attendancePattern[index % _attendancePattern.length],
       );
     }).toList();
@@ -83,7 +83,7 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),
@@ -98,6 +98,12 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
                 trailing: MoreButton(
                   pageType: HeaderPageType.myClass,
                   selectedSegmentIndex: _selectedTab,
+                  onOptionSelected: (option) {
+                    final route = HeaderMenuConfig.routeFor(option);
+                    if (route != null && context.mounted) {
+                      context.push(route);
+                    }
+                  },
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 26),
               ),

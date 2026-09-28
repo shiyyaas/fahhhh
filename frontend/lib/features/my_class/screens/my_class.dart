@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
@@ -51,7 +52,7 @@ class _MyClassState extends ConsumerState<MyClass> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),
@@ -95,8 +96,6 @@ class _MyClassState extends ConsumerState<MyClass> {
       return DepartmentStudent(
         name: student.name,
         rollNumber: student.rollNumber,
-        attendancePercent:
-            _attendancePattern[index % _attendancePattern.length],
       );
     });
   }
@@ -112,6 +111,7 @@ class _MyClassState extends ConsumerState<MyClass> {
       return DepartmentSubject(
         name: name,
         teacher: teacher,
+        rollNumber: '$classId-${index + 1}',
         attendancePercent:
             _attendancePattern[index % _attendancePattern.length],
       );
@@ -154,6 +154,12 @@ class _MyClassHeader extends StatelessWidget {
           MoreButton(
             pageType: HeaderPageType.myClass,
             selectedSegmentIndex: selectedSegmentIndex,
+            onOptionSelected: (option) {
+              final route = HeaderMenuConfig.routeFor(option);
+              if (route != null && context.mounted) {
+                context.push(route);
+              }
+            },
           ),
         ],
       ),

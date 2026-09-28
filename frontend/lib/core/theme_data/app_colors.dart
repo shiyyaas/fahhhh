@@ -31,6 +31,12 @@ class AppColors {
   // Screen Background
   static const Color screenGradientEnd = Color(0xFFAAA0A0);
 
+  // Upload / dropzone surface
+  static const Color uploadSurface = Color(0xFFF0F7FF);
+
+  // Restrained elevation for floating controls
+  static const Color controlShadow = Color(0x1A000000);
+
   // Semantic Status Colors (from design.md)
   static const Color success = Color(0xFF48AE8C);
   static const Color warning = Color(0xFFD0B238);

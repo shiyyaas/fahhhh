@@ -1,4 +1,5 @@
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class AttendancePercentageBadge extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         color: isGood
-            ? const Color(0x996BDB72)
+            ? AppColors.goodAttendance
             : const Color(0x80D26688),
         borderRadius: BorderRadius.circular(13),
         border: Border.all(
@@ -31,7 +32,7 @@ class AttendancePercentageBadge extends StatelessWidget {
           style: AppTextStyles.sfPRO.copyWith(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: isGood ? const Color(0xFF9EEDBB) : const Color(0xFFFFCDCE),
+            color: isGood ? AppColors.goodAttendanceBg : AppColors.badAttendanceBg,
           ),
         ),
       ),

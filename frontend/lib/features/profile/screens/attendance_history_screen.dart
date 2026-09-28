@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/home/widgets/timetable_card.dart';
 import 'package:fahhhh/features/home/widgets/status_badge.dart';
@@ -96,7 +97,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.52, 1.0],
           ),
         ),
@@ -145,12 +146,12 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         border: Border.all(color: const Color(0xFF676767), width: 1),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.controlShadow,
             blurRadius: 2.76,
             offset: Offset(0, 0.92),
           ),
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.controlShadow,
             blurRadius: 1.84,
             offset: Offset(0, 0.92),
           ),
@@ -285,7 +286,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                         spreadRadius: 9.2,
                                       ),
                                       BoxShadow(
-                                        color: Color(0x1A000000),
+                                        color: AppColors.controlShadow,
                                         blurRadius: 3.68,
                                         spreadRadius: 1.84,
                                       ),

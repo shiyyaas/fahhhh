@@ -1,3 +1,4 @@
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../utils/header_menu_config.dart';
 
@@ -46,7 +47,7 @@ class MoreButton extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF7198EE), Color(0xFF163B8E)],
+                colors: [AppColors.gradientTop, AppColors.gradientBottom],
               ),
             ),
           ),

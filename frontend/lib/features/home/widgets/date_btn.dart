@@ -1,4 +1,5 @@
 // Designs
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Widgets
@@ -82,7 +83,7 @@ class DateBtn extends StatelessWidget {
             height: 40,
             borderRadius: 10,
             iconSize: 20,
-            borderColor: const Color(0xFF666666),
+            borderColor: AppColors.textSecondary,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             boxShadow: [
               BoxShadow(

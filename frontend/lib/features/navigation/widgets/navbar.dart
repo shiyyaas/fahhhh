@@ -1,4 +1,5 @@
 import 'package:fahhhh/features/navigation/models/nav_item.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class Navbar extends StatelessWidget {
@@ -23,7 +24,7 @@ class Navbar extends StatelessWidget {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF262525),
+        color: AppColors.navBar,
         borderRadius: BorderRadius.circular(52),
       ),
 
@@ -47,7 +48,7 @@ class Navbar extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.white,
-                          Color(0xFFAAA0A0),
+                          AppColors.screenGradientEnd,
                         ],
                       )
                     : null,
@@ -76,7 +77,7 @@ class Navbar extends StatelessWidget {
                     Text(
                       items[index].label,
                       style: const TextStyle(
-                        color: Color(0xFF262525),
+                        color: AppColors.navBar,
                         fontWeight: FontWeight.w600,
                         fontSize: 12.8,
                       ),

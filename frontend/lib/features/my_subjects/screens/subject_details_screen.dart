@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
@@ -45,10 +46,6 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
     'August', 'September', 'October', 'November', 'December',
   ];
 
-  static const List<int> _attendancePattern = [
-    95, 82, 90, 65, 88, 74, 95, 78, 85, 70, 92, 80, 66,
-  ];
-
   List<DepartmentStudent> get _students {
     final raw = getStudentsForClass(widget.className);
     return List.generate(raw.length, (index) {
@@ -56,8 +53,6 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
       return DepartmentStudent(
         name: student.name,
         rollNumber: student.rollNumber,
-        attendancePercent:
-            _attendancePattern[index % _attendancePattern.length],
       );
     });
   }
@@ -73,7 +68,7 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),
@@ -188,7 +183,7 @@ class _MonthSelector extends StatelessWidget {
         border: Border.all(color: const Color(0xFF121212), width: 1),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1A000000),
+            color: AppColors.controlShadow,
             blurRadius: 1.4,
             offset: Offset(0, 1),
           ),
@@ -254,7 +249,7 @@ class _PreviewDownloadRow extends StatelessWidget {
             shaderCallback: (bounds) => const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.black, Color(0xFF666666)],
+              colors: [Colors.black, AppColors.textSecondary],
             ).createShader(bounds),
             child: Text(
               label,
@@ -346,7 +341,7 @@ class _PreviewOverlay extends StatelessWidget {
                         style: AppTextStyles.sfPRO.copyWith(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF9EEDBB),
+                          color: AppColors.goodAttendanceBg,
                         ),
                       ),
                     ],
@@ -364,7 +359,7 @@ class _PreviewOverlay extends StatelessWidget {
                         style: AppTextStyles.sfPRO.copyWith(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFFCDCE),
+                          color: AppColors.badAttendanceBg,
                         ),
                       ),
                     ],

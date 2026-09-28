@@ -57,7 +57,7 @@ Widget _gradientText(String text, {FontWeight fontWeight = FontWeight.w400}) {
     shaderCallback: (bounds) => const LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [Colors.black, Color(0xFF666666)],
+      colors: [Colors.black, AppColors.textSecondary],
     ).createShader(bounds),
     child: Text(
       text,

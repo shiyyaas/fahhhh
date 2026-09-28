@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+
+//Utils
+import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/department_header.dart';
@@ -40,7 +44,7 @@ class _DepartmentState extends ConsumerState<Department> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.25, 1.0],
           ),
         ),
@@ -52,14 +56,9 @@ class _DepartmentState extends ConsumerState<Department> {
                 countLabel: countLabel,
                 selectedSegmentIndex: _selectedTab,
                 onOptionSelected: (option) {
-                  if (option == 'Archived Batches') {
-                    if (context.mounted) {
-                      context.push('/archived-batches');
-                    }
-                  } else if (option == 'Teachers Settings') {
-                    if (context.mounted) {
-                      context.push('/teacher-settings');
-                    }
+                  final route = HeaderMenuConfig.routeFor(option);
+                  if (route != null && context.mounted) {
+                    context.push(route);
                   }
                 },
               ),

@@ -115,7 +115,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, Color(0xFFAAA0A0)],
+            colors: [Colors.white, AppColors.screenGradientEnd],
             stops: [0.4, 1.0],
           ),
         ),
@@ -366,7 +366,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
         text = "Absent";
         break;
       case AttendanceStatus.late:
-        bg = const Color(0xFFD0B238).withValues(alpha: 0.8);
+        bg = AppColors.warning.withValues(alpha: 0.8);
         textCol = Colors.white;
         text = "Late";
         break;

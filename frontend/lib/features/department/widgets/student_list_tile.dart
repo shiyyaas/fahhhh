@@ -1,22 +1,27 @@
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+
 //Models
 import 'package:fahhhh/features/department/models/department_student.dart';
 
 //Widgets
-import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
 import 'package:fahhhh/features/department/widgets/directory_list_tile.dart';
 
 import 'package:flutter/material.dart';
 
-/// Blue student row card with avatar, name, roll number and attendance pill.
+/// Blue student row card with avatar, student name and roll number.
 class StudentListTile extends StatelessWidget {
   final DepartmentStudent student;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelected;
 
   const StudentListTile({
     super.key,
     required this.student,
     this.onTap,
+    this.onLongPress,
+    this.isSelected = false,
   });
 
   @override
@@ -25,21 +30,23 @@ class StudentListTile extends StatelessWidget {
       title: student.name,
       subtitle: student.rollNumber,
       leading: Container(
-        width: 49,
-        height: 49,
+        width: 47,
+        height: 47,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white,
-          border: Border.all(color: Colors.black, width: 1),
-          image: const DecorationImage(
-            image: AssetImage('assets/images/student.png'),
+          border: Border.all(color: AppColors.border, width: 0.8),
+          image: DecorationImage(
+            image: AssetImage(student.imageUrl ?? 'assets/images/student.png'),
             fit: BoxFit.cover,
           ),
         ),
       ),
-      trailing: AttendancePercentageBadge(percent: student.attendancePercent),
       onTap: onTap,
+      onLongPress: onLongPress,
+      isSelected: isSelected,
       borderRadius: 20,
+      padding: const EdgeInsets.only(left: 11, right: 12),
     );
   }
 }

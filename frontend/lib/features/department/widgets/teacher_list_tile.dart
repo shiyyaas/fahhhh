@@ -1,5 +1,6 @@
 //Design
 //Models
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 
 //Widgets
@@ -29,7 +30,7 @@ class TeacherListTile extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.white,
-          border: Border.all(color: const Color(0xFF141212), width: 0.8),
+          border: Border.all(color: AppColors.border, width: 0.8),
           image: DecorationImage(
             image: AssetImage(teacher.imageUrl ?? 'assets/images/teacher.png'),
             fit: BoxFit.cover,

@@ -67,12 +67,12 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status) {
       case StudentAttendanceStatus.present:
-        bgColor = const Color(0x996BDB72);
+        bgColor = AppColors.goodAttendance;
         textColor = const Color(0xFFE8E8E8);
         label = 'Present';
         break;
       case StudentAttendanceStatus.absent:
-        bgColor = const Color(0x99BA4545);
+        bgColor = AppColors.badAttendance;
         textColor = const Color(0xFFF9C4C4);
         label = 'Absent';
         break;
