@@ -11,6 +11,7 @@ import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import '../../../core/widgets/app_back_header.dart';
+import '../../../core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 
 //Models
@@ -63,17 +64,8 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
     final students = _students;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
+      body: AppScreenScaffold(
+        child: Stack(
             children: [
               SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 40),
@@ -153,7 +145,6 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
                   onDismiss: () => setState(() => _showPreview = false),
                 ),
             ],
-          ),
         ),
       ),
     );

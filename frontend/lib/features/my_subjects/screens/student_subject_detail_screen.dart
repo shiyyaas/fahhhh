@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
@@ -55,17 +55,8 @@ class _StudentSubjectDetailScreenState
         .toList();
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+      body: AppScreenScaffold(
+        child: SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +99,6 @@ class _StudentSubjectDetailScreenState
                   StudentAttendanceHistoryTile(record: record),
               ],
             ),
-          ),
         ),
       ),
     );

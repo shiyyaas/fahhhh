@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
@@ -25,6 +24,7 @@ import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 //Widgets
 import 'package:fahhhh/features/department/widgets/subject_list_tile.dart';
 import '../../../core/widgets/app_back_header.dart';
+import '../../../core/widgets/app_screen_scaffold.dart';
 
 /// Department CLASS detail screen: attendance chart + class student list.
 /// Opened by pushing to /department-class/:classId (hides bottom nav).
@@ -78,17 +78,8 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
+      body: AppScreenScaffold(
+        child: Column(
             children: [
               const SizedBox(height: 8),
               AppBackHeader(
@@ -126,7 +117,6 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
                       ),
               ),
             ],
-          ),
         ),
       ),
     );

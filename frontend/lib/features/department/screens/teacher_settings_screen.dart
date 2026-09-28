@@ -9,8 +9,10 @@ import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
+import 'package:fahhhh/features/department/widgets/compact_action_button.dart';
 
 import '../../../core/widgets/app_back_header.dart';
+import '../../../core/widgets/app_screen_scaffold.dart';
 
 class TeacherSettingsScreen extends StatefulWidget {
   const TeacherSettingsScreen({super.key});
@@ -44,17 +46,8 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
         .toList();
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
+      body: AppScreenScaffold(
+        child: Column(
             children: [
               const SizedBox(height: 18),
               AppBackHeader(
@@ -83,7 +76,7 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Row(
                   children: [
-                    _ActionButton(
+                    CompactActionButton(
                       icon: Icons.person_add_alt_1_rounded,
                       label: 'Add',
                       onTap: () {
@@ -94,7 +87,7 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                       },
                     ),
                     const SizedBox(width: 12),
-                    _ActionButton(
+                    CompactActionButton(
                       icon: Icons.upload_rounded,
                       label: 'Upload',
                       onTap: () {
@@ -149,7 +142,6 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                 ),
               ),
             ],
-          ),
         ),
       ),
     );

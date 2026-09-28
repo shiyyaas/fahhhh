@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_screen_scaffold.dart';
 import '../../../core/widgets/input_fields.dart';
 
 class TeacherDetailsSettingsScreen extends StatefulWidget {
@@ -54,19 +55,10 @@ class _TeacherDetailsSettingsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.background, AppColors.screenGradientEnd],
-            stops: const [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: Column(
+      body: AppScreenScaffold(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _HeaderSection(onBack: () => context.pop()),
@@ -108,7 +100,6 @@ class _TeacherDetailsSettingsScreenState
                   ),
                 ),
               ],
-            ),
           ),
         ),
       ),

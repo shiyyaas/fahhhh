@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
 //Utils
 import 'package:fahhhh/features/department/utils/header_menu_config.dart';
@@ -39,18 +39,9 @@ class _DepartmentState extends ConsumerState<Department> {
         : '${mockDepartmentTeachers.length} Teachers';
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
+      body: AppScreenScaffold(
+        child: Column(
+          children: [
               const SizedBox(height: 12),
               DepartmentHeader(
                 countLabel: countLabel,
@@ -74,8 +65,7 @@ class _DepartmentState extends ConsumerState<Department> {
                     ? const _ClassesView()
                     : const _TeachersView(),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );

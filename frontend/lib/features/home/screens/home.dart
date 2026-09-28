@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
 // Widgets
 import 'package:fahhhh/features/home/widgets/date_btn.dart';
@@ -107,17 +107,8 @@ class Home extends ConsumerWidget {
     });
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
+      body: AppScreenScaffold(
+        child: Column(
             children: [
               const HeaderSection(),
               WeekCalendar(
@@ -198,7 +189,6 @@ class Home extends ConsumerWidget {
                           ),
               ),
             ],
-          ),
         ),
       ),
     );

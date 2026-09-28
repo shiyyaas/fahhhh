@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/app_back_header.dart';
+import '../../../core/widgets/app_screen_scaffold.dart';
 
 //Models
 import 'package:fahhhh/features/profile/models/student_profile.dart';
@@ -19,17 +19,8 @@ class StudentProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+      body: AppScreenScaffold(
+        child: SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +165,6 @@ class StudentProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
         ),
       ),
     );

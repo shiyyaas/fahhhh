@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
@@ -77,17 +78,8 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
         .toList();
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
-            stops: [0.25, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
+      body: AppScreenScaffold(
+        child: Column(
             children: [
               const SizedBox(height: 18),
               AppBackHeader(
@@ -114,7 +106,6 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
                 ),
               ),
             ],
-          ),
         ),
       ),
     );
