@@ -1,363 +1,153 @@
-# Design System for Fahhhh Frontend
+# Design System for Fahhhh Attendance App
 
-## Overview
-This design system is built for a Flutter-based attendance management application used by college students, teachers, class teachers, and department heads. The product is role-aware, with a shared base experience that adapts to different responsibilities while preserving a consistent visual language.
+> Category: Themed & Unique
+> Mobile-first academic attendance interface with role-aware dashboards, strong blue surfaces, compact data cards, and clear attendance states.
 
-The current app already contains a strong early foundation for a system: centralized theme tokens, reusable buttons and form controls, Material 3 styling, and role-based navigation patterns. This document formalizes those patterns into a scalable design system for future screens and product growth.
+## 1. Visual Theme & Atmosphere
 
-## Product Context
-The app supports:
-- Student attendance viewing and schedule access
-- Teacher attendance recording and timetable management
-- Class teacher coordination and class oversight
-- HOD department-level visibility and administrative actions
+Professional academic attendance interface with a bold blue identity, compact information architecture, and high-contrast status communication.
 
-Core user needs:
-- Fast login and role recognition
-- Clear schedule and attendance views
-- Consistent forms and actions
-- Trust through visible states and feedback
-- Mobile-friendly, action-first interfaces
+- Visual style: modern, clean, bold
+- Color stance: blue-dominant with white surfaces and muted semantic states
+- Design intent: Make attendance, timetable, and role-specific actions immediately scannable while keeping a consistent mobile-first visual language.
+- Reference canvas: 402 × 874 px
+- Primary visual reference: Admin/HOD Home screen
 
-## Design Principles
-1. Clarity over decoration
-   - Information must be easy to scan, especially attendance data and class schedules.
-   - Use spacing, hierarchy, and color intentionally to reduce ambiguity.
+## 2. Color
 
-2. Role-aware but consistent
-   - Each user type gets relevant functionality, but all views should follow the same token system.
-   - Shared components should behave consistently regardless of role.
+- Primary: #136BB3 — Main brand blue and the dominant subject-card color.
+- Secondary: #D0E1FB — Supporting light-blue surface.
+- Success: #48AE8C — Recorded / positive attendance state.
+- Warning: #D0B238 — Late attendance state.
+- Danger: #E57373 — Absent attendance state.
+- Missed: #775471 — Missed session state.
+- Record Now: #9DB6EE — Current action-available state.
+- Pending: #5F6B7A — Pending session state.
+- Surface: #FFFFFF — Main page, cards, controls, and active navigation surface.
+- Text: #000000 — Primary headings and strong text.
+- Text Secondary: #666666 — Supporting and metadata text.
+- Navigation: #262525 — Bottom navigation capsule.
+- Outline: #1A1A1A — Visible borders around cards and controls.
+- Gradient Top: #7198EE — Blue gradient highlight.
+- Gradient Bottom: #163B8E — Blue gradient depth.
 
-3. Trust and certainty
-   - Attendance status should be visually obvious: present, absent, ongoing, pending.
-   - Validation and feedback must be explicit and timely.
+- Favor Primary (#136BB3) for brand emphasis, subject cards, and primary actions.
+- Use Surface (#FFFFFF) for the main background and elevated controls.
+- Use Success, Warning, Danger, Missed, Record Now, and Pending only for semantic states.
+- Do not use attendance color alone to communicate meaning; pair status colors with text labels.
+- Avoid unrelated accent colors when an existing token can solve the problem.
 
-4. Mobile-first ergonomics
-   - Large tap targets, clear spacing, and familiar patterns are preferred over dense layouts.
-   - Forms should remain simple and easy to complete on small screens.
+## 3. Typography
 
-5. Structured scalability
-   - The system should support new features without creating one-off UI decisions.
-   - Shared tokens and component patterns reduce inconsistency across modules.
+- Scale: 10/12/14/16/20/24/29
+- Families: primary=Poppins, body=Inter, decorative=Itim
+- Weights: 400, 500, 600, 700
+- Poppins should carry headings, subject names, and major navigation labels.
+- Inter should handle general UI, data, metadata, and dense information.
+- Itim should be restricted to explicitly decorative content and should not be used for important attendance data.
+- Keep headings strong and compact; keep metadata smaller and visually subordinate.
+- Avoid very small text for important information.
 
-## Design System Foundations
-The app is already structured around a clear design layer:
-- `lib/core/theme_data/` contains visual tokens and theme configuration
-- `lib/core/widgets/` contains reusable UI components
-- `lib/features/` contains feature screens and role-specific flows
+## 4. Spacing & Grid
 
-This is the right base for a formal design system because it keeps tokens and components centralized rather than embedded in feature screens.
+- Spacing scale: 4/8/12/16/20/24/32 px
+- Keep a consistent mobile rhythm across headers, calendars, cards, and navigation.
+- Use compact internal spacing inside attendance cards.
+- Use larger spacing between major screen sections.
+- Align repeated cards, calendar cells, and controls to predictable horizontal margins.
+- Avoid ad-hoc offsets and fractional spacing values unless a reference component requires them.
 
-## Visual Language
-### Brand direction
-The product uses a professional academic/education palette with a primary blue as the dominant brand color. It feels trustworthy, clean, and institutional while remaining modern.
+## 5. Layout & Composition
 
-### Core colors
-From `AppColors`:
+- Prefer clear content blocks with consistent internal padding.
+- Keep hierarchy obvious: profile/header → date selector → page heading → timetable/attendance cards → navigation.
+- Use whitespace to separate sections before adding heavy dividers.
+- Header: circular profile image, prominent name, muted role/department, circular notification action.
+- Calendar: five compact rounded day cells with a strong selected-day state.
+- Timetable heading: large `Today` label, muted date beneath, and a compact outlined `Time Table` action.
+- Subject cards: blue rounded cards with dark outlines, white subject/class text, time badge, and semantic status pill.
+- Bottom navigation: dark full-width rounded capsule with one white active destination.
+- Use rounded geometry consistently without making every element fully pill-shaped.
 
-- Primary: `#136BB3`
-- Background: white
-- Gradient top: `#7198EE`
-- Gradient bottom: `#163B8E`
-- Navigation bar: `#262525`
-- Heading text: black
-- Body text: dark gray / muted gray
-- Border: black / soft gray
+## 6. Components
 
-Status colors:
-- Present: `#4CAF50`
-- Absent: `#E57373`
-- Ongoing: `#7986CB`
-- Pending: `#757575`
+- Buttons: primary actions use #136BB3 or the established blue gradient; secondary actions remain white with dark outlines.
+- Inputs: white surfaces, clear dark outlines, readable labels, visible focus states, and predictable validation feedback.
+- Calendar cells: white outlined unselected states and blue selected state with compact shadow.
+- Subject cards: #136BB3 fill, dark outline, 16–18 px radius, white typography, compact time and status badges.
+- Status pills: use semantic state tokens with text labels.
+- Navigation: dark capsule with a white active-state capsule and dark active icon/label.
+- Cards/sections: consistent padding, visible but restrained borders, and limited elevation.
+- Shared Flutter primitives should remain centralized in `core/theme_data/` and `core/widgets/`.
+- Prefer reusable components such as `AppButton`, `InputField`, `AppDropdownField`, `AppDialog`, `AppSegmentedControl`, `SubjectCard`, `AttendanceStatus`, `AttendanceChart`, `Timetable`, and `RoleNavigation`.
 
-Attendance badge colors:
-- Good attendance background: `#9EEDBB`
-- Bad attendance background: `#FFCDCE`
+## 7. Motion & Interaction
 
-Use these colors as semantic tokens, not arbitrary values:
-- `primary`: main actions and brand emphasis
-- `background`: app surfaces
-- `border`: standard dividers and form outlines
-- `present/absent/ongoing/pending`: status semantics
+- Use subtle, purposeful transitions.
+- Default to short feedback transitions around 150–250ms.
+- Selected calendar states may use stronger elevation/shadow feedback.
+- Buttons should provide clear pressed-state feedback.
+- Dropdowns and controls should support default, hover, pressed, selected, disabled, and error states where applicable.
+- Attendance actions should provide immediate visible state changes.
+- Avoid excessive animation in data-heavy, teacher, and HOD screens.
+- Motion should reinforce state changes rather than decorate the interface.
 
-### Typography
-The app uses Google Fonts and a restrained type system:
+## 8. Voice & Brand
 
-- Headings: `Poppins` / `AppTextStyles.heading`
-- Small detail text: `Itim` / `AppTextStyles.small`
-- General UI text: `Inter` / `AppTextStyles.sfPRO`
+- Tone should be concise, confident, academic, and action-oriented.
+- Use literal labels such as `Today`, `Time Table`, `Record Now`, `Recorded`, `Missed`, and `Pending`.
+- Keep role labels clear, such as `HOD - Computer Science`.
+- Avoid generic filler copy and unnecessary decorative language.
+- Keep interface copy short enough for compact mobile layouts.
 
-Typography intent:
-- Headings should create order and vertical rhythm.
-- Small text should support secondary information, labels, and helper copy.
-- Body text should stay readable and uncluttered.
+## 9. Anti-patterns
 
-Suggested hierarchy:
-- Display / page title: large, semibold, strong contrast
-- Section heading: medium-large, semibold
-- Label: compact, medium-weight
-- Meta/helper text: smaller, muted color
+- Do not replace the primary blue identity with another dominant accent color.
+- Do not use color alone to communicate attendance status.
+- Do not introduce unrelated visual themes, gradients, or accent colors without a product need.
+- Do not overuse shadows; borders and surface contrast are part of the visual identity.
+- Do not use decorative fonts for important attendance, timetable, or navigation information.
+- Do not create separate visual systems for Student, Teacher, Class Teacher, and HOD; role differences should come from functionality and navigation.
+- Do not use arbitrary one-off spacing, radius, typography, or color values when an existing design token can solve the problem.
+- Do not flatten hierarchy by making headings, metadata, labels, and data values look identical.
+- Do not turn the primary page background dark; white remains the dominant surface.
+- Do not ignore the reference screenshot when implementing new screens; new screens should visually belong to the same product family.
 
-### Radius and shape
-From `AppRadius`:
-- Small: `12`
-- Medium: `16`
-- Large: `24`
-- Card: `17`
-- Pill: `30`
-- Full: `9999`
-
-Shape rules:
-- Inputs and form fields: large radius for comfort and consistency
-- Buttons: medium to large radius depending on emphasis
-- Cards: medium radius for a clean mobile surface
-- Pills / tags: full radius for status labels and chips
-
-### Elevation and shadows
-The app uses subtle depth to make controls feel tactile without being heavy.
-
-Visual pattern:
-- Buttons use soft shadow with low blur and slight vertical offset
-- Elevated surfaces should remain subtle and restrained
-- Avoid over-shadowing to prevent visual noise
-
-## Design Tokens
-The current implementation already exposes a good set of foundation tokens. These should be treated as the canonical source of truth for future work.
-
-### Color tokens
-- `AppColors.primary`
-- `AppColors.background`
-- `AppColors.border`
-- `AppColors.headingText`
-- `AppColors.smallText`
-- `AppColors.labelText`
-- `AppColors.hintText`
-- `AppColors.present`
-- `AppColors.absent`
-- `AppColors.ongoing`
-- `AppColors.pending`
-
-### Typography tokens
-- `AppTextStyles.heading`
-- `AppTextStyles.small`
-- `AppTextStyles.sfPRO`
-
-### Radius tokens
-- `AppRadius.small`
-- `AppRadius.medium`
-- `AppRadius.large`
-- `AppRadius.card`
-- `AppRadius.pill`
-- `AppRadius.full`
-
-### Theme token
-- `DesignSystem.lightTheme`
-
-This theme sets:
-- Material 3 enabled
-- White scaffold background
-- Blue primary color
-- Poppins-based text theming
-- Large rounded input decorations
-- Full-width elevated button defaults
-
-## Component Library
-The app already includes several reusable components worth formalizing as the initial component set.
-
-### 1. Primary and secondary buttons
-Implemented in `app_button.dart`
-
-Properties:
-- `text`
-- `icon`
-- `variant` (`primary`, `secondary`)
-- `onPressed`
-- `height`, `width`, `padding`
-- `borderRadius`, `backgroundColor`, `textColor`
-
-Usage guidance:
-- Use primary buttons for the main action on a screen.
-- Use secondary buttons for less prominent actions or alternatives.
-- Keep button labels short and specific.
-- Preserve an obvious pressed state using the existing animated feedback pattern.
-
-### 2. Input fields
-Implemented in `input_fields.dart`
-
-Usage guidance:
-- Use for email, password, search, text entry, and filters.
-- Labels should be short and descriptive.
-- Maintain a clear focus state using the theme color.
-- Provide validation text or inline messages when needed.
-
-### 3. Dropdown fields
-Implemented in `app_dropdown_field.dart`
-
-Usage guidance:
-- Use for selecting roles, filters, class names, or teacher options.
-- Keep the triggering label readable and consistent with surrounding form controls.
-
-### 4. Segmented control
-Implemented in `app_segmented_control.dart`
-
-Usage guidance:
-- Use for switching between alternate views or filters within a single screen.
-- Examples: timetable view modes or attendance categories.
-- Use clearly distinct labels and a strong selected state.
-
-### 5. Dialogs and modals
-Implemented in `app_dialog.dart`
-
-Usage guidance:
-- Use for confirmations, destructive actions, and quick task-specific prompts.
-- Keep content minimal and action-focused.
-- Ensure buttons follow the same primary/secondary hierarchy.
-
-### 6. Back header
-Implemented in `app_back_header.dart`
-
-Usage guidance:
-- Use for detail pages and nested flows.
-- Maintain a predictable title area and navigation affordance.
-
-## Screen Patterns
-### Authentication flow
-The login screen is the primary app entry and already reflects the design direction clearly:
-- Large welcome heading
-- Muted subtitle
-- Full-width form fields
-- Blue primary action button
-- Focus on validation and quick access
-
-Recommended enhancements for the design system:
-- Add an explicit login card container or panel on larger screens
-- Introduce error states for each field
-- Standardize spacing between form elements
-
-### Role-based dashboard patterns
-The app uses different feature modules by role but should maintain a consistent UI rhythm across them:
-- Top-level navigation shell
-- Cards / lists for schedules and data summaries
-- Status chips or badges for attendance outcomes
-- Detail screens with clear hierarchy and action buttons
-
-### Attendance information patterns
-Attendance data is highly visual and should remain easy to interpret.
-
-Recommended pattern:
-- Use green/red status coloring intentionally, not as decoration alone
-- Pair color with text labels for accessibility
-- Maintain a consistent card layout for dates, subjects, and attendance states
-
-## Accessibility Expectations
-The design system should follow strong accessibility standards.
-
-Required baseline:
-- Minimum readable contrast for text and controls
-- Buttons with minimum tap target comfort
-- Clear focus states for keyboard and assistive tech users
-- Labels for all input controls
-- Meaningful color not relied on as the only indicator of state
-
-Important note:
-The app currently uses color-coded status states, so text labels and semantics must accompany those colors to remain accessible and understandable.
-
-## Layout and Spacing System
-Use a consistent spacing scale throughout screens.
-
-Recommended scale:
-- 4, 8, 12, 16, 20, 24, 32
-
-Rules:
-- Tight spacing around dense UI clusters
-- More generous spacing between sections and screen groups
-- Use consistent padding within forms and cards
-- Align controls and typography to a shared baseline
-
-The app already follows this pattern in many screens: padded forms, spaced vertical sections, and button-group rhythm.
-
-## Interaction and Motion
-The existing button implementation uses short press feedback and transitions, which is a strong foundation.
-
-Recommended motion rules:
-- Keep micro-interactions under 150ms for pressed state feedback
-- Use simple fade/transform transitions where needed
-- Avoid over-animation in admin or data-heavy screens
-- Motion should support clarity, not distract from content
-
-## Naming and File Structure
-The current structure creates a good foundation for a token/component architecture:
+## Canonical Implementation Tokens
 
 ```text
-frontend/
-  lib/
-    core/
-      theme_data/
-        app_colors.dart
-        app_text_styles.dart
-        app_radius.dart
-        design_system.dart
-      widgets/
-        app_button.dart
-        app_dialog.dart
-        app_dropdown_field.dart
-        app_segmented_control.dart
-        input_fields.dart
-    features/
-      auth/
-      home/
-      timetable/
-      attendance/
-      department/
-      my_class/
-      my_subjects/
-      profile/
-      inbox/
-      navigation/
+Primary            #136BB3
+Secondary          #D0E1FB
+Success            #48AE8C
+Warning            #D0B238
+Danger             #E57373
+Missed             #775471
+Record Now         #9DB6EE
+Pending            #5F6B7A
+Surface            #FFFFFF
+Text               #000000
+Text Secondary     #666666
+Navigation         #262525
+Outline            #1A1A1A
+Gradient Top       #7198EE
+Gradient Bottom    #163B8E
+
+Poppins            Headings / major labels
+Inter              General UI / data
+Itim               Decorative only
+
+Radius Small       8–10 px
+Radius Medium      16 px
+Radius Card        16–18 px
+Radius Large       24 px
+Radius Pill        30 px
+Radius Full        9999
+
+Spacing            4, 8, 12, 16, 20, 24, 32 px
 ```
 
-This structure should remain the basis of the design system as it grows.
+## Final Precedence Rule
 
-## Design System Governance
-To keep this design system healthy, future UI decisions should follow these rules:
+Use this document as the active design direction for future frontend work.
 
-1. Prefer token-based colors, typography, and spacing over custom one-off values.
-2. Reuse existing shared widgets before creating custom screen-specific controls.
-3. Add new design tokens only when a real need exists across multiple screens.
-4. Keep consistency between role-based views and the core app shell.
-5. Validate new features against accessibility and mobile usability.
-
-## Recommended Next Milestones
-1. Formalize a complete component inventory from the existing widgets
-2. Add documentation for state styles (default, hover, pressed, disabled, error, success)
-3. Define a spacing scale and card layout pattern for all feature modules
-4. Create a small icon and status-label system for attendance screens
-5. Expand the system to support dark mode or future product surfaces if needed
-
-## Summary
-The frontend already contains the early skeleton of a strong design system: styled theme tokens, reusable controls, Material 3 patterns, and role-aware navigation. The core direction is clear and consistent: professional blue branding, readable academic UI, strong information hierarchy, and mobile-first usability.
-
-This system is ready to evolve into a durable product design language by formalizing tokens, component usage rules, and accessibility expectations.
-
-## Suggested Implementation Rule
-For future feature work, use this default pattern:
-- `DesignSystem.lightTheme` for app theme
-- `AppColors` for color references
-- `AppTextStyles` for typography
-- `AppRadius` for shape values
-- `AppButton`, `InputField`, `AppDropdownField`, `AppDialog`, `AppSegmentedControl` as shared primitives
-
-This ensures the app remains consistent as it grows beyond the current attendance management screens.
-
-## Source References
-The design system is derived from the current Flutter implementation in:
-- `frontend/lib/core/theme_data/`
-- `frontend/lib/core/widgets/`
-- `frontend/lib/features/auth/screens/login_screen.dart`
-- `frontend/lib/main.dart`
-
-These files should be treated as the canonical starting point for future design system refinements.
-
----
-
-This document should be treated as the baseline design system definition for the Fahhhh frontend and updated whenever new reusable patterns emerge.
+The **Primary** brand color is `#136BB3`. The screenshot-calibrated visual language takes precedence over older contradictory token descriptions. Shared Flutter tokens and components should be updated to match this system rather than introducing screen-specific styling.
