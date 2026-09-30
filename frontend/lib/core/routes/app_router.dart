@@ -22,6 +22,7 @@ import '../../features/department/screens/student_settings_screen.dart';
 import '../../features/department/screens/student_details_screen.dart';
 import '../../features/department/screens/subject_settings_screen.dart';
 import '../../features/department/screens/subject_details_screen.dart';
+import '../../features/department/screens/generate_report_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
@@ -137,6 +138,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/attendance-history',
         builder: (context, state) => const AttendanceHistoryScreen(),
+      ),
+      // Generate Report Route - class attendance report with per-student %
+      GoRoute(
+        path: '/generate-report',
+        builder: (context, state) => const GenerateReportScreen(),
       ),
       // Archived Batches Route - previous batches attendance & reports
       GoRoute(

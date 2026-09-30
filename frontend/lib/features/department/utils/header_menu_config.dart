@@ -10,6 +10,8 @@ class HeaderMenuConfig {
   /// from the Department screen and to the read-only teacher view from My Class.
   static String? routeFor(String option, {HeaderPageType? pageType}) {
     switch (option) {
+      case 'Generate Report':
+        return '/generate-report';
       case 'Timetable':
         // Department (admin/HOD) → full admin timetable with edit capability.
         // My Class → teacher view (forced via query param).

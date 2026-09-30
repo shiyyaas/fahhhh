@@ -10,11 +10,15 @@ import 'package:fahhhh/features/department/widgets/directory_list_tile.dart';
 import 'package:flutter/material.dart';
 
 /// Blue student row card with avatar, student name and roll number.
+///
+/// [trailing] renders at the end of the row — used by the attendance report
+/// to append an [AttendancePercentageBadge] without duplicating the card.
 class StudentListTile extends StatelessWidget {
   final DepartmentStudent student;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool isSelected;
+  final Widget? trailing;
 
   const StudentListTile({
     super.key,
@@ -22,6 +26,7 @@ class StudentListTile extends StatelessWidget {
     this.onTap,
     this.onLongPress,
     this.isSelected = false,
+    this.trailing,
   });
 
   @override
@@ -47,6 +52,7 @@ class StudentListTile extends StatelessWidget {
       isSelected: isSelected,
       borderRadius: 20,
       padding: const EdgeInsets.only(left: 11, right: 12),
+      trailing: trailing,
     );
   }
 }

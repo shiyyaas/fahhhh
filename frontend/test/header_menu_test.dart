@@ -78,6 +78,16 @@ void main() {
         '/attendance-history',
       );
     });
+
+    test('Generate Report routes to the report screen', () {
+      expect(
+        HeaderMenuConfig.routeFor(
+          'Generate Report',
+          pageType: HeaderPageType.myClass,
+        ),
+        '/generate-report',
+      );
+    });
   });
 
   group('MoreButton Widget Tests', () {

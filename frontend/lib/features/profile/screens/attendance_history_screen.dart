@@ -44,10 +44,13 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       }
       if (date.weekday == DateTime.saturday ||
           date.weekday == DateTime.sunday) {
+        map[date] = DayAttendanceStatus.noClass;
         continue;
       }
       final r = random.nextDouble();
-      if (r < 0.5) {
+      if (r < 0.15) {
+        map[date] = DayAttendanceStatus.noClass;
+      } else if (r < 0.5) {
         map[date] = DayAttendanceStatus.present;
       } else if (r < 0.75) {
         map[date] = DayAttendanceStatus.partial;
@@ -367,7 +370,11 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
   Widget _buildTodayLabel() {
     final now = DateTime.now();
-    final months = [
+    final selected = _selectedDay ?? now;
+    final isToday = selected.year == now.year &&
+        selected.month == now.month &&
+        selected.day == now.day;
+    const months = [
       '',
       'January',
       'February',
@@ -382,14 +389,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       'November',
       'December',
     ];
-    final dateStr = '${months[now.month]} ${now.day},${now.year}';
+    final dateStr = '${months[selected.month]} ${selected.day},${selected.year}';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Today',
+            isToday ? 'Today' : months[selected.month],
             style: AppTextStyles.heading.copyWith(
               fontSize: 29.5,
               fontWeight: FontWeight.bold,
@@ -405,23 +412,25 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   }
 
   Widget _buildSubjectList() {
-    final subjects = [
-      ('Software Engineering', 'Sheethal', const TimeOfDay(hour: 9, minute: 30),
-          const TimeOfDay(hour: 10, minute: 15), AttendanceStatus.present),
-      ('Data Structures', 'Rahul', const TimeOfDay(hour: 10, minute: 30),
-          const TimeOfDay(hour: 11, minute: 30), AttendanceStatus.absent),
-      ('Operating Systems', 'Meena', const TimeOfDay(hour: 12, minute: 0),
-          const TimeOfDay(hour: 13, minute: 0), AttendanceStatus.present),
-      ('Computer Networks', 'Arjun', const TimeOfDay(hour: 14, minute: 0),
-          const TimeOfDay(hour: 15, minute: 0), AttendanceStatus.present),
-      ('Database Management', 'Priya', const TimeOfDay(hour: 15, minute: 0),
-          const TimeOfDay(hour: 16, minute: 0), AttendanceStatus.present),
-      ('Mathematics', 'Suresh', const TimeOfDay(hour: 16, minute: 30),
-          const TimeOfDay(hour: 17, minute: 30), AttendanceStatus.absent),
-    ];
+    final slots = _getSlotsForDay(_selectedDay);
+
+    if (slots.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 64, bottom: 48),
+        child: Center(
+          child: Text(
+            'No Class',
+            style: AppTextStyles.heading.copyWith(
+              fontSize: 22,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+      );
+    }
 
     return Column(
-      children: subjects.map((s) {
+      children: slots.map((s) {
         return TimetableCard(
           subjectName: s.$1,
           secondaryText: s.$2,
@@ -435,6 +444,40 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         );
       }).toList(),
     );
+  }
+
+  /// Returns the timetable slots for [date].
+  /// When [date] has no classes (weekend/holiday/clear schedule),
+  /// returns an empty list so the UI can display "No Class".
+  List<(String, String, TimeOfDay, TimeOfDay, AttendanceStatus)>
+      _getSlotsForDay(DateTime? date) {
+    if (date == null) return [];
+
+    // Weekend → no class
+    if (date.weekday == DateTime.saturday ||
+        date.weekday == DateTime.sunday) {
+      return [];
+    }
+
+    // Look up attendance status for the day to detect "No Class" days.
+    final dayStatus = _attendanceData[DateTime(date.year, date.month, date.day)];
+    if (dayStatus == DayAttendanceStatus.noClass) return [];
+
+    // Default mock schedule for days with classes.
+    return [
+      ('Software Engineering', 'Sheethal', const TimeOfDay(hour: 9, minute: 30),
+          const TimeOfDay(hour: 10, minute: 15), AttendanceStatus.present),
+      ('Data Structures', 'Rahul', const TimeOfDay(hour: 10, minute: 30),
+          const TimeOfDay(hour: 11, minute: 30), AttendanceStatus.absent),
+      ('Operating Systems', 'Meena', const TimeOfDay(hour: 12, minute: 0),
+          const TimeOfDay(hour: 13, minute: 0), AttendanceStatus.present),
+      ('Computer Networks', 'Arjun', const TimeOfDay(hour: 14, minute: 0),
+          const TimeOfDay(hour: 15, minute: 0), AttendanceStatus.present),
+      ('Database Management', 'Priya', const TimeOfDay(hour: 15, minute: 0),
+          const TimeOfDay(hour: 16, minute: 0), AttendanceStatus.present),
+      ('Mathematics', 'Suresh', const TimeOfDay(hour: 16, minute: 30),
+          const TimeOfDay(hour: 17, minute: 30), AttendanceStatus.absent),
+    ];
   }
 }
 

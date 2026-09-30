@@ -191,12 +191,18 @@ class Profile extends ConsumerWidget {
                 child: Column(
                   children: [
                     WhiteBox(
-                      icon: Icons.access_time_outlined,
-                      title: "Timetable Settings",
+                      icon: isTeacher
+                          ? Icons.access_time_outlined
+                          : Icons.calendar_month_rounded,
+                      title: isTeacher
+                          ? "Timetable Settings"
+                          : "Attendance history",
                       showArrow: true,
                       onTap: () {
                         if (!context.mounted) return;
-                        context.push('/timetable');
+                        context.push(
+                          isTeacher ? '/timetable' : '/attendance-history',
+                        );
                       },
                     ),
                     _divider(),
