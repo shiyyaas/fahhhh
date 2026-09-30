@@ -66,4 +66,33 @@ void main() {
     // Default mode is Classes, should show "S2 BCA" select dropdown
     expect(find.text("S2 BCA"), findsOneWidget);
   });
+
+  testWidgets('HOD forced into teacher mode hides admin edit controls',
+      (WidgetTester tester) async {
+    const mockUser = CurrentUser(
+      email: "anu@mescas.org",
+      name: "Anu varghese",
+      role: UserRole.teacher,
+      isHOD: true,
+      phone: "8796543231",
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authProvider.overrideWith((ref) => const Authenticated(mockUser)),
+        ],
+        child: const MaterialApp(
+          home: TimetableScreen(forceTeacherMode: true),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text("Classes"), findsNothing);
+    expect(find.text("Teachers"), findsNothing);
+    expect(find.text("Edit"), findsNothing);
+    expect(find.text("swap"), findsOneWidget);
+  });
 }

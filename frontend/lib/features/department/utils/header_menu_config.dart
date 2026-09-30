@@ -5,8 +5,20 @@ enum HeaderPageType {
 
 class HeaderMenuConfig {
   /// Route for a header-menu option, or null when the option is not yet wired.
-  static String? routeFor(String option) {
+  ///
+  /// Pass [pageType] so that 'Timetable' resolves to the admin editable view
+  /// from the Department screen and to the read-only teacher view from My Class.
+  static String? routeFor(String option, {HeaderPageType? pageType}) {
     switch (option) {
+      case 'Timetable':
+        // Department (admin/HOD) → full admin timetable with edit capability.
+        // My Class → teacher view (forced via query param).
+        if (pageType == HeaderPageType.myClass) {
+          return '/timetable?mode=teacher';
+        }
+        return '/timetable';
+      case 'Attendance history':
+        return '/attendance-history';
       case 'Archived Batches':
         return '/archived-batches';
       case 'Teachers Settings':
@@ -35,13 +47,13 @@ class HeaderMenuConfig {
 
       if (isTeachers) {
         return const [
-          'TimeTableSettings',
+          'Timetable',
           'Archived Batches',
           'Teachers Settings',
         ];
       } else {
         return const [
-          'TimeTableSettings',
+          'Timetable',
           'Archived Batches',
         ];
       }
@@ -56,7 +68,7 @@ class HeaderMenuConfig {
         return const [
           'Generate Report',
           'Attendance history',
-          'Time table',
+          'Timetable',
           'Check Condonation',
           'Subject Settings',
         ];
@@ -64,7 +76,7 @@ class HeaderMenuConfig {
         return const [
           'Generate Report',
           'Attendance history',
-          'Time table',
+          'Timetable',
           'Check Condonation',
           'Student settings',
         ];

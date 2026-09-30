@@ -150,7 +150,7 @@ class StudentProfileScreen extends StatelessWidget {
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text(
-                              'Timetable Settings',
+                              'Attendance history',
                               style: TextStyle(fontSize: 16),
                             ),
                           ),

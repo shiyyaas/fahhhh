@@ -47,7 +47,10 @@ class _DepartmentState extends ConsumerState<Department> {
                 countLabel: countLabel,
                 selectedSegmentIndex: _selectedTab,
                 onOptionSelected: (option) {
-                  final route = HeaderMenuConfig.routeFor(option);
+                  final route = HeaderMenuConfig.routeFor(
+                    option,
+                    pageType: HeaderPageType.department,
+                  );
                   if (route != null && context.mounted) {
                     context.push(route);
                   }

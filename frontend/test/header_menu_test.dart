@@ -10,7 +10,7 @@ void main() {
         pageType: HeaderPageType.department,
         selectedSegmentIndex: 0,
       );
-      expect(items, ['TimeTableSettings', 'Archived Batches']);
+      expect(items, ['Timetable', 'Archived Batches']);
     });
 
     test('Department Page - Teachers toggle returns correct items', () {
@@ -20,7 +20,7 @@ void main() {
       );
       expect(
         items,
-        ['TimeTableSettings', 'Archived Batches', 'Teachers Settings'],
+        ['Timetable', 'Archived Batches', 'Teachers Settings'],
       );
     });
 
@@ -32,7 +32,7 @@ void main() {
       expect(items, [
         'Generate Report',
         'Attendance history',
-        'Time table',
+        'Timetable',
         'Check Condonation',
         'Student settings',
       ]);
@@ -46,10 +46,37 @@ void main() {
       expect(items, [
         'Generate Report',
         'Attendance history',
-        'Time table',
+        'Timetable',
         'Check Condonation',
         'Subject Settings',
       ]);
+    });
+
+    test('Department Timetable routes to admin timetable', () {
+      expect(
+        HeaderMenuConfig.routeFor(
+          'Timetable',
+          pageType: HeaderPageType.department,
+        ),
+        '/timetable',
+      );
+    });
+
+    test('My Class Timetable routes to teacher timetable', () {
+      expect(
+        HeaderMenuConfig.routeFor(
+          'Timetable',
+          pageType: HeaderPageType.myClass,
+        ),
+        '/timetable?mode=teacher',
+      );
+    });
+
+    test('Attendance history routes to attendance history screen', () {
+      expect(
+        HeaderMenuConfig.routeFor('Attendance history'),
+        '/attendance-history',
+      );
     });
   });
 
@@ -81,14 +108,14 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify menu items present
-      expect(find.text('TimeTableSettings'), findsOneWidget);
+      expect(find.text('Timetable'), findsOneWidget);
       expect(find.text('Archived Batches'), findsOneWidget);
 
       // Tap item
-      await tester.tap(find.text('TimeTableSettings'));
+      await tester.tap(find.text('Timetable'));
       await tester.pumpAndSettle();
 
-      expect(selectedOption, equals('TimeTableSettings'));
+      expect(selectedOption, equals('Timetable'));
     });
   });
 }

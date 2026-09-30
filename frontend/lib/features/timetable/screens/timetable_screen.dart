@@ -11,7 +11,10 @@ import '../models/timetable_slot.dart';
 import '../providers/timetable_provider.dart';
 
 class TimetableScreen extends ConsumerStatefulWidget {
-  const TimetableScreen({super.key});
+  /// When true, skip HOD admin/edit controls and show the teacher timetable.
+  final bool forceTeacherMode;
+
+  const TimetableScreen({super.key, this.forceTeacherMode = false});
 
   @override
   ConsumerState<TimetableScreen> createState() => _TimetableScreenState();
@@ -60,7 +63,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             _selectedSegment = "Classes";
           });
         } else if (user.role == UserRole.teacher) {
-          if (user.isHOD) {
+          if (user.isHOD && !widget.forceTeacherMode) {
             setState(() {
               _selectedSegment = "Classes";
               _selectedSortClass = user.assignedClassId ?? "S2 BCA";
@@ -116,7 +119,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
-    final isHOD = user?.isHOD ?? false;
+    final isHOD = (user?.isHOD ?? false) && !widget.forceTeacherMode;
     final isStudent = auth.role == UserRole.student;
 
     if (isStudent && user?.className != null) {

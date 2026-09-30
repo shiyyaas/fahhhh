@@ -145,7 +145,10 @@ class _MyClassHeader extends StatelessWidget {
             pageType: HeaderPageType.myClass,
             selectedSegmentIndex: selectedSegmentIndex,
             onOptionSelected: (option) {
-              final route = HeaderMenuConfig.routeFor(option);
+              final route = HeaderMenuConfig.routeFor(
+                option,
+                pageType: HeaderPageType.myClass,
+              );
               if (route != null && context.mounted) {
                 context.push(route);
               }
