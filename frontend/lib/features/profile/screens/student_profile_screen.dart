@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-//Design
+// Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
-import '../../../core/widgets/app_back_header.dart';
-import '../../../core/widgets/app_screen_scaffold.dart';
+import 'package:fahhhh/core/theme_data/app_radius.dart';
 
-//Models
+// Models
 import 'package:fahhhh/features/profile/models/student_profile.dart';
 
-/// Student profile view: avatar, name, class and contact rows
-/// (email, phone, parent contact). Pushed from a student card (hides bottom nav).
+// Widgets
+import 'package:fahhhh/core/widgets/app_back_header.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
+
+/// Student profile view (Figma node 1651:11914).
+///
+/// Mirrors the teacher profile design: a circular avatar with name/class/roll
+/// underneath, two stacked white info cards, and an "Attendance history"
+/// action pill that navigates to the student attendance history.
+///
+/// Pushed from a student card (hides bottom navigation).
 class StudentProfileScreen extends StatelessWidget {
   final StudentProfile profile;
 
@@ -18,226 +27,233 @@ class StudentProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String className = profile.className;
+    final String rollNumber = profile.rollNumber;
+
     return Scaffold(
       body: AppScreenScaffold(
         child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppBackHeader(
-                  title: 'Profile',
-                  subtitle: profile.className,
-                  onBack: () {
-                    if (context.mounted) context.pop();
-                  },
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          border: Border.all(color: Colors.black, width: 1),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/student.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        profile.name,
-                        style: AppTextStyles.heading.copyWith(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        profile.rollNumber,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 26),
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFC4C4C4), width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _ContactRow(
-                        icon: Icons.mail_outline_rounded,
-                        title: profile.email,
-                      ),
-                      _ContactRowDivider(),
-                      _ContactRow(
-                        icon: Icons.phone_outlined,
-                        title: profile.phone,
-                      ),
-                      _ContactRowDivider(),
-                      _ContactRow(
-                        icon: Icons.people_outline_rounded,
-                        title: 'Parent Contact',
-                        subtitle: profile.parentContact,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 26),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (context.mounted) context.push('/attendance-history');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              AppBackHeader(
+                title: 'Profile',
+                subtitle: className,
+                onBack: () {
+                  if (context.mounted) context.pop();
+                },
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+
+              // Avatar + name block.
+              Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
+                    Container(
+                      width: 99,
+                      height: 99,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFFC4C4C4),
-                          width: 1,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black, width: 1),
+                        image: const DecorationImage(
+                          image: AssetImage('assets/images/student.png'),
+                          fit: BoxFit.cover,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFEFEF),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.calendar_month_rounded,
-                              size: 20,
-                              color: Color(0xFF4B4A4A),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'Attendance history',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            color: Color(0xFF4B4A4A),
-                          ),
-                        ],
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      profile.name,
+                      style: AppTextStyles.heading.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      className,
+                      style: AppTextStyles.small.copyWith(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      rollNumber,
+                      style: AppTextStyles.small.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              // Stacked cards: action button on top, then the two info cards
+              // overlapping the bottom of the avatar circle (same stack as the
+              // teacher profile, with "Attendance history" in place of the
+              // "Time Table schedule" action).
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 36),
+                    GestureDetector(
+                      onTap: () {
+                        if (context.mounted) context.push('/attendance-history');
+                      },
+                      child: Container(
+                        height: 39,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                          border: Border.all(color: Colors.black, width: 1),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x0D000000),
+                              blurRadius: 3,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Attendance history',
+                          style: AppTextStyles.heading.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.headingText,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _InfoCard(
+                      items: [
+                        _InfoItem(
+                          icon: Icons.mail_outline_rounded,
+                          value: profile.email,
+                        ),
+                        _InfoItem(
+                          icon: Icons.phone_outlined,
+                          value: profile.phone,
+                        ),
+                        _InfoItem(
+                          icon: Icons.business_outlined,
+                          value: 'Department of Computer Science',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _InfoCard(
+                      items: [
+                        _InfoItem(
+                          icon: Icons.groups_outlined,
+                          value: className,
+                        ),
+                        _InfoItem(
+                          icon: Icons.book_outlined,
+                          value: 'Python, Software Engineering',
+                        ),
+                        _InfoItem(
+                          icon: Icons.info_outline_rounded,
+                          value: 'AHH do something about this page',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ContactRow extends StatelessWidget {
+/// A single info row inside [_InfoCard]: circular icon + value text.
+class _InfoItem {
   final IconData icon;
-  final String title;
-  final String? subtitle;
+  final String value;
 
-  const _ContactRow({
-    required this.icon,
-    required this.title,
-    this.subtitle,
-  });
+  const _InfoItem({required this.icon, required this.value});
+}
+
+/// Reusable white info card with a thin divider between rows.
+///
+/// Matches the Figma "Container" nodes: white surface, black border, drop
+/// shadow, card radius — same as the teacher profile screen.
+class _InfoCard extends StatelessWidget {
+  final List<_InfoItem> items;
+
+  const _InfoCard({required this.items});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 61,
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFEFEF),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 20, color: const Color(0xFF4B4A4A)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: subtitle == null
-                ? Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      Text(
-                        subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
+    return Container(
+      width: 341,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: Colors.black, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 3,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ContactRowDivider extends StatelessWidget {
-  const _ContactRowDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 0.6,
-      color: Colors.grey.shade300,
+      child: Column(
+        children: List.generate(items.length, (i) {
+          final item = items[i];
+          final isLast = i == items.length - 1;
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.uploadSurface,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        item.icon,
+                        size: 20,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        item.value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.small.copyWith(
+                          fontSize: 14,
+                          color: AppColors.headingText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!isLast)
+                const Divider(height: 1, color: Color(0xFFF3F4F6)),
+            ],
+          );
+        }),
+      ),
     );
   }
 }

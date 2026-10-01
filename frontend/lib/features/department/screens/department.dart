@@ -169,8 +169,13 @@ class _TeachersViewState extends State<_TeachersView> {
           child: ListView.builder(
             padding: const EdgeInsets.only(bottom: 110),
             itemCount: teachers.length,
-            itemBuilder: (context, index) =>
-                TeacherListTile(teacher: teachers[index]),
+            itemBuilder: (context, index) => TeacherListTile(
+              teacher: teachers[index],
+              onTap: () {
+                if (!context.mounted) return;
+                context.push('/teacher-profile');
+              },
+            ),
           ),
         ),
       ],
