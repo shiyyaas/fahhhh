@@ -17,7 +17,7 @@ class AppColors {
 
   // Text Colors
   static const Color headingText = Colors.black;
-  static const Color smallText = Color(0xFF635959);
+  static const Color smallText = Color(0xFF666666);
   static const Color labelText = Color.fromARGB(255, 59, 59, 59);
   static const Color hintText = Color.fromARGB(255, 80, 79, 79);
   static const Color darkText = Color(0xFF373737);
@@ -44,6 +44,7 @@ class AppColors {
   static const Color missed = Color(0xFF775471);
   static const Color recordNow = Color(0xFF9DB6EE);
   static const Color pending = Color(0xFF5F6B7A);
+  static const Color attendanceText = Colors.white;
 
   // Legacy Aliases (mapped to new semantic tokens)
   static const Color present = success;
@@ -51,8 +52,15 @@ class AppColors {
   static const Color ongoing = recordNow;
 
   // Attendance Badge Colors (legacy - leaving intact so we don't break screens not yet refactored)
-  static const Color goodAttendance = Color(0x996BDB72);
-  static const Color badAttendance = Color(0x99BA4545);
-  static const Color goodAttendanceBg = Color(0xFF9EEDBB);
-  static const Color badAttendanceBg = Color(0xFFFFCDCE);
+  static const Color goodAttendance = Color(0xFF48AE8C);
+  static const Color badAttendance = Color(0xFFE57373);
+  static const Color goodAttendanceBg = Color(0xFF48AE8C);
+  static const Color badAttendanceBg = Color(0xFFE57373);
+
+  // Condonation Register badge palette (Figma node 1487-5238).
+  // Green = good condonation rate, purple = below-threshold rate.
+  static const Color condonationGood = Color(0xFF6BDB72);
+  static const Color condonationGoodLight = Color(0xFF9EEDBB);
+  static const Color condonationBad = Color(0xFFD26688);
+  static const Color condonationBadText = Color(0xFFFFCDCE);
 }

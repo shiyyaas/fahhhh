@@ -20,6 +20,10 @@ class HeaderMenuConfig {
         }
         return '/timetable';
       case 'Attendance history':
+        if (pageType == HeaderPageType.myClass) {
+          // Teacher view: show teacher attendance history
+          return '/teacher-attendance-history';
+        }
         return '/attendance-history';
       case 'Archived Batches':
         return '/archived-batches';
@@ -29,6 +33,8 @@ class HeaderMenuConfig {
         return '/student-settings';
       case 'Subject Settings':
         return '/subject-settings';
+      case 'Check Condonation':
+        return '/condonation';
       default:
         return null;
     }

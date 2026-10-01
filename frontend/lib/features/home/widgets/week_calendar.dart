@@ -5,7 +5,7 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 
 
-class WeekCalendar extends StatelessWidget {
+class WeekCalendar extends StatefulWidget {
 
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
@@ -21,34 +21,45 @@ class WeekCalendar extends StatelessWidget {
   });
 
   @override
+  State<WeekCalendar> createState() => _WeekCalendarState();
+}
+
+class _WeekCalendarState extends State<WeekCalendar> {
+  // Anchored once so a rebuild at midnight doesn't shift the displayed week
+  // or cause the selected chip to appear deselected until the user taps again.
+  late final DateTime _today;
+  late final List<DateTime> _weekDays;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _today = DateTime(now.year, now.month, now.day);
+    _weekDays = List.generate(7, (index) => _today.add(Duration(days: index - 3)));
+  }
+
+  @override
   Widget build(BuildContext context) {
 
-    final DateTime today = DateTime.now();
-
-    final List<DateTime> weekDays = List.generate(
-      7,
-      (index) => today.add(Duration(days: index - 3)),
-    );
-
     return SizedBox(
-      height: chipHeight + 20,
+      height: widget.chipHeight + 20,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: weekDays.length,
+        itemCount: _weekDays.length,
         itemBuilder: (context, index) {
-          final DateTime date = weekDays[index];
+          final DateTime date = _weekDays[index];
           final bool isSelected =
-              selectedDate.day == date.day &&
-              selectedDate.month == date.month &&
-              selectedDate.year == date.year;
+              widget.selectedDate.day == date.day &&
+              widget.selectedDate.month == date.month &&
+              widget.selectedDate.year == date.year;
           return GestureDetector(
             onTap: () {
-              onDateSelected(date);
+              widget.onDateSelected(date);
             },
 
             child: Container(
-              width: chipWidth,
-              height: chipHeight,
+              width: widget.chipWidth,
+              height: widget.chipHeight,
               margin: const EdgeInsets.symmetric(horizontal: 7),
               decoration: BoxDecoration(
                 gradient: isSelected
@@ -61,12 +72,14 @@ class WeekCalendar extends StatelessWidget {
                         end: Alignment.bottomCenter,
                       )
                     : null,
-                color: isSelected
-                    ? null
-                    : Colors.white,
+                color: isSelected ? null : Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                // Unselected: light border per design spec ("white outlined unselected states")
+                // Selected: dark outline for depth
                 border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.6),
+                  color: isSelected
+                      ? AppColors.outline.withValues(alpha: 0.6)
+                      : AppColors.enabledBorder.withValues(alpha: 0.5),
                   width: isSelected ? 0.9 : 1,
                 ),
                 boxShadow: isSelected

@@ -160,16 +160,20 @@ class _StatusPill extends StatelessWidget {
       height: 25,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F4F4),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12.5),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             statusText,
-            style: AppTextStyles.sfPRO.copyWith(
-              color: const Color(0xFF364153),
+            style: AppTextStyles.body.copyWith(
+              color: Colors.white,
               fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
@@ -177,7 +181,7 @@ class _StatusPill extends StatelessWidget {
           const SizedBox(width: 4),
           const Icon(
             Icons.insights_outlined,
-            color: Color(0xFF364153),
+            color: Colors.white70,
             size: 12,
           ),
         ],

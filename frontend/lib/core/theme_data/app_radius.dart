@@ -1,5 +1,5 @@
 class AppRadius {
-  static const double small = 12;
+  static const double small = 10;
 
   static const double medium = 16;
 

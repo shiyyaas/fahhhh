@@ -23,13 +23,15 @@ import '../../features/department/screens/student_details_screen.dart';
 import '../../features/department/screens/subject_settings_screen.dart';
 import '../../features/department/screens/subject_details_screen.dart';
 import '../../features/department/screens/generate_report_screen.dart';
+import '../../features/department/screens/condonation_screen.dart';
 import '../../features/my_subjects/screens/subject_details_screen.dart';
 import '../../features/my_subjects/screens/subject_class_lists_screen.dart';
 import '../../features/inbox/screens/inbox_screen.dart';
 import '../../features/profile/screens/student_profile_screen.dart';
+import '../../features/profile/screens/teacher_profile_screen.dart';
 import '../../features/profile/models/student_profile.dart';
 import '../../features/my_subjects/screens/student_subject_detail_screen.dart';
-import '../../features/profile/screens/attendance_history_screen.dart';
+import '../../features/department/screens/teacher_attendance_history_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -134,15 +136,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      // Attendance History Route - student attendance calendar
+      // Attendance History Route - teacher attendance calendar
       GoRoute(
-        path: '/attendance-history',
-        builder: (context, state) => const AttendanceHistoryScreen(),
+        path: '/teacher-attendance-history',
+        builder: (context, state) => const TeacherAttendanceHistoryScreen(),
       ),
       // Generate Report Route - class attendance report with per-student %
       GoRoute(
         path: '/generate-report',
         builder: (context, state) => const GenerateReportScreen(),
+      ),
+      // Teacher Profile Route - Figma node 1651:11914, hides bottom nav
+      GoRoute(
+        path: '/teacher-profile',
+        builder: (context, state) => const TeacherProfileScreen(),
+      ),
+      // Condonation Register Route - list of students with condonation
+      GoRoute(
+        path: '/condonation',
+        builder: (context, state) => const CondonationScreen(),
       ),
       // Archived Batches Route - previous batches attendance & reports
       GoRoute(
@@ -192,7 +204,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Subject Detail Settings Route - edit selected subject details
       GoRoute(
-        path: '/subject-details/:name/:teacher/:rollNumber',
+        path: '/subject-details-settings/:name/:teacher/:rollNumber',
         builder: (context, state) {
           final name = Uri.decodeComponent(state.pathParameters['name']!);
           final teacher = Uri.decodeComponent(state.pathParameters['teacher']!);

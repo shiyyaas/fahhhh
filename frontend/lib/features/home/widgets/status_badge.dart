@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 
 enum AttendanceStatus {
   recorded,
@@ -90,21 +91,21 @@ class StatusBadge extends StatelessWidget {
     switch (status) {
       case AttendanceStatus.recorded:
       case AttendanceStatus.present:
-        return const Color(0xFF6BDB72).withValues(alpha: 0.6);
+        return AppColors.success.withValues(alpha: 0.6);
 
       case AttendanceStatus.recordNow:
       case AttendanceStatus.ongoing:
-        return const Color(0xFF6E97DA);
+        return AppColors.recordNow;
 
       case AttendanceStatus.pending:
         return null; // gradient used instead
 
       case AttendanceStatus.late:
-        return const Color(0xFFE59B00).withValues(alpha: 0.6);
+        return AppColors.warning.withValues(alpha: 0.6);
 
       case AttendanceStatus.missed:
       case AttendanceStatus.absent:
-        return const Color(0xFFBA4545).withValues(alpha: 0.6);
+        return AppColors.danger.withValues(alpha: 0.6);
 
     }
 
@@ -130,7 +131,7 @@ class StatusBadge extends StatelessWidget {
 
       case AttendanceStatus.missed:
       case AttendanceStatus.absent:
-        return const Color(0xFFF9C4C4);
+        return const Color(0xFFFFC4C4);
 
     }
 

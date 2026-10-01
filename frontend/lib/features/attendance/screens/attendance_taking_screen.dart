@@ -27,6 +27,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
   final Map<String, AttendanceStatus> _attendanceStates = {};
   bool _initialized = false;
   String _selectedSortFilter = "all"; // "all", "present", "absent", "late"
+  DateTime? _lastSelectedDate;
 
   void _initializeStates(TimetableSlot slot) {
     if (_initialized) return;
@@ -57,8 +58,11 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
         return AttendanceStatus.late;
       case AttendanceStatus.late:
         return AttendanceStatus.pending;
+      // Non-cycleable statuses (recorded, missed, ongoing) are read-only;
+      // _buildStatusCapsule passes isReadOnly=true so this branch is unreachable
+      // in normal usage, but guard here just in case.
       default:
-        return AttendanceStatus.pending;
+        return current;
     }
   }
 
@@ -86,6 +90,13 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
 
     // Date calculations to determine past vs today vs future behavior
     final selectedDate = ref.watch(selectedDateProvider);
+
+    // Reset sort filter when the selected date changes so a stale "present"
+    // filter from a past day doesn't silently hide students on today's view.
+    if (_lastSelectedDate != null && _lastSelectedDate != selectedDate) {
+      _selectedSortFilter = "all";
+    }
+    _lastSelectedDate = selectedDate;
     final now = DateTime.now();
     final todayZero = DateTime(now.year, now.month, now.day);
     final selectedZero = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
@@ -292,6 +303,8 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                   widget.slotId,
                                   _attendanceStates,
                                 );
+                            // Guard before any context use
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text("Attendance saved successfully!"),
@@ -299,7 +312,6 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                 duration: Duration(seconds: 2),
                               ),
                             );
-                            if (!context.mounted) return;
                             context.pop();
                           },
                           child: Container(
@@ -340,7 +352,7 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
     return AppBackHeader(
       title: slot.classId,
       subtitle:
-          "${slot.subjectName} - ${slot.startTime.hour}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour}:${slot.endTime.minute.toString().padLeft(2, '0')}",
+          "${slot.subjectName} - ${slot.startTime.hour.toString().padLeft(2, '0')}:${slot.startTime.minute.toString().padLeft(2, '0')} to ${slot.endTime.hour.toString().padLeft(2, '0')}:${slot.endTime.minute.toString().padLeft(2, '0')}",
       onBack: () {
         if (!context.mounted) return;
         context.pop();
@@ -356,13 +368,13 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
 
     switch (status) {
       case AttendanceStatus.present:
-        bg = const Color(0xFF6BDB72).withValues(alpha: 0.6);
+        bg = AppColors.success.withValues(alpha: 0.6);
         textCol = const Color(0xFFE8E8E8);
         text = "Present";
         break;
       case AttendanceStatus.absent:
-        bg = const Color(0xFFA93232).withValues(alpha: 0.6);
-        textCol = const Color(0xFFF9C4C4);
+        bg = AppColors.danger.withValues(alpha: 0.6);
+        textCol = const Color(0xFFFFC4C4);
         text = "Absent";
         break;
       case AttendanceStatus.late:

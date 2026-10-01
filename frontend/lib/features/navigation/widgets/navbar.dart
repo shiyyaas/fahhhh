@@ -47,8 +47,8 @@ class Navbar extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.white,
-                          AppColors.screenGradientEnd,
+                          AppColors.gradientTop,
+                          AppColors.gradientBottom,
                         ],
                       )
                     : null,
@@ -66,9 +66,7 @@ class Navbar extends StatelessWidget {
 
                   Icon(
                     items[index].icon,
-                    color: isSelected
-                        ? Colors.black
-                        : Colors.white,
+                    color: Colors.white,
                     size: 24,
                   ),
 
@@ -77,7 +75,7 @@ class Navbar extends StatelessWidget {
                     Text(
                       items[index].label,
                       style: const TextStyle(
-                        color: AppColors.navBar,
+                        color: Colors.white,
                         fontWeight: FontWeight.w600,
                         fontSize: 12.8,
                       ),

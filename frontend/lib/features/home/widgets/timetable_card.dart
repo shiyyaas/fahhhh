@@ -67,7 +67,7 @@ class _TimetableCardState extends State<TimetableCard> {
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: Colors.black, width: 1),
+        border: Border.all(color: AppColors.outline, width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -136,6 +136,8 @@ class _TimetableCardState extends State<TimetableCard> {
                 CircleAvatar(
                   radius: 24,
                   backgroundImage: AssetImage(widget.profileImage!),
+                  onBackgroundImageError: (_, __) {},
+                  child: null,
                 ),
               ],
             ],
