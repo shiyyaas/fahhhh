@@ -15,7 +15,7 @@ import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
 // Models
-import 'package:fahhhh/features/auth/models/current_user.dart';
+// import 'package:fahhhh/features/auth/models/current_user.dart';
 
 /// Teacher profile view (Figma node 1651:11914).
 ///

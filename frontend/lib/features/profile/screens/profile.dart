@@ -45,7 +45,8 @@ class Profile extends ConsumerWidget {
     final String subTitle = isTeacher
         ? (user.isHOD ? "Head Of Department" : "Assistant Professor")
         : (user.className ?? "S2 BCA");
-    final String department = user.departmentId ?? "Department of Computer Science";
+    final String department =
+        user.departmentId ?? "Department of Computer Science";
     final String email = user.email;
     final String phone = user.phone;
 
@@ -54,7 +55,12 @@ class Profile extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.only(
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: 110,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -110,6 +116,7 @@ class Profile extends ConsumerWidget {
               ),
 
               const SizedBox(height: 25),
+
               WhiteBtn(
                 text: "Edit Profile",
                 icon: Icons.edit,
@@ -125,6 +132,7 @@ class Profile extends ConsumerWidget {
                 ),
                 mainAxisAlignment: MainAxisAlignment.center,
               ),
+
               const SizedBox(height: 25),
 
               // DETAILS CONTAINER
@@ -132,13 +140,21 @@ class Profile extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.outline.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.outline.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    WhiteBox(icon: Icons.email_outlined, title: email),
+                    WhiteBox(
+                      icon: Icons.email_outlined,
+                      title: email,
+                    ),
                     _divider(),
-                    WhiteBox(icon: Icons.phone_outlined, title: phone),
+                    WhiteBox(
+                      icon: Icons.phone_outlined,
+                      title: phone,
+                    ),
                     _divider(),
                     WhiteBox(
                       icon: Icons.school_outlined,
@@ -161,11 +177,13 @@ class Profile extends ConsumerWidget {
                           title: "Head Of Department",
                         ),
                       ],
-                      if (user.activeSubjects != null && user.activeSubjects!.isNotEmpty) ...[
+                      if (user.activeSubjects != null &&
+                          user.activeSubjects!.isNotEmpty) ...[
                         _divider(),
                         WhiteBox(
                           icon: Icons.book_outlined,
-                          title: "Subjects: ${user.activeSubjects!.join(', ')}",
+                          title:
+                              "Subjects: ${user.activeSubjects!.join(', ')}",
                         ),
                       ],
                     ],
@@ -186,14 +204,17 @@ class Profile extends ConsumerWidget {
                   ],
                 ),
               ),
+
               const SizedBox(height: 20),
 
-              // SETTINGS CONTAINER (same for both roles)
+              // SETTINGS CONTAINER
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.outline.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.outline.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -208,7 +229,9 @@ class Profile extends ConsumerWidget {
                       onTap: () {
                         if (!context.mounted) return;
                         context.push(
-                          isTeacher ? '/timetable' : '/attendance-history',
+                          isTeacher
+                              ? '/timetable'
+                              : '/attendance-history',
                         );
                       },
                     ),
@@ -219,7 +242,11 @@ class Profile extends ConsumerWidget {
                       showSwitch: true,
                       switchValue: notificationsEnabled,
                       onSwitchChanged: (value) {
-                        ref.read(notificationsEnabledProvider.notifier).state = value;
+                        ref
+                            .read(
+                              notificationsEnabledProvider.notifier,
+                            )
+                            .state = value;
                       },
                     ),
                     _divider(),
@@ -237,12 +264,18 @@ class Profile extends ConsumerWidget {
                   ],
                 ),
               ),
+
               const SizedBox(height: 30),
+
               BlueBtn(
                 text: "Logout",
                 onPressed: () async {
-                  await ref.read(authNotifierProvider.notifier).logout();
+                  await ref
+                      .read(authNotifierProvider.notifier)
+                      .logout();
+
                   if (!context.mounted) return;
+
                   context.go('/login');
                 },
                 width: double.infinity,
@@ -252,6 +285,7 @@ class Profile extends ConsumerWidget {
                 ),
                 mainAxisAlignment: MainAxisAlignment.center,
               ),
+
               const SizedBox(height: 30),
             ],
           ),
@@ -262,5 +296,8 @@ class Profile extends ConsumerWidget {
 }
 
 Widget _divider() {
-  return Divider(height: 1, color: AppColors.outline.withValues(alpha: 0.3));
+  return Divider(
+    // height: 1,
+    color: AppColors.outline.withValues(alpha: 0.3),
+  );
 }
