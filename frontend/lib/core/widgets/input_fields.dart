@@ -44,62 +44,70 @@ class InputField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Container(
-          height: 36,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFEFEFE),
-            borderRadius: BorderRadius.circular(AppRadius.small),
-            border: Border.all(
-              color: const Color(0xFFa2a2a2),
-              width: 2,
-            ),
+        TextFormField(
+          cursorColor: AppColors.primary,
+          controller: controller,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          validator: validator,
+          readOnly: readOnly,
+          enabled: enabled,
+          maxLines: maxLines,
+          style: AppTextStyles.sfPRO.copyWith(
+            fontSize: 14,
+            color: Colors.black,
           ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextField(
-                    cursorColor: Colors.black,
-                    controller: controller,
-                    obscureText: obscureText,
-                    keyboardType: keyboardType,
-                    validator: (value) {
-                      if (validator != null) {
-                        return validator(value);
-                      }
-                      return null;
-                    },
-                    readOnly: readOnly,
-                    enabled: enabled,
-                    maxLines: maxLines,
-                    style: AppTextStyles.sfPRO.copyWith(
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                      hintText: '',
-                    ),
-                  ),
-                ),
+          decoration: InputDecoration(
+            hintText: hintText,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: 16,
+            ),
+            hintStyle: AppTextStyles.small.copyWith(
+              color: AppColors.hintText,
+              fontSize: 14,
+            ),
+            suffixIcon: suffixIcon,
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 24,
+              minHeight: 24,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              borderSide: const BorderSide(
+                color: AppColors.enabledBorder,
+                width: 2,
               ),
-              Positioned(
-                left: 14,
-                top: -27,
-                child: Text(
-                  hintText,
-                  style: AppTextStyles.sfPRO.copyWith(
-                    fontSize: 12,
-                    color: const Color(0xFF363636),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              borderSide: const BorderSide(
+                color: AppColors.border,
+                width: 1,
               ),
-            ],
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+                width: 2,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              borderSide: const BorderSide(
+                color: AppColors.danger,
+                width: 2,
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              borderSide: const BorderSide(
+                color: AppColors.enabledBorder,
+                width: 2,
+              ),
+            ),
           ),
         ),
       ],

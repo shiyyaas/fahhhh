@@ -49,6 +49,7 @@ app.*.map.json
 .kimi
 .kimi-Code
 .claude
+../.claude/
 .agents
 .codex/
 .cursor/

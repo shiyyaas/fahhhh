@@ -56,7 +56,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const AppScreenScaffold(
+      body: AppScreenScaffold(
         child: Column(
           children: [
             _HeaderSection(onBack: () => context.pop()),
@@ -132,7 +132,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                     children: [
                       Expanded(
                         child: _DeleteButton(
-                          onTap: () {},
+                          onPressed: () {},
                         ),
                       ),
                       const SizedBox(width: 16),
