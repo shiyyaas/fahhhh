@@ -8,13 +8,11 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 // models
 import 'package:fahhhh/features/auth/models/auth_state.dart';
 
-// widgets
-import 'package:fahhhh/features/auth/widgets/debug_role_selector.dart';
-
 // Design system
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/input_fields.dart';
+import '../../../features/auth/widgets/debug_role_selector.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -40,24 +38,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      floatingActionButton: FloatingActionButton(
-        mini: true,
-        backgroundColor: AppColors.primary,
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: Colors.transparent,
-            isScrollControlled: true,
-            builder: (context) => DebugRoleSelector(
-              onSelect: (email, password) {
-                emailController.text = email;
-                passwordController.text = password;
-              },
-            ),
-          );
-        },
-        child: const Icon(Icons.bug_report, color: Colors.white),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -185,6 +165,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
+
+              // Debug: show role selector in debug mode
+              if (const bool.fromEnvironment('dart.vm.product') == false)
+                TextButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => DebugRoleSelector(
+                        onSelect: (email, password) {
+                          emailController.text = email;
+                          passwordController.text = password;
+                        },
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'Debug Role Selector',
+                    style: AppTextStyles.small.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

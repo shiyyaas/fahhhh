@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+#.cli files
+.kilo
+.kimi
+.kimi-Code
+.claude
+.agents
+.codex/
+.cursor/
+.mcp.json
+.qarinah/config.json

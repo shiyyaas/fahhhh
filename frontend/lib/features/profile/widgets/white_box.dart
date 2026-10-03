@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 // Design
 import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_radius.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 
 class WhiteBox extends StatelessWidget {
@@ -39,7 +41,7 @@ class WhiteBox extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.medium),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 18,
@@ -50,8 +52,8 @@ class WhiteBox extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.uploadSurface,
+                borderRadius: BorderRadius.circular(AppRadius.small),
               ),
               child: Icon(
                 icon,
@@ -64,21 +66,25 @@ class WhiteBox extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: AppTextStyles.body.copyWith(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
+                  color: AppColors.headingText,
                 ),
               ),
             ),
             if (showArrow)
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: Colors.grey,
+                color: AppColors.textSecondary,
               ),
             if (showSwitch)
               Switch(
                 value: switchValue,
                 onChanged: onSwitchChanged,
+                activeColor: AppColors.primary,
+                inactiveThumbColor: AppColors.smallText,
+                inactiveTrackColor: AppColors.outline.withValues(alpha: 0.4),
               ),
           ],
 

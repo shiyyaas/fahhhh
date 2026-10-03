@@ -40,7 +40,7 @@ class StatusBadge extends StatelessWidget {
             : null,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.black.withValues(alpha: 0.55),
+          color: AppColors.border.withValues(alpha: 0.55),
           width: 0.75,
         ),
       ),
@@ -117,21 +117,21 @@ class StatusBadge extends StatelessWidget {
       
       case AttendanceStatus.recorded:
       case AttendanceStatus.present:
-        return const Color(0xFFE8E8E8);
+        return AppColors.surface;
 
       case AttendanceStatus.recordNow:
       case AttendanceStatus.ongoing:
-        return const Color(0xFFF1F1F1);
+        return AppColors.surface;
 
       case AttendanceStatus.pending:
-        return const Color(0xFFE6E6E6);
+        return AppColors.surface;
 
       case AttendanceStatus.late:
-        return const Color(0xFFFFE8C7);
+        return AppColors.warning;
 
       case AttendanceStatus.missed:
       case AttendanceStatus.absent:
-        return const Color(0xFFFFC4C4);
+        return AppColors.surface;
 
     }
 

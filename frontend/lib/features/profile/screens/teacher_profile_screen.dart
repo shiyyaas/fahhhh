@@ -14,6 +14,9 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
+// Models
+import 'package:fahhhh/features/auth/models/current_user.dart';
+
 /// Teacher profile view (Figma node 1651:11914).
 ///
 /// Pushed from the bottom-profile sheet on the timetable screen, or from the
@@ -81,7 +84,7 @@ class TeacherProfileScreen extends ConsumerWidget {
                       height: 99,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 1),
+                        border: Border.all(color: AppColors.border, width: 1),
                         image: DecorationImage(
                           image: AssetImage(imageUrl),
                           fit: BoxFit.cover,
@@ -116,44 +119,26 @@ class TeacherProfileScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Two stacked info cards.
-              // Positioned to overlap the bottom of the avatar circle.
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
+                // 30.5px horizontal margin → 341px content box on a 402px
+                // canvas, so the button and cards share the same length.
+                padding: const EdgeInsets.symmetric(horizontal: 30.5),
                 child: Column(
                   children: [
-                    const SizedBox(height: 36),
-                    _InfoCard(
-                      items: [
-                        _InfoItem(icon: Icons.groups_outlined, label: 'Class', value: classText),
-                        _InfoItem(icon: Icons.book_outlined, label: 'Subjects', value: subjectsText),
-                        _InfoItem(
-                          icon: Icons.info_outline_rounded,
-                          label: 'AHH do something about this page',
-                          value: '',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _InfoCard(
-                      items: [
-                        _InfoItem(icon: Icons.mail_outline_rounded, label: 'Email', value: email),
-                        _InfoItem(icon: Icons.phone_outlined, label: 'Phone', value: phone),
-                        _InfoItem(icon: Icons.business_outlined, label: 'Department', value: department),
-                      ],
-                    ),
                     const SizedBox(height: 24),
-                    // Primary action button — white outlined pill.
+                    // Primary action button — white outlined pill, sitting at
+                    // the top (below the avatar, above the info cards).
                     GestureDetector(
                       onTap: () {
                         if (context.mounted) context.push('/timetable');
                       },
                       child: Container(
+                        width: double.infinity,
                         height: 39,
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(AppRadius.pill),
-                          border: Border.all(color: Colors.black, width: 1),
+                          border: Border.all(color: AppColors.border, width: 1),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x0D000000),
@@ -172,6 +157,26 @@ class TeacherProfileScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 20),
+                    _InfoCard(
+                      items: [
+                        _InfoItem(icon: Icons.mail_outline_rounded, label: 'Email', value: email),
+                        _InfoItem(icon: Icons.phone_outlined, label: 'Phone', value: phone),
+                        _InfoItem(icon: Icons.business_outlined, label: 'Department', value: department),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _InfoCard(
+                      items: [
+                        _InfoItem(icon: Icons.groups_outlined, label: 'Class', value: classText),
+                        _InfoItem(icon: Icons.book_outlined, label: 'Subjects', value: subjectsText),
+                        _InfoItem(
+                          icon: Icons.calendar_today_outlined,
+                          label: 'Semester',
+                          value: user.semester ?? '—',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -213,7 +218,7 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: Colors.black, width: 1),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1A000000),

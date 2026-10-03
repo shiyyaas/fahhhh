@@ -1,5 +1,6 @@
 //Design
 import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_radius.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Widgets
@@ -99,8 +100,8 @@ class _TimetableCardState extends State<TimetableCard> {
                     Text(
                       widget.secondaryText,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white,
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.surface,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -167,14 +168,14 @@ class _ReportButton extends StatelessWidget {
     return Container(
       height: 34,
       decoration: BoxDecoration(
-        color: const Color(0xFFFF2626).withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(11),
+        color: AppColors.danger.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(AppRadius.small),
       ),
       child: Center(
         child: Text(
           'Report',
-          style: AppTextStyles.sfPRO.copyWith(
-            color: const Color(0xFFE9E9E9),
+          style: AppTextStyles.body.copyWith(
+            color: AppColors.surface,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),

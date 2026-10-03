@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme_data/app_colors.dart';
-import '../../../core/theme_data/app_text_styles.dart';
-import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/app_screen_scaffold.dart';
-import '../../../core/widgets/input_fields.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
+import 'package:fahhhh/core/widgets/app_button.dart';
+import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
+import 'package:fahhhh/core/widgets/input_fields.dart';
 
 class TeacherDetailsSettingsScreen extends StatefulWidget {
   final String name;
@@ -22,8 +22,7 @@ class TeacherDetailsSettingsScreen extends StatefulWidget {
       _TeacherDetailsSettingsScreenState();
 }
 
-class _TeacherDetailsSettingsScreenState
-    extends State<TeacherDetailsSettingsScreen> {
+class _TeacherDetailsSettingsScreenState extends State<TeacherDetailsSettingsScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
@@ -59,47 +58,47 @@ class _TeacherDetailsSettingsScreenState
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 32),
           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _HeaderSection(onBack: () => context.pop()),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    children: [
-                      InputField(
-                        controller: _nameController,
-                        label: 'Teacher Name',
-                        hintText: 'Enter teacher name',
-                      ),
-                      const SizedBox(height: 14),
-                      InputField(
-                        controller: _subjectController,
-                        label: 'Subject',
-                        hintText: 'Enter subject',
-                      ),
-                      const SizedBox(height: 14),
-                      InputField(
-                        controller: _emailController,
-                        label: 'Email',
-                        hintText: 'Enter email',
-                      ),
-                      const SizedBox(height: 14),
-                      InputField(
-                        controller: _phoneController,
-                        label: 'Phone Number',
-                        hintText: 'Enter phone number',
-                      ),
-                      const SizedBox(height: 14),
-                      InputField(
-                        controller: _classController,
-                        label: 'Class',
-                        hintText: 'Enter class',
-                      ),
-                    ],
-                  ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _HeaderSection(onBack: () => context.pop()),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
+                  children: [
+                    InputField(
+                      controller: _nameController,
+                      label: 'Teacher Name',
+                      hintText: 'Enter teacher name',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _subjectController,
+                      label: 'Subject',
+                      hintText: 'Enter subject',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hintText: 'Enter email',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _phoneController,
+                      label: 'Phone Number',
+                      hintText: 'Enter phone number',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _classController,
+                      label: 'Class',
+                      hintText: 'Enter class',
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ],
           ),
         ),
       ),
@@ -115,7 +114,7 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 153,
+      height: 143,
       child: Stack(
         children: [
           Positioned(
@@ -125,7 +124,7 @@ class _HeaderSection extends StatelessWidget {
             child: Container(
               height: 143,
               decoration: const BoxDecoration(
-                color: Color(0xFFD9D9D9),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(25),
                   bottomRight: Radius.circular(25),
@@ -135,10 +134,8 @@ class _HeaderSection extends StatelessWidget {
           ),
           Positioned(
             left: 15,
-            right: 15,
             top: 61,
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
                   onPressed: onBack,
@@ -147,7 +144,7 @@ class _HeaderSection extends StatelessWidget {
                     width: 26,
                     height: 41,
                   ),
-                  icon: const Icon(Icons.arrow_back, size: 26),
+                  icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
                 ),
                 const SizedBox(width: 11),
                 Expanded(
@@ -184,8 +181,8 @@ class _HeaderSection extends StatelessWidget {
                     onPressed: () {},
                     height: 29,
                     borderRadius: 28,
-                    backgroundColor: const Color(0xFFBA4545),
-                    borderColor: const Color(0xFFBA4545),
+                    backgroundColor: const Color(0xFFEE7373),
+                    borderColor: const Color(0xFFEE7373),
                     padding: EdgeInsets.zero,
                     boxShadow: const [],
                     textStyle: AppTextStyles.heading.copyWith(fontSize: 14),

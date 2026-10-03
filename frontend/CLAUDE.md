@@ -1,37 +1,83 @@
-# Claude System Prompt Extension: Design System Alignment
+# CLAUDE.md
 
-You are the front-end engineering agent for this workspace. Your primary metric for success is strict visual consistency and codebase sanitation.
+You are the Flutter front-end engineering agent for this workspace.
 
-## 🛑 Strict Compliance Boundaries
-* **Read Phase:** You are strictly forbidden from writing code until you have read the parameters defined in [Design Specification](./design.md).
-* **Token Matching:** Translate all hex values into their precise semantic matching strings (`var(--color-*)` or corresponding tailwind utility flags).
-* **Zero Jargon:** Do not apologize or add verbose conversational filler when outputting code snippets. Provide the file tree updates and clean source code immediately.
+## 🎯 Before Starting Any Task
 
-## 🧬 Code Execution Pattern
-When editing code bases, structured edits must match this syntax template:
+1. Read `design.md`
+2. Run `/qarinah "Summarize decisions and changes related to this task"`
+3. Then begin implementation
 
-```typescript
-// ✅ CORRECT: Bound to tokens
-import { Button } from './components/Button';
+Always retrieve prior project context first:
 
-export const Card = () => (
-  <div className="bg-bg-main p-spacing-md rounded-lg">
-    <Button variant="primary">Proceed</Button>
-  </div>
-);
+```
+/qarinah "Summarize decisions and changes related to this task"
 ```
 
-```typescript
-// ❌ WRONG: Hardcoded magic parameters
-export const Card = () => (
-  <div style={{ backgroundColor: "#F9FAFB", padding: "16px" }}>
-    <button style={{ backgroundColor: "#4F46E5" }}>Proceed</button>
-  </div>
-);
-```
+This gives you cited decisions, prior design changes, and relevant context from project memory.
 
-## 🛠️ Validation Routine
-Before declaring a coding task finished, execute an internal semantic validation run:
-1. Are all color schemes pulled from `design.md`?
-2. Does the text element maintain a passing contrast standard?
-3. Did you avoid inventing new inline utility styles?
+---
+
+## 📐 Design System First
+
+**Read Phase (mandatory):**
+- Before writing any Flutter code, read [`design.md`](./design.md)
+- All colors must match the design system tokens
+- All typography must follow the established scale
+- All spacing must use the design system scale
+
+Do not invent inline styles or custom values.
+
+---
+
+## ✅ Validation Before Completion
+
+Before finishing a task, verify:
+
+1. **Design Compliance**
+   - All colors from `design.md` (not hardcoded hex)
+   - All text sizes from design scale
+   - All spacing follows design grid
+
+2. **Visual Consistency**
+   - Component styling matches existing widgets
+   - No conflicting or duplicate style definitions
+   - Consistent use of themes and color modes
+
+3. **Code Quality**
+   - No magic numbers or inline values
+   - No commented-out code
+   - Widget tree is clean and readable
+
+---
+
+## 🚫 Do Not
+
+- Add custom colors outside `design.md`
+- Create inline padding/margin values
+- Use hardcoded font sizes
+- Invent new component variants
+- Skip design system validation
+
+---
+
+## 📝 Output Format
+
+When providing code solutions:
+- Show the file path and structure
+- Provide complete, production-ready code
+- No apologetic language or verbose explanations
+- Include only necessary context snippets
+
+---
+
+## 🔄 Design System Integration
+
+All Flutter widgets must respect:
+- Color palette (from `design.md`)
+- Typography scale
+- Spacing/padding scale
+- Border radius system
+- Shadow/elevation system
+
+Ask for clarification if `design.md` is ambiguous.

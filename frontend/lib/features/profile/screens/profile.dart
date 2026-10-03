@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Providers
@@ -92,11 +93,17 @@ class Profile extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       subTitle,
-                      style: const TextStyle(fontSize: 18),
+                      style: AppTextStyles.small.copyWith(
+                        fontSize: 18,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     Text(
                       department,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      style: AppTextStyles.small.copyWith(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -123,9 +130,9 @@ class Profile extends ConsumerWidget {
               // DETAILS CONTAINER
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.outline.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   children: [
@@ -184,9 +191,9 @@ class Profile extends ConsumerWidget {
               // SETTINGS CONTAINER (same for both roles)
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.outline.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   children: [
@@ -255,5 +262,5 @@ class Profile extends ConsumerWidget {
 }
 
 Widget _divider() {
-  return Divider(height: 1, color: Colors.grey.shade300);
+  return Divider(height: 1, color: AppColors.outline.withValues(alpha: 0.3));
 }

@@ -14,6 +14,7 @@ class AppColors {
   // Navigation Bar
   static const Color navBar = Color(0xFF262525);
   static const Color navBarBg = Color(0xFF262525);
+  static const Color navBarText = Color(0xFF262525);
 
   // Text Colors
   static const Color headingText = Colors.black;
@@ -45,6 +46,8 @@ class AppColors {
   static const Color recordNow = Color(0xFF9DB6EE);
   static const Color pending = Color(0xFF5F6B7A);
   static const Color attendanceText = Colors.white;
+  static const Color forgotPassword = Color(0xFF136BB3);
+  static const Color notification = Color(0xFF666666);
 
   // Legacy Aliases (mapped to new semantic tokens)
   static const Color present = success;

@@ -13,6 +13,9 @@ import 'package:fahhhh/features/profile/models/student_profile.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
+// Models
+// import 'package:fahhhh/features/profile/widgets/info_card.dart';
+
 /// Student profile view (Figma node 1651:11914).
 ///
 /// Mirrors the teacher profile design: a circular avatar with name/class/roll
@@ -57,7 +60,7 @@ class StudentProfileScreen extends StatelessWidget {
                       height: 99,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black, width: 1),
+                        border: Border.all(color: AppColors.border, width: 1),
                         image: const DecorationImage(
                           image: AssetImage('assets/images/student.png'),
                           fit: BoxFit.cover,
@@ -110,7 +113,7 @@ class StudentProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(AppRadius.pill),
-                          border: Border.all(color: Colors.black, width: 1),
+                          border: Border.all(color: AppColors.border, width: 1),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x0D000000),
@@ -159,8 +162,8 @@ class StudentProfileScreen extends StatelessWidget {
                           value: 'Python, Software Engineering',
                         ),
                         _InfoItem(
-                          icon: Icons.info_outline_rounded,
-                          value: 'AHH do something about this page',
+                          icon: Icons.calendar_today_outlined,
+                          value: 'Semester ${profile.semester ?? 2}',
                         ),
                       ],
                     ),
@@ -199,7 +202,7 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: Colors.black, width: 1),
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1A000000),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_radius.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 // Providers
@@ -92,9 +94,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       const SizedBox(height: 10),
                       Text(
                         'Modify your core credentials below',
-                        style: AppTextStyles.sfPRO.copyWith(
+                        style: AppTextStyles.small.copyWith(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -196,9 +198,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget _buildLabel(String label) {
     return Text(
       label,
-      style: AppTextStyles.sfPRO.copyWith(
+      style: AppTextStyles.body.copyWith(
         fontSize: 16,
-        color: const Color.fromARGB(255, 59, 59, 59),
+        color: AppColors.labelText,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -211,7 +213,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     TextInputType keyboardType = TextInputType.text,
   }) {
     return TextFormField(
-      cursorColor: Colors.black,
+      cursorColor: AppColors.primary,
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
@@ -222,35 +224,35 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           vertical: 12,
           horizontal: 16,
         ),
-        hintStyle: const TextStyle(
-          color: Color.fromARGB(255, 172, 172, 172),
+        hintStyle: AppTextStyles.small.copyWith(
+          color: AppColors.hintText,
           fontSize: 14,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           borderSide: const BorderSide(
-            color: Color.fromARGB(255, 172, 172, 172),
+            color: AppColors.enabledBorder,
             width: 2,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           borderSide: const BorderSide(
-            color: Color.fromRGBO(0, 0, 0, 1.0),
+            color: AppColors.border,
             width: 1,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           borderSide: const BorderSide(
-            color: Colors.red,
+            color: AppColors.danger,
             width: 2,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
           borderSide: const BorderSide(
-            color: Colors.red,
+            color: AppColors.danger,
             width: 2,
           ),
         ),

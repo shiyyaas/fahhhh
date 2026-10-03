@@ -50,7 +50,7 @@ class TeacherSubjectCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(17),
-                border: Border.all(color: Colors.black, width: 1),
+                border: Border.all(color: AppColors.border, width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +65,7 @@ class TeacherSubjectCard extends StatelessWidget {
                           child: Text(
                             subjectName,
                             style: AppTextStyles.heading.copyWith(
-                              color: Colors.white,
+                              color: AppColors.surface,
                               fontSize: 22,
                             ),
                           ),
@@ -79,7 +79,7 @@ class TeacherSubjectCard extends StatelessWidget {
                   Text(
                     className,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.sfPRO.copyWith(
+                    style: AppTextStyles.body.copyWith(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
@@ -111,10 +111,10 @@ class TeacherSubjectCard extends StatelessWidget {
               height: 30,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.14),
+                color: AppColors.surface.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.4),
+                  color: AppColors.border.withValues(alpha: 0.4),
                   width: 0.8,
                 ),
               ),
@@ -123,16 +123,16 @@ class TeacherSubjectCard extends StatelessWidget {
                 children: [
                   Text(
                     periodText,
-                    style: AppTextStyles.sfPRO.copyWith(
+                    style: AppTextStyles.body.copyWith(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(
+                  Icon(
                     Icons.keyboard_arrow_down_rounded,
-                    color: Colors.white70,
+                    color: AppColors.surface.withValues(alpha: 0.7),
                     size: 14,
                   ),
                 ],
@@ -160,10 +160,10 @@ class _StatusPill extends StatelessWidget {
       height: 25,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: AppColors.surface.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12.5),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: AppColors.surface.withValues(alpha: 0.3),
           width: 0.8,
         ),
       ),
@@ -206,7 +206,7 @@ class _SegmentedBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: index < filledCount
                     ? Colors.white.withValues(alpha: 0.85)
-                    : Colors.black.withValues(alpha: 0.3),
+                    : AppColors.border.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -230,11 +230,11 @@ class _ProgressBar extends StatelessWidget {
         width: double.infinity,
         child: Stack(
           children: [
-            Container(color: Colors.black.withValues(alpha: 0.3)),
+            Container(color: AppColors.border.withValues(alpha: 0.3)),
             FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: fill.clamp(0.0, 1.0),
-              child: Container(color: Colors.white.withValues(alpha: 0.85)),
+              child: Container(color: AppColors.surface.withValues(alpha: 0.85)),
             ),
           ],
         ),
@@ -255,8 +255,8 @@ class _LabelsRow extends StatelessWidget {
           .map(
             (label) => Text(
               label,
-              style: AppTextStyles.sfPRO.copyWith(
-                color: Colors.white.withValues(alpha: 0.7),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.surface.withValues(alpha: 0.7),
                 fontSize: 9,
                 fontWeight: FontWeight.w500,
               ),

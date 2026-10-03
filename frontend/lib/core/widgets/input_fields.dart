@@ -10,7 +10,7 @@ class InputField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
   final TextInputType? keyboardType;
-  final String? Function(String?)? validator;
+  final String? Function(String? value)? validator;
   final Widget? suffixIcon;
   final bool readOnly;
   final bool enabled;
@@ -38,54 +38,68 @@ class InputField extends StatelessWidget {
         Text(
           label,
           style: AppTextStyles.sfPRO.copyWith(
-            fontSize: 16,
+            fontSize: 14,
             color: AppColors.labelText,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 1),
-        TextFormField(
-          cursorColor: Colors.black,
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          readOnly: readOnly,
-          enabled: enabled,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            hintText: hintText,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 10,
-              horizontal: 16,
+        const SizedBox(height: 6),
+        Container(
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEFEFE),
+            borderRadius: BorderRadius.circular(AppRadius.small),
+            border: Border.all(
+              color: const Color(0xFFa2a2a2),
+              width: 2,
             ),
-            hintStyle: TextStyle(
-              color: AppColors.hintText,
-              fontSize: 14,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              borderSide: BorderSide(
-                color: AppColors.enabledBorder,
-                width: 2,
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextField(
+                    cursorColor: Colors.black,
+                    controller: controller,
+                    obscureText: obscureText,
+                    keyboardType: keyboardType,
+                    validator: (value) {
+                      if (validator != null) {
+                        return validator(value);
+                      }
+                      return null;
+                    },
+                    readOnly: readOnly,
+                    enabled: enabled,
+                    maxLines: maxLines,
+                    style: AppTextStyles.sfPRO.copyWith(
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                      hintText: '',
+                    ),
+                  ),
+                ),
               ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              borderSide: const BorderSide(
-                color: Colors.black,
-                width: 1,
+              Positioned(
+                left: 14,
+                top: -27,
+                child: Text(
+                  hintText,
+                  style: AppTextStyles.sfPRO.copyWith(
+                    fontSize: 12,
+                    color: const Color(0xFF363636),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              borderSide: BorderSide(
-                color: Colors.grey.shade300,
-                width: 2,
-              ),
-            ),
-            suffixIcon: suffixIcon,
+            ],
           ),
         ),
       ],

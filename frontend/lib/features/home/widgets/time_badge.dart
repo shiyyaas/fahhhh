@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 
 class TimeBadge extends StatelessWidget {
   final TimeOfDay startTime;
@@ -44,10 +45,10 @@ class TimeBadge extends StatelessWidget {
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.surface.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: Colors.black.withValues(alpha: 0.4),
+          color: AppColors.border.withValues(alpha: 0.4),
           width: 0.75,
         ),
       ),
@@ -58,7 +59,7 @@ class TimeBadge extends StatelessWidget {
             : '${_formatTime(startTime)} - ${_formatTime(endTime)}',
 
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.45),
+          color: AppColors.surface.withValues(alpha: 0.45),
           fontWeight: FontWeight.bold,
           fontSize: 9.7,
         ),

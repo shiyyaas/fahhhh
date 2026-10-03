@@ -32,6 +32,7 @@ import '../../features/profile/screens/teacher_profile_screen.dart';
 import '../../features/profile/models/student_profile.dart';
 import '../../features/my_subjects/screens/student_subject_detail_screen.dart';
 import '../../features/department/screens/teacher_attendance_history_screen.dart';
+import '../../features/profile/screens/attendance_history_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -140,6 +141,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/teacher-attendance-history',
         builder: (context, state) => const TeacherAttendanceHistoryScreen(),
+      ),
+      // Student Attendance History Route - student attendance calendar
+      GoRoute(
+        path: '/attendance-history',
+        builder: (context, state) => const AttendanceHistoryScreen(),
       ),
       // Generate Report Route - class attendance report with per-student %
       GoRoute(

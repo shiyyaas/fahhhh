@@ -6,6 +6,7 @@ class StudentProfile {
   final String email;
   final String phone;
   final String parentContact;
+  final String? semester;
 
   const StudentProfile({
     required this.name,
@@ -14,6 +15,7 @@ class StudentProfile {
     required this.email,
     required this.phone,
     required this.parentContact,
+    this.semester,
   });
 }
 
@@ -23,6 +25,7 @@ StudentProfile buildStudentProfile({
   required String name,
   required String rollNumber,
   required String className,
+  String? semester,
 }) {
   final emailBase = name
       .toLowerCase()
@@ -39,5 +42,6 @@ StudentProfile buildStudentProfile({
     email: '$emailBase@mescas.org',
     phone: '62$code',
     parentContact: '75$code',
+    semester: semester,
   );
 }

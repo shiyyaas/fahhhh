@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_radius.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/home/widgets/timetable_card.dart';
 import 'package:fahhhh/features/home/widgets/status_badge.dart';
@@ -100,7 +101,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.white, AppColors.screenGradientEnd],
+            colors: [AppColors.surface, AppColors.screenGradientEnd],
             stops: [0.52, 1.0],
           ),
         ),
@@ -117,7 +118,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                         subtitle: 'View your attendance here',
                         onBack: () => context.pop(),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
+                          horizontal: AppRadius.small,
                           vertical: 12,
                         ),
                       ),
@@ -144,9 +145,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 14),
       padding: const EdgeInsets.all(1),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF676767), width: 1),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.large),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.6), width: 1),
         boxShadow: const [
           BoxShadow(
             color: AppColors.controlShadow,
@@ -188,7 +189,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               style: AppTextStyles.heading.copyWith(
                 fontSize: 14.7,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF333333),
+                color: AppColors.labelText,
               ),
             ),
           ),
@@ -211,10 +212,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   child: Center(
                     child: Text(
                       d,
-                      style: AppTextStyles.sfPRO.copyWith(
+                      style: AppTextStyles.body.copyWith(
                         fontSize: 10.1,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF9F9FA9),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -297,7 +298,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                   )
                                 : isSelected
                                     ? BoxDecoration(
-                                        color: Colors.white,
+                                        color: AppColors.surface,
                                         borderRadius:
                                             BorderRadius.circular(13),
                                         border: Border.all(
@@ -309,13 +310,13 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                             alignment: Alignment.center,
                             child: Text(
                               '$dayNum',
-                              style: AppTextStyles.sfPRO.copyWith(
+                              style: AppTextStyles.body.copyWith(
                                 fontSize: 12,
                                 fontWeight:
                                     isToday ? FontWeight.bold : FontWeight.w500,
                                 color: isToday
-                                    ? Colors.white
-                                    : const Color(0xFF3F3F47),
+                                    ? AppColors.surface
+                                    : AppColors.headingText,
                               ),
                             ),
                           ),
@@ -495,10 +496,10 @@ class _NavButton extends StatelessWidget {
         width: 29,
         height: 29,
         decoration: BoxDecoration(
-          color: const Color(0xFFF4F4F5),
-          borderRadius: BorderRadius.circular(13),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.small),
         ),
-        child: Icon(icon, size: 16, color: const Color(0xFF3F3F47)),
+        child: Icon(icon, size: 16, color: AppColors.headingText),
       ),
     );
   }
@@ -573,10 +574,10 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 5.5),
         Text(
           label,
-          style: AppTextStyles.sfPRO.copyWith(
+          style: AppTextStyles.body.copyWith(
             fontSize: 9.2,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF9F9FA9),
+            color: AppColors.textSecondary,
           ),
         ),
       ],
