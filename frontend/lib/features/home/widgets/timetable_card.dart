@@ -1,9 +1,9 @@
-//Design
+// Design
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_radius.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
-//Widgets
+// Widgets
 import 'package:fahhhh/features/home/widgets/status_badge.dart';
 import 'package:fahhhh/features/home/widgets/time_badge.dart';
 
@@ -52,13 +52,17 @@ class _TimetableCardState extends State<TimetableCard> {
       });
       return;
     }
+
     widget.onTap?.call();
   }
 
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      margin: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 6,
+      ),
       padding: const EdgeInsets.only(
         left: 12,
         right: 12,
@@ -68,7 +72,10 @@ class _TimetableCardState extends State<TimetableCard> {
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: AppColors.outline, width: 1),
+        border: Border.all(
+          color: AppColors.outline,
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -78,7 +85,23 @@ class _TimetableCardState extends State<TimetableCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Left side: Text metadata (Subject Name & Teacher or Class Batch)
+              // --------------------------------------------------
+              // Far Left: Student Profile Photo
+              // --------------------------------------------------
+              if (widget.isStudent && widget.profileImage != null) ...[
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: AssetImage(
+                    widget.profileImage!,
+                  ),
+                  onBackgroundImageError: (_, __) {},
+                ),
+                const SizedBox(width: 12),
+              ],
+
+              // --------------------------------------------------
+              // Middle: Subject + Secondary Text
+              // --------------------------------------------------
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +135,9 @@ class _TimetableCardState extends State<TimetableCard> {
 
               const SizedBox(width: 10),
 
-              // Right side: Time Badge and Status Badge
+              // --------------------------------------------------
+              // Right: Time Badge + Status Badge
+              // --------------------------------------------------
               Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -130,22 +155,15 @@ class _TimetableCardState extends State<TimetableCard> {
                   ],
                 ],
               ),
-
-              // Far Right: Student Profile Photo (Only for student and when profileImage is provided)
-              if (widget.isStudent && widget.profileImage != null) ...[
-                const SizedBox(width: 12),
-                CircleAvatar(
-                  radius: 24,
-                  backgroundImage: AssetImage(widget.profileImage!),
-                  onBackgroundImageError: (_, __) {},
-                  child: null,
-                ),
-              ],
             ],
           ),
+
+          // ----------------------------------------------------
+          // Expanded Report Button
+          // ----------------------------------------------------
           if (_expanded) ...[
             const SizedBox(height: 10),
-            _ReportButton(),
+            const _ReportButton(),
           ],
         ],
       ),
@@ -163,13 +181,17 @@ class _TimetableCardState extends State<TimetableCard> {
 }
 
 class _ReportButton extends StatelessWidget {
+  const _ReportButton();
+
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 34,
       decoration: BoxDecoration(
         color: AppColors.danger.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(AppRadius.small),
+        borderRadius: BorderRadius.circular(
+          AppRadius.small,
+        ),
       ),
       child: Center(
         child: Text(

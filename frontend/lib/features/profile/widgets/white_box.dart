@@ -82,7 +82,7 @@ class WhiteBox extends StatelessWidget {
               Switch(
                 value: switchValue,
                 onChanged: onSwitchChanged,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 inactiveThumbColor: AppColors.smallText,
                 inactiveTrackColor: AppColors.outline.withValues(alpha: 0.4),
               ),

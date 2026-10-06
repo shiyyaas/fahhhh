@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
@@ -24,6 +23,7 @@ class TeacherSettingsScreen extends StatefulWidget {
 class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Name';
   // ignore: prefer_final_fields
   Set<int> _selectedIndices = {};
 
@@ -44,6 +44,15 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
               t.subject.toLowerCase().contains(query),
         )
         .toList();
+
+    switch (_sortOption) {
+      case 'Lowest':
+        teachers.sort((a, b) => b.name.compareTo(a.name));
+      case 'Subject':
+        teachers.sort((a, b) => a.subject.compareTo(b.subject));
+      default: // 'Name' / 'Highest'
+        teachers.sort((a, b) => a.name.compareTo(b.name));
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -67,7 +76,11 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const SortDropdown(),
+                    SortDropdown(
+                      value: _sortOption,
+                      options: const ['Name', 'Subject', 'Lowest'],
+                      onChanged: (val) => setState(() => _sortOption = val),
+                    ),
                   ],
                 ),
               ),
@@ -148,50 +161,3 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _ActionButton({required this.icon, required this.label, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 29,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: Colors.black.withValues(alpha: 0.1),
-            width: 0.8,
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.controlShadow,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: const Color(0xFF1C1C21)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTextStyles.heading.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

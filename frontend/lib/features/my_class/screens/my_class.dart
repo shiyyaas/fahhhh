@@ -172,6 +172,7 @@ class _StudentsTab extends StatefulWidget {
 class _StudentsTabState extends State<_StudentsTab> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Roll No';
 
   @override
   void dispose() {
@@ -188,6 +189,15 @@ class _StudentsTabState extends State<_StudentsTab> {
             s.name.toLowerCase().contains(query) ||
             s.rollNumber.toLowerCase().contains(query))
         .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        students.sort((a, b) => a.name.compareTo(b.name));
+      case 'Lowest':
+        students.sort((a, b) => b.name.compareTo(a.name));
+      default: // 'Roll No'
+        students.sort((a, b) => a.rollNumber.compareTo(b.rollNumber));
+    }
 
     return Column(
       children: [
@@ -215,7 +225,10 @@ class _StudentsTabState extends State<_StudentsTab> {
                 ),
               ),
               const SizedBox(width: 10),
-              const SortDropdown(),
+              SortDropdown(
+                value: _sortOption,
+                onChanged: (value) => setState(() => _sortOption = value),
+              ),
             ],
           ),
         ),
@@ -257,6 +270,7 @@ class _SubjectsTab extends StatefulWidget {
 class _SubjectsTabState extends State<_SubjectsTab> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Roll No';
 
   @override
   void dispose() {
@@ -273,6 +287,15 @@ class _SubjectsTabState extends State<_SubjectsTab> {
             s.name.toLowerCase().contains(query) ||
             s.teacher.toLowerCase().contains(query))
         .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        subjects.sort((a, b) => b.attendancePercent.compareTo(a.attendancePercent));
+      case 'Lowest':
+        subjects.sort((a, b) => a.attendancePercent.compareTo(b.attendancePercent));
+      default: // 'Roll No'
+        subjects.sort((a, b) => a.rollNumber.compareTo(b.rollNumber));
+    }
 
     return Column(
       children: [
@@ -300,7 +323,10 @@ class _SubjectsTabState extends State<_SubjectsTab> {
                 ),
               ),
               const SizedBox(width: 10),
-              const SortDropdown(),
+              SortDropdown(
+                value: _sortOption,
+                onChanged: (value) => setState(() => _sortOption = value),
+              ),
             ],
           ),
         ),

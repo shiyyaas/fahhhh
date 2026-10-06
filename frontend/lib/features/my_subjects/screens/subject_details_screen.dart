@@ -41,6 +41,15 @@ class SubjectDetailsScreen extends ConsumerStatefulWidget {
 class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
   int _month = 3; // start at March like the design
   bool _showPreview = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  String _sortOption = 'Roll No';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   static const List<String> _months = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -61,7 +70,23 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     // Build the student list once for both the view and the header count.
-    final students = _students;
+    final rawStudents = _students;
+    final query = _query.trim().toLowerCase();
+    final students = rawStudents
+        .where((s) =>
+            query.isEmpty ||
+            s.name.toLowerCase().contains(query) ||
+            s.rollNumber.toLowerCase().contains(query))
+        .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        students.sort((a, b) => a.name.compareTo(b.name));
+      case 'Lowest':
+        students.sort((a, b) => b.name.compareTo(a.name));
+      default: // 'Roll No'
+        students.sort((a, b) => a.rollNumber.compareTo(b.rollNumber));
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -112,13 +137,21 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Row(
                         children: [
-                          Expanded(child: AppSearchBar()),
-                          SizedBox(width: 10),
-                          SortDropdown(),
+                          Expanded(
+                            child: AppSearchBar(
+                              controller: _searchController,
+                              onChanged: (val) => setState(() => _query = val),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SortDropdown(
+                            value: _sortOption,
+                            onChanged: (val) => setState(() => _sortOption = val),
+                          ),
                         ],
                       ),
                     ),

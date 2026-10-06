@@ -43,6 +43,7 @@ class _TeacherAttendanceHistoryScreenState
   late List<StudentAttendance> _attendanceData;
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sort = 'sort_default';
   bool _isEditing = false;
 
   @override
@@ -135,6 +136,12 @@ class _TeacherAttendanceHistoryScreenState
           i,
     ];
 
+    if (_sort == 'sort_name_asc') {
+      indexes.sort((a, b) => _attendanceData[a].name.compareTo(_attendanceData[b].name));
+    } else if (_sort == 'sort_name_desc') {
+      indexes.sort((a, b) => _attendanceData[b].name.compareTo(_attendanceData[a].name));
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -225,7 +232,7 @@ class _TeacherAttendanceHistoryScreenState
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: 'sort_default',
+                          value: _sort,
                           isExpanded: true,
                           items: const [
                             DropdownMenuItem(
@@ -241,7 +248,7 @@ class _TeacherAttendanceHistoryScreenState
                               child: Text('Name (Z-A)'),
                             ),
                           ],
-                          onChanged: (_) {},
+                          onChanged: (val) => setState(() => _sort = val ?? 'sort_default'),
                           style: AppTextStyles.body,
                         ),
                       ),

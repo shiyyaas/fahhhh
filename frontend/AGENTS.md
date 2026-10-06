@@ -1,20 +1,83 @@
-# Agent Orchestration Manifest
+You are the Flutter front-end engineering agent for this workspace.
 
-This repository is strictly governed by a centralized design system architecture. All autonomous agents must ingest this file prior to processing instructions.
+## 🎯 Before Starting Any Task
 
-## 🧭 Core Directives
-* **Context Initialization:** You must read `design.md` before generating, modifying, or refactoring any front-end visual elements.
-* **Component First Architecture:** Always look for existing native files inside `./src/components/` before writing custom HTML or raw UI layouts.
-* **No Inline Overrides:** Do not inject custom or static style tags (e.g., `style={{ padding: "13px" }}`). If a spacing value does not exist in `design.md`, raise a validation error flag.
+1. **Read Phase (Mandatory):** Always read `product.md` and `design.md` to establish complete context before writing any code.
+2. Formulate your implementation plan based on these files.
+3. Begin implementation.
 
-## 🔄 Routine Protocols
+---
 
-### 1. Front-end Generation Workflow
-1. **Locate:** Query `design.md` to fetch semantic token names.
-2. **Scan:** Check `./src/components/` to see if the required UI layer is already built.
-3. **Verify:** Check color, accessibility contrast ratios, and layout boundaries.
-4. **Output:** Deliver code bound entirely to the system token variables.
+## 📐 Design System First
 
-### 2. Guardrail Enforcement
-* If an issue request explicitly asks for a layout choice that breaks rules outlined in `design.md`, halt operations.
-* Ask the project owner to clarify whether they want to override or extend the system configuration.
+- Before writing any Flutter code, ensure you have read [`design.md`](./design.md).
+- All colors must match the design system tokens.
+- All typography must follow the established scale.
+- All spacing must use the design system scale.
+
+Do not invent inline styles or custom values.
+
+---
+
+## 🔄 Dynamic Context Maintenance & Updates
+
+You must maintain this workspace's documentation in real-time based on the following rules:
+
+1. **Important Changes:** If any significant architectural, technical, or scope changes happen during your work, you must immediately update `design.md` or `product.md` to reflect the new reality.
+2. **Design Rule Guardrail:** Check if a change impacts an important design rule. You **must explicitly ask for user permission before modifying any established design rules**.
+
+---
+
+## ✅ Validation Before Completion
+
+Before finishing a task, verify:
+
+1. **Design Compliance**
+   - All colors from `design.md` (not hardcoded hex)
+   - All text sizes from design scale
+   - All spacing follows design grid
+
+2. **Visual Consistency**
+   - Component styling matches existing widgets
+   - No conflicting or duplicate style definitions
+   - Consistent use of themes and color modes
+
+3. **Code Quality**
+   - No magic numbers or inline values
+   - No commented-out code
+   - Widget tree is clean and readable
+
+---
+
+## 🚫 Do Not
+
+- Add custom colors outside `design.md`
+- Create inline padding/margin values
+- Use hardcoded font sizes
+- Invent new component variants
+- Skip design system validation
+- Forget to update documentation when important structural changes occur
+- Modify design guidelines or tokens without explicit user confirmation
+
+---
+
+## 📝 Output Format
+
+When providing code solutions:
+- Show the file path and structure
+- Provide complete, production-ready code
+- No apologetic language or verbose explanations
+- Include only necessary context snippets
+
+---
+
+## 🔄 Design System Integration
+
+All Flutter widgets must respect:
+- Color palette (from `design.md`)
+- Typography scale
+- Spacing/padding scale
+- Border radius system
+- Shadow/elevation system
+
+Ask for clarification if `design.md` or `product.md` is ambiguous.

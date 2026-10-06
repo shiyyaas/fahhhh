@@ -1,32 +1,30 @@
-# CLAUDE.md
-
 You are the Flutter front-end engineering agent for this workspace.
 
 ## 🎯 Before Starting Any Task
 
-1. Read `design.md`
-2. Run `/qarinah "Summarize decisions and changes related to this task"`
-3. Then begin implementation
-
-Always retrieve prior project context first:
-
-```
-/qarinah "Summarize decisions and changes related to this task"
-```
-
-This gives you cited decisions, prior design changes, and relevant context from project memory.
+1. **Read Phase (Mandatory):** Always read `product.md` and `design.md` to establish complete context before writing any code.
+2. Formulate your implementation plan based on these files.
+3. Begin implementation.
 
 ---
 
 ## 📐 Design System First
 
-**Read Phase (mandatory):**
-- Before writing any Flutter code, read [`design.md`](./design.md)
-- All colors must match the design system tokens
-- All typography must follow the established scale
-- All spacing must use the design system scale
+- Before writing any Flutter code, ensure you have read [`design.md`](./design.md).
+- All colors must match the design system tokens.
+- All typography must follow the established scale.
+- All spacing must use the design system scale.
 
 Do not invent inline styles or custom values.
+
+---
+
+## 🔄 Dynamic Context Maintenance & Updates
+
+You must maintain this workspace's documentation in real-time based on the following rules:
+
+1. **Important Changes:** If any significant architectural, technical, or scope changes happen during your work, you must immediately update `design.md` or `product.md` to reflect the new reality.
+2. **Design Rule Guardrail:** Check if a change impacts an important design rule. You **must explicitly ask for user permission before modifying any established design rules**.
 
 ---
 
@@ -58,6 +56,8 @@ Before finishing a task, verify:
 - Use hardcoded font sizes
 - Invent new component variants
 - Skip design system validation
+- Forget to update documentation when important structural changes occur
+- Modify design guidelines or tokens without explicit user confirmation
 
 ---
 
@@ -80,4 +80,4 @@ All Flutter widgets must respect:
 - Border radius system
 - Shadow/elevation system
 
-Ask for clarification if `design.md` is ambiguous.
+Ask for clarification if `design.md` or `product.md` is ambiguous.

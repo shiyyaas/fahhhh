@@ -37,11 +37,23 @@ class _StudentSubjectDetailScreenState
     extends State<StudentSubjectDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Roll No';
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  int _statusWeight(StudentAttendanceStatus s) {
+    switch (s) {
+      case StudentAttendanceStatus.present:
+        return 2;
+      case StudentAttendanceStatus.late:
+        return 1;
+      case StudentAttendanceStatus.absent:
+        return 0;
+    }
   }
 
   @override
@@ -53,6 +65,15 @@ class _StudentSubjectDetailScreenState
             r.dateStr.toLowerCase().contains(query) ||
             r.status.name.toLowerCase().contains(query))
         .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        records.sort((a, b) => _statusWeight(b.status).compareTo(_statusWeight(a.status)));
+      case 'Lowest':
+        records.sort((a, b) => _statusWeight(a.status).compareTo(_statusWeight(b.status)));
+      default: // 'Roll No' / natural chronological order
+        break;
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -90,7 +111,10 @@ class _StudentSubjectDetailScreenState
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const SortDropdown(),
+                      SortDropdown(
+                        value: _sortOption,
+                        onChanged: (val) => setState(() => _sortOption = val),
+                      ),
                     ],
                   ),
                 ),

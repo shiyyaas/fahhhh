@@ -21,6 +21,7 @@ class SubjectSettingsScreen extends StatefulWidget {
 class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Roll No';
   final Set<int> _selectedIndices = {};
 
   @override
@@ -49,6 +50,15 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
         )
         .toList();
 
+    switch (_sortOption) {
+      case 'Highest':
+        subjects.sort((a, b) => b.attendancePercent.compareTo(a.attendancePercent));
+      case 'Lowest':
+        subjects.sort((a, b) => a.attendancePercent.compareTo(b.attendancePercent));
+      default: // 'Roll No'
+        subjects.sort((a, b) => a.rollNumber.compareTo(b.rollNumber));
+    }
+
     return Scaffold(
       body: AppScreenScaffold(
         child: Column(
@@ -71,7 +81,10 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const SortDropdown(),
+                  SortDropdown(
+                    value: _sortOption,
+                    onChanged: (val) => setState(() => _sortOption = val),
+                  ),
                 ],
               ),
             ),

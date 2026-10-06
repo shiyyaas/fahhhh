@@ -23,11 +23,26 @@ import 'package:fahhhh/features/auth/models/user_role.dart';
 import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 /// My Subjects screen for teacher: shows teacher's assigned subjects with attendance overview.
-class MySubject extends ConsumerWidget {
+class MySubject extends ConsumerStatefulWidget {
   const MySubject({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MySubject> createState() => _MySubjectState();
+}
+
+class _MySubjectState extends ConsumerState<MySubject> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  String _sortOption = 'Roll No';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
     final bool isStudent = auth.role == UserRole.student;
@@ -38,9 +53,26 @@ class MySubject extends ConsumerWidget {
     ];
 
     // Build subjects list based on role.
-    final List<MySubjectItem> subjects = isStudent
+    final List<MySubjectItem> rawSubjects = isStudent
         ? _buildStudentSubjects(user, attendancePattern)
         : _buildSubjects(user, attendancePattern);
+
+    final query = _query.trim().toLowerCase();
+    final subjects = rawSubjects
+        .where((s) =>
+            query.isEmpty ||
+            s.name.toLowerCase().contains(query) ||
+            s.classes.toLowerCase().contains(query))
+        .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        subjects.sort((a, b) => b.attendancePercent.compareTo(a.attendancePercent));
+      case 'Lowest':
+        subjects.sort((a, b) => a.attendancePercent.compareTo(b.attendancePercent));
+      default: // 'Roll No'
+        subjects.sort((a, b) => a.name.compareTo(b.name));
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -62,13 +94,21 @@ class MySubject extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   children: [
-                    Expanded(child: AppSearchBar()),
-                    SizedBox(width: 10),
-                    SortDropdown(),
+                    Expanded(
+                      child: AppSearchBar(
+                        controller: _searchController,
+                        onChanged: (val) => setState(() => _query = val),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SortDropdown(
+                      value: _sortOption,
+                      onChanged: (val) => setState(() => _sortOption = val),
+                    ),
                   ],
                 ),
               ),

@@ -75,11 +75,43 @@ class _DepartmentState extends ConsumerState<Department> {
   }
 }
 
-class _ClassesView extends StatelessWidget {
+class _ClassesView extends StatefulWidget {
   const _ClassesView();
 
   @override
+  State<_ClassesView> createState() => _ClassesViewState();
+}
+
+class _ClassesViewState extends State<_ClassesView> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  String _sortOption = 'Roll No';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final query = _query.trim().toLowerCase();
+    final classes = mockDepartmentClasses
+        .where((c) =>
+            query.isEmpty ||
+            c.name.toLowerCase().contains(query) ||
+            c.classTeacher.toLowerCase().contains(query))
+        .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        classes.sort((a, b) => b.attendancePercent.compareTo(a.attendancePercent));
+      case 'Lowest':
+        classes.sort((a, b) => a.attendancePercent.compareTo(b.attendancePercent));
+      default: // 'Roll No' / natural name
+        classes.sort((a, b) => a.name.compareTo(b.name));
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 4, bottom: 110),
       child: Column(
@@ -95,18 +127,26 @@ class _ClassesView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: [
-                Expanded(child: AppSearchBar()),
-                SizedBox(width: 10),
-                SortDropdown(),
+                Expanded(
+                  child: AppSearchBar(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _query = value),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SortDropdown(
+                  value: _sortOption,
+                  onChanged: (value) => setState(() => _sortOption = value),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 6),
-          for (final data in mockDepartmentClasses)
+          for (final data in classes)
             ClassListTile(
               data: data,
               onTap: () {
@@ -130,6 +170,7 @@ class _TeachersView extends StatefulWidget {
 class _TeachersViewState extends State<_TeachersView> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  String _sortOption = 'Name';
 
   @override
   void dispose() {
@@ -147,6 +188,18 @@ class _TeachersViewState extends State<_TeachersView> {
             t.subject.toLowerCase().contains(query))
         .toList();
 
+    switch (_sortOption) {
+      case 'Highest':
+      case 'Name':
+        teachers.sort((a, b) => a.name.compareTo(b.name));
+      case 'Lowest':
+        teachers.sort((a, b) => b.name.compareTo(a.name));
+      case 'Subject':
+        teachers.sort((a, b) => a.subject.compareTo(b.subject));
+      default:
+        teachers.sort((a, b) => a.name.compareTo(b.name));
+    }
+
     return Column(
       children: [
         Padding(
@@ -160,7 +213,11 @@ class _TeachersViewState extends State<_TeachersView> {
                 ),
               ),
               const SizedBox(width: 10),
-              const SortDropdown(),
+              SortDropdown(
+                value: _sortOption,
+                options: const ['Name', 'Subject', 'Lowest'],
+                onChanged: (value) => setState(() => _sortOption = value),
+              ),
             ],
           ),
         ),

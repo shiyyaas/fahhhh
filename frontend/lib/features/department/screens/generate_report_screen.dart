@@ -64,6 +64,8 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
     95, 65, 88, 72, 90, 68, 85, 78, 92, 60, 82, 74,
   ];
 
+  String _sortOption = 'Roll No';
+
   @override
   void initState() {
     super.initState();
@@ -90,6 +92,15 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
             s.student.name.toLowerCase().contains(query) ||
             s.student.rollNumber.toLowerCase().contains(query))
         .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        visible.sort((a, b) => b.percent.compareTo(a.percent));
+      case 'Lowest':
+        visible.sort((a, b) => a.percent.compareTo(b.percent));
+      default: // 'Roll No'
+        visible.sort((a, b) => a.student.rollNumber.compareTo(b.student.rollNumber));
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -165,7 +176,10 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const SortDropdown(),
+                  SortDropdown(
+                    value: _sortOption,
+                    onChanged: (value) => setState(() => _sortOption = value),
+                  ),
                 ],
               ),
             ),

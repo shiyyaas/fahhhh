@@ -47,19 +47,19 @@ class _SortDropdownState extends State<SortDropdown> {
   late String _selectedOption;
   bool _isOpen = false;
 
-  String get _label => widget.value ?? widget.placeholder;
+  String get _label => widget.value ?? _selectedOption;
 
   @override
   void initState() {
     super.initState();
-    _selectedOption = _label;
+    _selectedOption = widget.value ?? widget.placeholder;
   }
 
   @override
   void didUpdateWidget(covariant SortDropdown oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != oldWidget.value) {
-      _selectedOption = _label;
+      _selectedOption = widget.value ?? widget.placeholder;
     }
   }
 

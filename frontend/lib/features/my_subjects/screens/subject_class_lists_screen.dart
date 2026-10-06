@@ -21,14 +21,45 @@ import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 /// "Choose the class" screen: lists the classes a subject is taught in.
 /// Shown when a subject is assigned to more than one class. Tapping a class
 /// opens the subject detail page for that class. Pushed route (hides bottom nav).
-class SubjectClassListsScreen extends StatelessWidget {
+class SubjectClassListsScreen extends StatefulWidget {
   final String subjectName;
 
   const SubjectClassListsScreen({super.key, required this.subjectName});
 
   @override
+  State<SubjectClassListsScreen> createState() => _SubjectClassListsScreenState();
+}
+
+class _SubjectClassListsScreenState extends State<SubjectClassListsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  String _sortOption = 'Roll No';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final classes = _classesForSubject(subjectName);
+    final rawClasses = _classesForSubject(widget.subjectName);
+    final query = _query.trim().toLowerCase();
+    final classes = rawClasses
+        .where((c) =>
+            query.isEmpty ||
+            c.name.toLowerCase().contains(query) ||
+            c.classTeacher.toLowerCase().contains(query))
+        .toList();
+
+    switch (_sortOption) {
+      case 'Highest':
+        classes.sort((a, b) => b.attendancePercent.compareTo(a.attendancePercent));
+      case 'Lowest':
+        classes.sort((a, b) => a.attendancePercent.compareTo(b.attendancePercent));
+      default: // 'Roll No'
+        classes.sort((a, b) => a.name.compareTo(b.name));
+    }
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -55,13 +86,21 @@ class SubjectClassListsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
-                      Expanded(child: AppSearchBar()),
-                      SizedBox(width: 10),
-                      SortDropdown(),
+                      Expanded(
+                        child: AppSearchBar(
+                          controller: _searchController,
+                          onChanged: (val) => setState(() => _query = val),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      SortDropdown(
+                        value: _sortOption,
+                        onChanged: (val) => setState(() => _sortOption = val),
+                      ),
                     ],
                   ),
                 ),
@@ -72,7 +111,7 @@ class SubjectClassListsScreen extends StatelessWidget {
                     onTap: () {
                       if (!context.mounted) return;
                       context.push(
-                        '/subject-details/${Uri.encodeComponent(subjectName)}/'
+                        '/subject-details/${Uri.encodeComponent(widget.subjectName)}/'
                         '${Uri.encodeComponent(classData.name)}',
                       );
                     },

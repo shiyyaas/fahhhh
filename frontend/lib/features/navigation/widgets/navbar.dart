@@ -16,88 +16,74 @@ class Navbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.navBar,
-        borderRadius: BorderRadius.circular(52),
-      ),
-
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(items.length, (index) {
-          final bool isSelected = selectedIndex == index;
-          return GestureDetector(
-            onTap: () => onItemTapped(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              height: 48,
-              padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 16 : 12,
-              ),
-
-              decoration: BoxDecoration(
-                gradient: isSelected
-                    ? const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.gradientTop,
-                          AppColors.gradientBottom,
-                        ],
-                      )
-                    : null,
-                color: isSelected
-                    ? null
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(21),
-              ),
-
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-
-                children: [
-
-                  Icon(
-                    items[index].icon,
-                    color: Colors.white,
-                    size: 24,
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.navBar,
+          borderRadius: BorderRadius.circular(52),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(items.length, (index) {
+            final bool isSelected = selectedIndex == index;
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: index == 0 || index == items.length - 1 ? 0 : 2),
+              child: GestureDetector(
+                onTap: () => onItemTapped(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  height: 48,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSelected ? 16 : 12,
                   ),
-
-                  if (isSelected) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      items[index].label,
-                      style: const TextStyle(
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppColors.gradientTop,
+                              AppColors.gradientBottom,
+                            ],
+                          )
+                        : null,
+                    color: isSelected ? null : Colors.transparent,
+                    borderRadius: BorderRadius.circular(21),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        items[index].icon,
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.8,
+                        size: 24,
                       ),
-
-                    ),
-
-                  ],
-
-                ],
-
+                      if (isSelected) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          items[index].label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.8,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-
-            ),
-
-          );
-
-        }),
-
+            );
+          }),
+        ),
       ),
-
     );
-
   }
 
 }
