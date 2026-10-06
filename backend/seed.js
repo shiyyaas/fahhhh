@@ -1,7 +1,9 @@
+require("dotenv").config();
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-mongoose.connect("mongodb://localhost:27017/attendance_app");
+mongoose.connect(process.env.MONGO_URI);
 
 const User = require("./models/User");
 
