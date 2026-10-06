@@ -122,7 +122,7 @@ class _SortDropdownState extends State<SortDropdown> {
           onTap: _toggle,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            height: 36,
+            height: 38,
             width: widget.width,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
@@ -131,8 +131,8 @@ class _SortDropdownState extends State<SortDropdown> {
               border: Border.all(
                 color: isOpen
                     ? AppColors.primary
-                    : AppColors.outline.withValues(alpha: 0.15),
-                width: isOpen ? 1.5 : 1.0,
+                    : AppColors.outline.withValues(alpha: 0.25),
+                width: isOpen ? 1.5 : 1.2,
               ),
               boxShadow: const [
                 BoxShadow(

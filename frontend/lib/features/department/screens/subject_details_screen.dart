@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
-import 'package:fahhhh/core/widgets/app_button.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
+import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
 /// Subject settings details screen: delete, save, and detail display.
 class SubjectSettingsDetailsScreen extends StatefulWidget {
@@ -80,36 +80,32 @@ class _SubjectSettingsDetailsScreenState
                   Row(
                     children: [
                       Expanded(
-                        child: AppButton.primary(
+                        child: DetailActionButton.danger(
                           text: 'Delete',
-                          onPressed: () {},
-                          height: 29,
-                          borderRadius: 28,
-                          backgroundColor: const Color(0xFFEE7373),
-                          borderColor: const Color(0xFFEE7373),
-                          padding: EdgeInsets.zero,
-                          boxShadow: const [],
-                          textStyle: AppTextStyles.heading.copyWith(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Subject deleted'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: AppButton.primary(
+                        child: DetailActionButton.primary(
                           text: 'Save',
-                          onPressed: () => context.pop(),
-                          height: 29,
-                          borderRadius: 28,
-                          backgroundColor: AppColors.primary,
-                          borderColor: AppColors.primary,
-                          padding: EdgeInsets.zero,
-                          boxShadow: const [],
-                          textStyle: AppTextStyles.heading.copyWith(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Subject details saved'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],

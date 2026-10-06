@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
-import 'package:fahhhh/core/widgets/app_button.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
+import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
 class TeacherDetailsSettingsScreen extends StatefulWidget {
   final String name;
@@ -95,6 +95,40 @@ class _TeacherDetailsSettingsScreenState extends State<TeacherDetailsSettingsScr
                       label: 'Class',
                       hintText: 'Enter class',
                     ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DetailActionButton.danger(
+                            text: 'Delete',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Teacher deleted'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: DetailActionButton.primary(
+                            text: 'Save',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Teacher details saved'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -113,93 +147,52 @@ class _HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       height: 143,
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(25),
+          bottomRight: Radius.circular(25),
+        ),
+      ),
       child: Stack(
         children: [
           Positioned(
-            top: 0,
-            left: 0,
-            right: 2,
-            child: Container(
-              height: 143,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
             left: 15,
             top: 61,
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: onBack,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.tightFor(
-                    width: 26,
-                    height: 41,
-                  ),
-                  icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
-                ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Teacher details',
-                        style: AppTextStyles.heading.copyWith(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        'Manage teacher details here',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.small.copyWith(fontSize: 15),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            child: IconButton(
+              onPressed: onBack,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(
+                width: 26,
+                height: 41,
+              ),
+              icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
             ),
           ),
           Positioned(
-            left: 21,
-            right: 19,
-            bottom: 2,
-            child: Row(
+            left: 47,
+            top: 61,
+            right: 15,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: AppButton.primary(
-                    text: 'Delete',
-                    onPressed: () {},
-                    height: 29,
-                    borderRadius: 28,
-                    backgroundColor: const Color(0xFFEE7373),
-                    borderColor: const Color(0xFFEE7373),
-                    padding: EdgeInsets.zero,
-                    boxShadow: const [],
-                    textStyle: AppTextStyles.heading.copyWith(fontSize: 14),
+                Text(
+                  'Teacher details',
+                  style: AppTextStyles.heading.copyWith(
+                    fontSize: 25,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: AppButton.secondary(
-                    text: 'Save',
-                    onPressed: () => context.pop(),
-                    height: 29,
-                    borderRadius: 28,
-                    textColor: AppColors.primary,
-                    borderColor: AppColors.border,
-                    padding: EdgeInsets.zero,
-                    boxShadow: const [],
-                    textStyle: AppTextStyles.heading.copyWith(fontSize: 14),
+                const SizedBox(height: 4),
+                Text(
+                  'Manage teacher details here',
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.small.copyWith(
+                    fontSize: 15,
+                    color: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ],

@@ -90,17 +90,21 @@ class AppSegmentedControl extends StatelessWidget {
   }
 
   Widget _buildSolid() {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
       padding: margin ?? const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: List.generate(labels.length, (index) {
           final bool isSelected = index == selectedIndex;
           return GestureDetector(
             onTap: () => onChanged(index),
-            child: Container(
-              width: 107,
-              height: 28,
-              margin: EdgeInsets.only(right: index == labels.length - 1 ? 0 : 7),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              height: 30,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              margin: EdgeInsets.only(right: index == labels.length - 1 ? 0 : 8),
               decoration: BoxDecoration(
                 color: isSelected ? const Color(0xFF47494C) : AppColors.background,
                 borderRadius: BorderRadius.circular(16),
@@ -114,7 +118,7 @@ class AppSegmentedControl extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                     color: isSelected ? AppColors.background : const Color(0xFF4B4A4A),
                   ),
                 ),

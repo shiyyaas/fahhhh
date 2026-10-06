@@ -12,11 +12,15 @@ import 'package:flutter/material.dart';
 class TeacherListTile extends StatelessWidget {
   final DepartmentTeacher teacher;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelected;
 
   const TeacherListTile({
     super.key,
     required this.teacher,
     this.onTap,
+    this.onLongPress,
+    this.isSelected = false,
   });
 
   @override
@@ -38,6 +42,8 @@ class TeacherListTile extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+      onLongPress: onLongPress,
+      isSelected: isSelected,
       borderRadius: 20,
       padding: const EdgeInsets.only(left: 11, right: 12),
     );

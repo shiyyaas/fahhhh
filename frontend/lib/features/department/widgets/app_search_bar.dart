@@ -93,15 +93,15 @@ class _SearchBarState extends State<AppSearchBar> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: 36,
+      height: 38,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.pill),
         border: Border.all(
           color: _isFocused
               ? AppColors.primary
-              : AppColors.outline.withValues(alpha: 0.15),
-          width: _isFocused ? 1.5 : 1.0,
+              : AppColors.outline.withValues(alpha: 0.25),
+          width: _isFocused ? 1.5 : 1.2,
         ),
         boxShadow: [
           BoxShadow(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/features/department/models/department_subject.dart';
@@ -20,9 +22,16 @@ class SubjectSettingsScreen extends StatefulWidget {
 
 class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  late List<DepartmentSubject> _subjects;
   String _query = '';
   String _sortOption = 'Roll No';
   final Set<int> _selectedIndices = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _subjects = List.of(mockDepartmentSubjects);
+  }
 
   @override
   void dispose() {
@@ -41,7 +50,7 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final query = _query.trim().toLowerCase();
-    final subjects = mockDepartmentSubjects
+    final subjects = _subjects
         .where(
           (s) =>
               query.isEmpty ||
@@ -91,36 +100,72 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
             const SizedBox(height: 14),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: Row(
-                children: [
-                  CompactActionButton(
-                    icon: Icons.add_rounded,
-                    label: 'Add',
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (_) => const AddSubjectDialog(),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    CompactActionButton.primary(
+                      icon: Icons.add_rounded,
+                      label: 'Add',
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => const AddSubjectDialog(),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  CompactActionButton(
-                    icon: Icons.upload_rounded,
-                    label: 'Upload',
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (_) => const UploadSubjectDialog(),
+                    const SizedBox(width: 10),
+                    CompactActionButton.secondary(
+                      icon: Icons.upload_rounded,
+                      label: 'Upload',
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => const UploadSubjectDialog(),
+                      ),
                     ),
-                  ),
-                ],
+                    if (_selectedIndices.isNotEmpty) ...[
+                      const SizedBox(width: 10),
+                      CompactActionButton.danger(
+                        icon: Icons.delete_outline_rounded,
+                        label: 'Delete (${_selectedIndices.length})',
+                        onTap: () {
+                          setState(() {
+                            final toRemove = _selectedIndices
+                                .where((i) => i < subjects.length)
+                                .map((i) => subjects[i])
+                                .toSet();
+                            _subjects.removeWhere((s) => toRemove.contains(s));
+                            _selectedIndices.clear();
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Selected subject(s) deleted'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 6),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 26),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 26),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  'Hold to select & delete',
-                  style: TextStyle(fontSize: 14),
+                  _selectedIndices.isNotEmpty
+                      ? '${_selectedIndices.length} selected'
+                      : 'Hold to select & delete',
+                  style: AppTextStyles.small.copyWith(
+                    fontSize: 13,
+                    color: _selectedIndices.isNotEmpty
+                        ? AppColors.danger
+                        : AppColors.textSecondary,
+                    fontWeight: _selectedIndices.isNotEmpty
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
                 ),
               ),
             ),
@@ -131,13 +176,20 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
                 itemCount: subjects.length,
                 itemBuilder: (context, index) {
                   final subject = subjects[index];
+                  final isSelected = _selectedIndices.contains(index);
                   return SubjectListTile(
                     subject: subject,
-                    isSelected: _selectedIndices.contains(index),
+                    isSelected: isSelected,
                     onLongPress: () => _toggleSelection(index),
-                    onTap: () => context.push(
-                      '/subject-details/${Uri.encodeComponent(subject.name)}/${Uri.encodeComponent(subject.teacher)}/${Uri.encodeComponent(subject.rollNumber)}',
-                    ),
+                    onTap: () {
+                      if (_selectedIndices.isNotEmpty) {
+                        _toggleSelection(index);
+                      } else {
+                        context.push(
+                          '/subject-details/${Uri.encodeComponent(subject.name)}/${Uri.encodeComponent(subject.teacher)}/${Uri.encodeComponent(subject.rollNumber)}',
+                        );
+                      }
+                    },
                   );
                 },
               ),

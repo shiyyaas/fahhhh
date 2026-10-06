@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-//Design
+// Design
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/widgets/app_back_header.dart';
 
-//Widgets
+// Widgets
 import 'package:fahhhh/features/inbox/widgets/inbox_filter_bar.dart';
 import 'package:fahhhh/features/inbox/widgets/inbox_message_tile.dart';
-import '../../../core/widgets/app_back_header.dart';
 
-//Models
+// Models
 import 'package:fahhhh/features/inbox/models/inbox_message.dart';
 
-//Providers
+// Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
 
-/// Inbox screen: role-specific filters and notifications.
-/// Admin sees All / Teacher / Student / leave with swap & issue requests.
-/// Teacher sees All / Accepted / Rejected / leave with their request statuses.
-/// Pushed from the notification bell (hides bottom nav).
+/// Inbox screen supporting role-specific filters and all 7 notification variants
+/// from Figma node 1888-18306 (Admin/HOD, Teacher, and Student).
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
@@ -30,120 +30,204 @@ class InboxScreen extends ConsumerStatefulWidget {
 
 class _InboxScreenState extends ConsumerState<InboxScreen> {
   int _selectedFilter = 0;
-  final List<String> _adminIds = mockAdminInboxMessages.map((m) => m.id).toList();
-  final List<String> _teacherIds = mockTeacherInboxMessages.map((m) => m.id).toList();
 
-  static const List<String> _adminFilters = ['All', 'Teacher', 'Student', 'leave'];
-  static const List<String> _teacherFilters = ['All', 'Accepted', 'Rejected', 'leave'];
+  // Local state for interactive acceptance / dismissal
+  late List<InboxMessage> _adminMessages;
+  late List<InboxMessage> _teacherMessages;
+  late List<InboxMessage> _studentMessages;
 
-  List<String> get _visibleIds {
-    final bool isAdmin = _isAdmin;
-    final ids = isAdmin ? _adminIds : _teacherIds;
-    final all = isAdmin ? mockAdminInboxMessages : mockTeacherInboxMessages;
-    final activeIds = ids.toSet().toList();
+  static const List<String> _adminFilters = ['All', 'Teacher', 'Student', 'Leave'];
+  static const List<String> _teacherFilters = ['All', 'Accepted', 'Rejected', 'Leave'];
+  static const List<String> _studentFilters = ['All', 'Under Review', 'Verified', 'Rejected'];
 
-    if (_selectedFilter == 0) {
-      return activeIds;
-    }
-
-    final InboxMessageType? type = isAdmin
-        ? (_selectedFilter == 1
-            ? InboxMessageType.teacher
-            : _selectedFilter == 2
-                ? InboxMessageType.student
-                : InboxMessageType.leave)
-        : (_selectedFilter == 1
-            ? InboxMessageType.swap
-            : _selectedFilter == 3
-                ? InboxMessageType.leave
-                : null);
-
-    if (!isAdmin && (_selectedFilter == 1 || _selectedFilter == 2)) {
-      // Teacher: Accepted / Rejected filters by status.
-      final status = _selectedFilter == 1
-          ? InboxMessageStatus.accepted
-          : InboxMessageStatus.rejected;
-      return all
-          .where((m) => m.status == status && activeIds.contains(m.id))
-          .map((m) => m.id)
-          .toList();
-    }
-
-    if (type == null) return activeIds;
-    return all
-        .where((m) => m.type == type && activeIds.contains(m.id))
-        .map((m) => m.id)
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _adminMessages = List.from(mockAdminInboxMessages);
+    _teacherMessages = List.from(mockTeacherInboxMessages);
+    _studentMessages = List.from(mockStudentInboxMessages);
   }
 
-  bool get _isAdmin => ref.read(authProvider).role == UserRole.teacher &&
-      (ref.read(authProvider).user?.isHOD ?? false);
+  bool get _isAdmin {
+    final auth = ref.read(authProvider);
+    return auth.role == UserRole.teacher && (auth.user?.isHOD ?? false);
+  }
 
-  void _removeMessage(String id) {
-    setState(() {
-      if (_isAdmin) {
-        _adminIds.remove(id);
-      } else {
-        _teacherIds.remove(id);
+  bool get _isStudent {
+    final auth = ref.read(authProvider);
+    return auth.role == UserRole.student;
+  }
+
+  List<InboxMessage> get _filteredMessages {
+    if (_isAdmin) {
+      if (_selectedFilter == 1) {
+        return _adminMessages
+            .where((m) => m.type == InboxMessageType.teacherSwapRequest)
+            .toList();
+      } else if (_selectedFilter == 2) {
+        return _adminMessages
+            .where((m) => m.type == InboxMessageType.studentIssueReport)
+            .toList();
+      } else if (_selectedFilter == 3) {
+        return _adminMessages
+            .where((m) => m.type == InboxMessageType.leaveRequest)
+            .toList();
       }
+      return _adminMessages;
+    } else if (!_isStudent) {
+      // Teacher role
+      if (_selectedFilter == 1) {
+        return _teacherMessages
+            .where((m) => m.type == InboxMessageType.teacherSwapAccepted)
+            .toList();
+      } else if (_selectedFilter == 2) {
+        return _teacherMessages
+            .where((m) => m.type == InboxMessageType.teacherSwapRejected)
+            .toList();
+      } else if (_selectedFilter == 3) {
+        return _teacherMessages
+            .where((m) => m.type == InboxMessageType.leaveApproved)
+            .toList();
+      }
+      return _teacherMessages;
+    } else {
+      // Student role
+      if (_selectedFilter == 1) {
+        return _studentMessages
+            .where((m) => m.type == InboxMessageType.studentIssueReview)
+            .toList();
+      } else if (_selectedFilter == 2) {
+        return _studentMessages
+            .where((m) => m.type == InboxMessageType.studentIssueVerified)
+            .toList();
+      } else if (_selectedFilter == 3) {
+        return _studentMessages
+            .where((m) => m.type == InboxMessageType.studentIssueRejected)
+            .toList();
+      }
+      return _studentMessages;
+    }
+  }
+
+  void _handleAccept(InboxMessage message) {
+    setState(() {
+      _adminMessages.removeWhere((m) => m.id == message.id);
     });
+
+    if (!mounted) return;
+    final text = message.type == InboxMessageType.leaveRequest
+        ? 'Leave request approved.'
+        : 'Swap request accepted. Timetable updated.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _handleReject(InboxMessage message) {
+    setState(() {
+      _adminMessages.removeWhere((m) => m.id == message.id);
+    });
+
+    if (!mounted) return;
+    final text = message.type == InboxMessageType.studentIssueReport
+        ? 'Attendance issue rejected.'
+        : message.type == InboxMessageType.leaveRequest
+            ? 'Leave request rejected.'
+            : 'Swap request rejected.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: const Color(0xFFEB2E2E),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _handleReview(InboxMessage message) {
+    setState(() {
+      _adminMessages.removeWhere((m) => m.id == message.id);
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Attendance issue marked for review.'),
+        backgroundColor: AppColors.primary,
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = _isAdmin;
-    final filters = isAdmin ? _adminFilters : _teacherFilters;
-    final all = isAdmin ? mockAdminInboxMessages : mockTeacherInboxMessages;
-    final visibleIds = _visibleIds;
-    final messages =
-        all.where((m) => visibleIds.contains(m.id)).toList();
+    final List<String> filters = _isAdmin
+        ? _adminFilters
+        : _isStudent
+            ? _studentFilters
+            : _teacherFilters;
+
+    final messages = _filteredMessages;
 
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: AppScreenScaffold(
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppBackHeader(
-                title: 'Inbox',
-                subtitle: 'View messages here',
-                onBack: () => context.pop(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-              ),
-              const SizedBox(height: 14),
-              InboxFilterBar(
-                labels: filters,
-                selectedIndex: _selectedFilter,
-                onChanged: (index) => setState(() => _selectedFilter = index),
-              ),
-              const SizedBox(height: 14),
-              Expanded(
-                child: messages.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No messages',
-                          style: TextStyle(color: Colors.grey.shade500),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppBackHeader(
+              title: 'Inbox',
+              subtitle: 'View messages here',
+              onBack: () => context.pop(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+            ),
+            const SizedBox(height: 14),
+            // Horizontally scrollable filter bar that never overflows on small screens
+            InboxFilterBar(
+              labels: filters,
+              selectedIndex: _selectedFilter,
+              onChanged: (index) {
+                setState(() => _selectedFilter = index);
+              },
+            ),
+            const SizedBox(height: 14),
+            // Messages list
+            Expanded(
+              child: messages.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No messages',
+                        style: GoogleFonts.inter(
+                          color: Colors.grey.shade500,
+                          fontSize: 15,
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 6,
-                        ),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: InboxMessageTile(
-                              message: message,
-                              onAccept: () => _removeMessage(message.id),
-                              onReject: () => _removeMessage(message.id),
-                            ),
-                          );
-                        },
                       ),
-              ),
-            ],
+                    )
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 6,
+                      ),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: InboxMessageTile(
+                            message: message,
+                            onAccept: () => _handleAccept(message),
+                            onReject: () => _handleReject(message),
+                            onReview: () => _handleReview(message),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ),
       ),
     );

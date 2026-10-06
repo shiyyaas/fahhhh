@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fahhhh/core/theme_data/app_colors.dart';
+import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/features/department/models/department_student.dart';
@@ -20,9 +22,16 @@ class StudentSettingsScreen extends StatefulWidget {
 
 class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  late List<DepartmentStudent> _students;
   String _query = '';
   String _sortOption = 'Roll No';
   final Set<int> _selectedIndices = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _students = List.of(mockDepartmentStudents);
+  }
 
   @override
   void dispose() {
@@ -41,7 +50,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final query = _query.trim().toLowerCase();
-    final students = mockDepartmentStudents
+    final students = _students
         .where(
           (s) =>
               query.isEmpty ||
@@ -91,36 +100,72 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
             const SizedBox(height: 14),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: Row(
-                children: [
-                  CompactActionButton(
-                    icon: Icons.person_add_alt_1_rounded,
-                    label: 'Add',
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (_) => const AddStudentDialog(),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    CompactActionButton.primary(
+                      icon: Icons.person_add_alt_1_rounded,
+                      label: 'Add',
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => const AddStudentDialog(),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  CompactActionButton(
-                    icon: Icons.upload_rounded,
-                    label: 'Upload',
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (_) => const UploadStudentDialog(),
+                    const SizedBox(width: 10),
+                    CompactActionButton.secondary(
+                      icon: Icons.upload_rounded,
+                      label: 'Upload',
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (_) => const UploadStudentDialog(),
+                      ),
                     ),
-                  ),
-                ],
+                    if (_selectedIndices.isNotEmpty) ...[
+                      const SizedBox(width: 10),
+                      CompactActionButton.danger(
+                        icon: Icons.delete_outline_rounded,
+                        label: 'Delete (${_selectedIndices.length})',
+                        onTap: () {
+                          setState(() {
+                            final toRemove = _selectedIndices
+                                .where((i) => i < students.length)
+                                .map((i) => students[i])
+                                .toSet();
+                            _students.removeWhere((s) => toRemove.contains(s));
+                            _selectedIndices.clear();
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Selected student(s) deleted'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 6),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 26),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 26),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  'Hold to select & delete',
-                  style: TextStyle(fontSize: 14),
+                  _selectedIndices.isNotEmpty
+                      ? '${_selectedIndices.length} selected'
+                      : 'Hold to select & delete',
+                  style: AppTextStyles.small.copyWith(
+                    fontSize: 13,
+                    color: _selectedIndices.isNotEmpty
+                        ? AppColors.danger
+                        : AppColors.textSecondary,
+                    fontWeight: _selectedIndices.isNotEmpty
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
                 ),
               ),
             ),
@@ -131,13 +176,20 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                 itemCount: students.length,
                 itemBuilder: (context, index) {
                   final student = students[index];
+                  final isSelected = _selectedIndices.contains(index);
                   return StudentListTile(
                     student: student,
-                    isSelected: _selectedIndices.contains(index),
+                    isSelected: isSelected,
                     onLongPress: () => _toggleSelection(index),
-                    onTap: () => context.push(
-                      '/student-details/${Uri.encodeComponent(student.rollNumber)}/${Uri.encodeComponent(student.name)}',
-                    ),
+                    onTap: () {
+                      if (_selectedIndices.isNotEmpty) {
+                        _toggleSelection(index);
+                      } else {
+                        context.push(
+                          '/student-details/${Uri.encodeComponent(student.rollNumber)}/${Uri.encodeComponent(student.name)}',
+                        );
+                      }
+                    },
                   );
                 },
               ),

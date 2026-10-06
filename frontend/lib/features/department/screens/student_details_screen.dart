@@ -5,7 +5,7 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
-import 'package:fahhhh/core/widgets/app_button.dart';
+import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
 /// Student details screen (Figma node 1562:7810).
 ///
@@ -131,25 +131,32 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _DeleteButton(
-                          onPressed: () {},
+                        child: DetailActionButton.danger(
+                          text: 'Delete',
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Student deleted'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: AppButton.primary(
+                        child: DetailActionButton.primary(
                           text: 'Edit',
-                          onPressed: () {},
-                          height: 29,
-                          borderRadius: 28,
-                          backgroundColor: AppColors.primary,
-                          borderColor: AppColors.primary,
-                          padding: EdgeInsets.zero,
-                          boxShadow: const [],
-                          textStyle: AppTextStyles.heading.copyWith(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Student details updated'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -225,59 +232,6 @@ class _HeaderSection extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Red "Delete" pill button matching the Figma white btn variant.
-class _DeleteButton extends StatefulWidget {
-  final VoidCallback onPressed;
-
-  const _DeleteButton({required this.onPressed});
-
-  @override
-  State<_DeleteButton> createState() => _DeleteButtonState();
-}
-
-class _DeleteButtonState extends State<_DeleteButton> {
-  bool _isPressed = false;
-
-  static const Color _deleteColor = Color(0xFFEE7373);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onPressed();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        height: 29,
-        decoration: BoxDecoration(
-          color: _isPressed ? _deleteColor.withValues(alpha: 0.85) : _deleteColor,
-          borderRadius: const BorderRadius.all(Radius.circular(28)),
-          border: Border.all(color: _deleteColor),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          'Delete',
-          style: AppTextStyles.heading.copyWith(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }
