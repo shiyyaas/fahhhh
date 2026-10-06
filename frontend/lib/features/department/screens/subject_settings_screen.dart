@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
@@ -12,26 +13,20 @@ import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/compact_action_button.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/subject_list_tile.dart';
+import '../providers/department_provider.dart';
 
-class SubjectSettingsScreen extends StatefulWidget {
+class SubjectSettingsScreen extends ConsumerStatefulWidget {
   const SubjectSettingsScreen({super.key});
 
   @override
-  State<SubjectSettingsScreen> createState() => _SubjectSettingsScreenState();
+  ConsumerState<SubjectSettingsScreen> createState() => _SubjectSettingsScreenState();
 }
 
-class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
+class _SubjectSettingsScreenState extends ConsumerState<SubjectSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late List<DepartmentSubject> _subjects;
   String _query = '';
   String _sortOption = 'Roll No';
   final Set<int> _selectedIndices = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _subjects = List.of(mockDepartmentSubjects);
-  }
 
   @override
   void dispose() {
@@ -49,8 +44,11 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final subjectsAsync = ref.watch(departmentSubjectsProvider);
+    final allSubjects = subjectsAsync.value ?? mockDepartmentSubjects;
+
     final query = _query.trim().toLowerCase();
-    final subjects = _subjects
+    final subjects = allSubjects
         .where(
           (s) =>
               query.isEmpty ||
@@ -126,15 +124,26 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
                       CompactActionButton.danger(
                         icon: Icons.delete_outline_rounded,
                         label: 'Delete (${_selectedIndices.length})',
-                        onTap: () {
+                        onTap: () async {
+                          final toRemove = _selectedIndices
+                              .where((i) => i < subjects.length)
+                              .map((i) => subjects[i])
+                              .toList();
                           setState(() {
-                            final toRemove = _selectedIndices
-                                .where((i) => i < subjects.length)
-                                .map((i) => subjects[i])
-                                .toSet();
-                            _subjects.removeWhere((s) => toRemove.contains(s));
                             _selectedIndices.clear();
                           });
+
+                          final repo = ref.read(departmentRepositoryProvider);
+                          for (final s in toRemove) {
+                            if (s.id != null) {
+                              try {
+                                await repo.deleteSubject(s.id!);
+                              } catch (_) {}
+                            }
+                          }
+                          ref.invalidate(departmentSubjectsProvider);
+
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Selected subject(s) deleted'),
@@ -186,7 +195,7 @@ class _SubjectSettingsScreenState extends State<SubjectSettingsScreen> {
                         _toggleSelection(index);
                       } else {
                         context.push(
-                          '/subject-details/${Uri.encodeComponent(subject.name)}/${Uri.encodeComponent(subject.teacher)}/${Uri.encodeComponent(subject.rollNumber)}',
+                          '/subject-details-settings/${Uri.encodeComponent(subject.name)}/${Uri.encodeComponent(subject.teacher)}/${Uri.encodeComponent(subject.rollNumber)}',
                         );
                       }
                     },

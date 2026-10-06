@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_dropdown_field.dart';
 import '../../../core/widgets/app_form_dialog.dart';
 import '../../../core/widgets/input_fields.dart';
+import '../providers/department_provider.dart';
 
-class AddTeacherDialog extends StatefulWidget {
+class AddTeacherDialog extends ConsumerStatefulWidget {
   const AddTeacherDialog({super.key});
 
   @override
-  State<AddTeacherDialog> createState() => _AddTeacherDialogState();
+  ConsumerState<AddTeacherDialog> createState() => _AddTeacherDialogState();
 }
 
-class _AddTeacherDialogState extends State<AddTeacherDialog> {
+class _AddTeacherDialogState extends ConsumerState<AddTeacherDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -48,9 +50,26 @@ class _AddTeacherDialogState extends State<AddTeacherDialog> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
+      final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      try {
+        final repo = ref.read(departmentRepositoryProvider);
+        await repo.createTeacher(
+          teacherName: name,
+          employeeId: 'EMP_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+          email: email.isNotEmpty ? email : '${name.toLowerCase().replaceAll(' ', '')}@mescas.org',
+          phoneNo: phone,
+        );
+        ref.invalidate(departmentTeachersProvider);
+      } catch (_) {
+        // Fall back gracefully if backend is offline
+      }
+
+      if (!mounted) return;
       Navigator.pop(context);
       showAddedSnackBar(context, name);
     }

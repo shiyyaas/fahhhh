@@ -20,6 +20,7 @@ import 'package:fahhhh/features/department/models/department_student.dart';
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
+import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// Condonation Register: a searchable roster of students whose sessions have
 /// been condoned, each row ending in an attendance-percentage pill.
@@ -49,7 +50,26 @@ class _CondonationScreenState extends ConsumerState<CondonationScreen> {
     final user = ref.watch(authProvider).user;
     final classId = user?.assignedClassId ?? user?.className ?? 'S2 BCA';
 
-    final students = _buildStudents(classId);
+    final defaultersAsync = ref.watch(defaultersProvider);
+    final List<_CondonationEntry> students = defaultersAsync.maybeWhen(
+      data: (defaulters) {
+        if (defaulters.isNotEmpty) {
+          return defaulters.map((d) {
+            final percent = double.tryParse(d['attendancePercentage']?.toString() ?? '0')?.round() ?? 0;
+            return _CondonationEntry(
+              student: DepartmentStudent(
+                id: d['studentId']?.toString(),
+                name: d['studentName']?.toString() ?? 'Student',
+                rollNumber: d['registerNo']?.toString() ?? '',
+              ),
+              percent: percent,
+            );
+          }).toList();
+        }
+        return _buildStudents(classId);
+      },
+      orElse: () => _buildStudents(classId),
+    );
     final query = _query.trim().toLowerCase();
     var visible = students
         .where((s) =>

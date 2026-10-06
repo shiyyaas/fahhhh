@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../home/widgets/status_badge.dart';
 import '../models/timetable_slot.dart';
+import '../../../core/network/api_client.dart';
+import '../repositories/timetable_repository.dart';
 
 part 'timetable_provider.g.dart';
 
@@ -175,3 +177,18 @@ class TimetableNotifier extends _$TimetableNotifier {
     ref.invalidateSelf();
   }
 }
+
+final timetableRepositoryProvider = Provider<TimetableRepository>((ref) {
+  final apiClient = ref.watch(apiClientProvider);
+  return TimetableRepository(apiClient: apiClient);
+});
+
+final batchTimetableProvider = FutureProvider.family<List<TimetableSlot>, String>((ref, batchId) async {
+  final repo = ref.watch(timetableRepositoryProvider);
+  return repo.getBatchTimetable(batchId);
+});
+
+final teacherTimetableProvider = FutureProvider.family<List<TimetableSlot>, String>((ref, teacherId) async {
+  final repo = ref.watch(timetableRepositoryProvider);
+  return repo.getTeacherTimetable(teacherId);
+});

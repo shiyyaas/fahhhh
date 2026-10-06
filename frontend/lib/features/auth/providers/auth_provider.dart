@@ -5,8 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_state.dart';
 import '../models/current_user.dart';
+import '../../../core/network/api_client.dart';
 import '../repositories/auth_repository.dart';
-import '../repositories/mock_auth_repository.dart';
+import '../repositories/network_auth_repository.dart';
 
 part 'auth_provider.g.dart';
 
@@ -17,8 +18,11 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 
 // Code generated AuthRepository provider
 @riverpod
-AuthRepository authRepository(AuthRepositoryRef ref) {
-  return MockAuthRepository();
+AuthRepository authRepository(Ref ref) {
+  return NetworkAuthRepository(
+    apiClient: ref.watch(apiClientProvider),
+    prefs: ref.watch(sharedPreferencesProvider),
+  );
 }
 
 // Code generated AuthNotifier provider using Riverpod Generator annotations
@@ -60,6 +64,7 @@ class AuthNotifier extends _$AuthNotifier {
   Future<void> logout() async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.remove('cached_user_profile');
+    await prefs.remove('auth_token');
     state = const Unauthenticated();
   }
 

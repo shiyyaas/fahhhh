@@ -18,6 +18,7 @@ import 'package:fahhhh/features/inbox/models/inbox_message.dart';
 // Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
+import 'package:fahhhh/features/inbox/providers/inbox_provider.dart';
 
 /// Inbox screen supporting role-specific filters and all 7 notification variants
 /// from Figma node 1888-18306 (Admin/HOD, Teacher, and Student).
@@ -110,6 +111,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   }
 
   void _handleAccept(InboxMessage message) {
+    if (message.type == InboxMessageType.leaveRequest) {
+      ref.read(inboxRepositoryProvider).approveLeave(message.id);
+    }
     setState(() {
       _adminMessages.removeWhere((m) => m.id == message.id);
     });
@@ -128,6 +132,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   }
 
   void _handleReject(InboxMessage message) {
+    if (message.type == InboxMessageType.leaveRequest) {
+      ref.read(inboxRepositoryProvider).rejectLeave(message.id);
+    }
     setState(() {
       _adminMessages.removeWhere((m) => m.id == message.id);
     });

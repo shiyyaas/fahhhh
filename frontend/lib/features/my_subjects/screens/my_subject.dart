@@ -21,6 +21,7 @@ import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/auth/models/current_user.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
 import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
+import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// My Subjects screen for teacher: shows teacher's assigned subjects with attendance overview.
 class MySubject extends ConsumerStatefulWidget {
@@ -52,10 +53,47 @@ class _MySubjectState extends ConsumerState<MySubject> {
       95, 82, 90, 65, 88, 74, 95, 78, 85, 70, 92, 80, 66,
     ];
 
+    final subjectsAsync = ref.watch(departmentSubjectsProvider);
+
     // Build subjects list based on role.
-    final List<MySubjectItem> rawSubjects = isStudent
-        ? _buildStudentSubjects(user, attendancePattern)
-        : _buildSubjects(user, attendancePattern);
+    final List<MySubjectItem> rawSubjects = subjectsAsync.maybeWhen(
+      data: (deptSubjects) {
+        if (deptSubjects.isNotEmpty) {
+          if (isStudent) {
+            final String sem = user?.semester ?? '2';
+            final filtered = deptSubjects.where((s) => s.semester == null || s.semester.toString() == sem).toList();
+            final listToUse = filtered.isNotEmpty ? filtered : deptSubjects;
+            return List.generate(listToUse.length, (index) {
+              final sub = listToUse[index];
+              return MySubjectItem(
+                name: sub.name,
+                classes: sub.teacher.isNotEmpty ? sub.teacher : 'Faculty',
+                attendancePercent: attendancePattern[index % attendancePattern.length],
+              );
+            });
+          } else {
+            final teacherName = user?.name ?? '';
+            final filtered = deptSubjects.where((s) => s.teacher.toLowerCase().contains(teacherName.toLowerCase())).toList();
+            final listToUse = filtered.isNotEmpty ? filtered : deptSubjects;
+            return List.generate(listToUse.length, (index) {
+              final sub = listToUse[index];
+              final classes = _classesForSubject(sub.name);
+              return MySubjectItem(
+                name: sub.name,
+                classes: classes.isEmpty ? 'No class' : classes,
+                attendancePercent: attendancePattern[index % attendancePattern.length],
+              );
+            });
+          }
+        }
+        return isStudent
+            ? _buildStudentSubjects(user, attendancePattern)
+            : _buildSubjects(user, attendancePattern);
+      },
+      orElse: () => isStudent
+          ? _buildStudentSubjects(user, attendancePattern)
+          : _buildSubjects(user, attendancePattern),
+    );
 
     final query = _query.trim().toLowerCase();
     final subjects = rawSubjects

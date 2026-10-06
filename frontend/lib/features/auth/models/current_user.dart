@@ -1,6 +1,7 @@
 import 'user_role.dart';
 
 class CurrentUser {
+  final String? id;
   final String email;
   final String name;
   final UserRole role;
@@ -21,6 +22,7 @@ class CurrentUser {
   final List<String>? activeSubjects;
 
   const CurrentUser({
+    this.id,
     required this.email,
     required this.name,
     required this.role,
@@ -38,6 +40,7 @@ class CurrentUser {
   });
 
   CurrentUser copyWith({
+    String? id,
     String? email,
     String? name,
     UserRole? role,
@@ -54,6 +57,7 @@ class CurrentUser {
     List<String>? activeSubjects,
   }) {
     return CurrentUser(
+      id: id ?? this.id,
       email: email ?? this.email,
       name: name ?? this.name,
       role: role ?? this.role,
@@ -73,6 +77,7 @@ class CurrentUser {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'email': email,
       'name': name,
       'role': role.name,
@@ -92,6 +97,7 @@ class CurrentUser {
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) {
     return CurrentUser(
+      id: json['id'] as String? ?? json['_id'] as String?,
       email: json['email'] as String,
       name: json['name'] as String,
       role: UserRole.values.byName(json['role'] as String),

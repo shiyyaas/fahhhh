@@ -7,6 +7,8 @@ import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/department_provider.dart';
 
 class ArchivedBatch {
   final String name;
@@ -48,14 +50,14 @@ const archivedBatches = [
   ),
 ];
 
-class ArchivedBatchesScreen extends StatefulWidget {
+class ArchivedBatchesScreen extends ConsumerStatefulWidget {
   const ArchivedBatchesScreen({super.key});
 
   @override
-  State<ArchivedBatchesScreen> createState() => _ArchivedBatchesScreenState();
+  ConsumerState<ArchivedBatchesScreen> createState() => _ArchivedBatchesScreenState();
 }
 
-class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
+class _ArchivedBatchesScreenState extends ConsumerState<ArchivedBatchesScreen> {
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -67,8 +69,24 @@ class _ArchivedBatchesScreenState extends State<ArchivedBatchesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final classesAsync = ref.watch(departmentClassesProvider);
+    final List<ArchivedBatch> batchesList;
+    if (classesAsync.value != null && classesAsync.value!.isNotEmpty) {
+      batchesList = classesAsync.value!
+          .map(
+            (c) => ArchivedBatch(
+              name: c.name,
+              classTeacher: c.classTeacher,
+              attendancePercent: c.attendancePercent,
+            ),
+          )
+          .toList();
+    } else {
+      batchesList = archivedBatches;
+    }
+
     final query = _query.trim().toLowerCase();
-    final batches = archivedBatches
+    final batches = batchesList
         .where(
           (batch) =>
               query.isEmpty ||

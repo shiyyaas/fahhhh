@@ -9,6 +9,8 @@ import '../../../core/widgets/app_back_header.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../providers/attendance_provider.dart';
 
 class AttendanceTakingScreen extends ConsumerStatefulWidget {
   final String slotId;
@@ -303,6 +305,23 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
                                   widget.slotId,
                                   _attendanceStates,
                                 );
+
+                            final authUser = ref.read(authProvider).user;
+                            final teacherId = authUser?.id ?? '';
+                            final attendanceRepo = ref.read(attendanceRepositoryProvider);
+                            
+                            final records = <Map<String, dynamic>>[];
+                            _attendanceStates.forEach((rollNo, status) {
+                              records.add({
+                                'student': rollNo,
+                                'subject': slot.subjectName,
+                                'teacher': teacherId,
+                                'batch': slot.classId,
+                                'status': (status == AttendanceStatus.present || status == AttendanceStatus.late) ? 'Present' : 'Absent',
+                              });
+                            });
+                            attendanceRepo.markBulkAttendance(records: records);
+
                             // Guard before any context use
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(

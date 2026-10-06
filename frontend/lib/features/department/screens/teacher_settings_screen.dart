@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
@@ -10,29 +11,23 @@ import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/upload_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/add_teacher_dialog.dart';
 import 'package:fahhhh/features/department/widgets/compact_action_button.dart';
+import '../providers/department_provider.dart';
 
 import '../../../core/widgets/app_back_header.dart';
 import '../../../core/widgets/app_screen_scaffold.dart';
 
-class TeacherSettingsScreen extends StatefulWidget {
+class TeacherSettingsScreen extends ConsumerStatefulWidget {
   const TeacherSettingsScreen({super.key});
 
   @override
-  State<TeacherSettingsScreen> createState() => _TeacherSettingsScreenState();
+  ConsumerState<TeacherSettingsScreen> createState() => _TeacherSettingsScreenState();
 }
 
-class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
+class _TeacherSettingsScreenState extends ConsumerState<TeacherSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late List<DepartmentTeacher> _teachers;
   String _query = '';
   String _sortOption = 'Name';
   final Set<int> _selectedIndices = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _teachers = List.of(mockDepartmentTeachers);
-  }
 
   @override
   void dispose() {
@@ -42,8 +37,11 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final teachersAsync = ref.watch(departmentTeachersProvider);
+    final allTeachers = teachersAsync.value ?? mockDepartmentTeachers;
+
     final query = _query.trim().toLowerCase();
-    final teachers = _teachers
+    final teachers = allTeachers
         .where(
           (t) =>
               query.isEmpty ||
@@ -124,15 +122,26 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
                       CompactActionButton.danger(
                         icon: Icons.delete_outline_rounded,
                         label: 'Delete (${_selectedIndices.length})',
-                        onTap: () {
+                        onTap: () async {
+                          final toRemove = _selectedIndices
+                              .where((i) => i < teachers.length)
+                              .map((i) => teachers[i])
+                              .toList();
                           setState(() {
-                            final toRemove = _selectedIndices
-                                .where((i) => i < teachers.length)
-                                .map((i) => teachers[i])
-                                .toSet();
-                            _teachers.removeWhere((t) => toRemove.contains(t));
                             _selectedIndices.clear();
                           });
+
+                          final repo = ref.read(departmentRepositoryProvider);
+                          for (final t in toRemove) {
+                            if (t.id != null) {
+                              try {
+                                await repo.deleteTeacher(t.id!);
+                              } catch (_) {}
+                            }
+                          }
+                          ref.invalidate(departmentTeachersProvider);
+
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Selected teacher(s) deleted'),
@@ -212,4 +221,3 @@ class _TeacherSettingsScreenState extends State<TeacherSettingsScreen> {
     );
   }
 }
-

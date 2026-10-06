@@ -18,6 +18,9 @@ import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 
+//Providers
+import 'package:fahhhh/features/department/providers/department_provider.dart';
+
 //Models
 import 'package:fahhhh/features/department/models/department_class.dart';
 import 'package:fahhhh/features/department/models/department_teacher.dart';
@@ -34,9 +37,14 @@ class _DepartmentState extends ConsumerState<Department> {
 
   @override
   Widget build(BuildContext context) {
+    final classesAsync = ref.watch(departmentClassesProvider);
+    final teachersAsync = ref.watch(departmentTeachersProvider);
+    final classes = classesAsync.value ?? mockDepartmentClasses;
+    final teachers = teachersAsync.value ?? mockDepartmentTeachers;
+
     final String countLabel = _selectedTab == 0
-        ? '${mockDepartmentClasses.length} Classes'
-        : '${mockDepartmentTeachers.length} Teachers';
+        ? '${classes.length} Classes'
+        : '${teachers.length} Teachers';
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -65,8 +73,8 @@ class _DepartmentState extends ConsumerState<Department> {
               const SizedBox(height: 16),
               Expanded(
                 child: _selectedTab == 0
-                    ? const _ClassesView()
-                    : const _TeachersView(),
+                    ? _ClassesView(classes: classes)
+                    : _TeachersView(teachers: teachers),
               ),
           ],
         ),
@@ -76,7 +84,8 @@ class _DepartmentState extends ConsumerState<Department> {
 }
 
 class _ClassesView extends StatefulWidget {
-  const _ClassesView();
+  final List<DepartmentClass> classes;
+  const _ClassesView({required this.classes});
 
   @override
   State<_ClassesView> createState() => _ClassesViewState();
@@ -96,7 +105,7 @@ class _ClassesViewState extends State<_ClassesView> {
   @override
   Widget build(BuildContext context) {
     final query = _query.trim().toLowerCase();
-    final classes = mockDepartmentClasses
+    final classes = List<DepartmentClass>.from(widget.classes)
         .where((c) =>
             query.isEmpty ||
             c.name.toLowerCase().contains(query) ||
@@ -161,7 +170,8 @@ class _ClassesViewState extends State<_ClassesView> {
 }
 
 class _TeachersView extends StatefulWidget {
-  const _TeachersView();
+  final List<DepartmentTeacher> teachers;
+  const _TeachersView({required this.teachers});
 
   @override
   State<_TeachersView> createState() => _TeachersViewState();
@@ -181,7 +191,7 @@ class _TeachersViewState extends State<_TeachersView> {
   @override
   Widget build(BuildContext context) {
     final query = _query.trim().toLowerCase();
-    final List<DepartmentTeacher> teachers = mockDepartmentTeachers
+    final List<DepartmentTeacher> teachers = List<DepartmentTeacher>.from(widget.teachers)
         .where((t) =>
             query.isEmpty ||
             t.name.toLowerCase().contains(query) ||

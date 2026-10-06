@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
@@ -12,26 +13,20 @@ import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/compact_action_button.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
+import '../providers/department_provider.dart';
 
-class StudentSettingsScreen extends StatefulWidget {
+class StudentSettingsScreen extends ConsumerStatefulWidget {
   const StudentSettingsScreen({super.key});
 
   @override
-  State<StudentSettingsScreen> createState() => _StudentSettingsScreenState();
+  ConsumerState<StudentSettingsScreen> createState() => _StudentSettingsScreenState();
 }
 
-class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
+class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   final TextEditingController _searchController = TextEditingController();
-  late List<DepartmentStudent> _students;
   String _query = '';
   String _sortOption = 'Roll No';
   final Set<int> _selectedIndices = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _students = List.of(mockDepartmentStudents);
-  }
 
   @override
   void dispose() {
@@ -49,8 +44,11 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(departmentStudentsProvider(null));
+    final allStudents = studentsAsync.value ?? mockDepartmentStudents;
+
     final query = _query.trim().toLowerCase();
-    final students = _students
+    final students = allStudents
         .where(
           (s) =>
               query.isEmpty ||
@@ -126,15 +124,26 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                       CompactActionButton.danger(
                         icon: Icons.delete_outline_rounded,
                         label: 'Delete (${_selectedIndices.length})',
-                        onTap: () {
+                        onTap: () async {
+                          final toRemove = _selectedIndices
+                              .where((i) => i < students.length)
+                              .map((i) => students[i])
+                              .toList();
                           setState(() {
-                            final toRemove = _selectedIndices
-                                .where((i) => i < students.length)
-                                .map((i) => students[i])
-                                .toSet();
-                            _students.removeWhere((s) => toRemove.contains(s));
                             _selectedIndices.clear();
                           });
+
+                          final repo = ref.read(departmentRepositoryProvider);
+                          for (final s in toRemove) {
+                            if (s.id != null) {
+                              try {
+                                await repo.deleteStudent(s.id!);
+                              } catch (_) {}
+                            }
+                          }
+                          ref.invalidate(departmentStudentsProvider(null));
+
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Selected student(s) deleted'),

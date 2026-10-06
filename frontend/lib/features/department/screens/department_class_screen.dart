@@ -19,6 +19,7 @@ import 'package:fahhhh/features/department/models/department_student.dart';
 import 'package:fahhhh/features/department/models/department_subject.dart';
 
 //Providers
+import 'package:fahhhh/features/department/providers/department_provider.dart';
 import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 //Widgets
@@ -47,6 +48,10 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
   ];
 
   List<DepartmentStudent> get _students {
+    final studentsAsync = ref.watch(departmentStudentsProvider(widget.classId));
+    if (studentsAsync.value != null && studentsAsync.value!.isNotEmpty) {
+      return studentsAsync.value!;
+    }
     final raw = getStudentsForClass(widget.classId);
     return List.generate(raw.length, (index) {
       final student = raw[index];
@@ -59,6 +64,10 @@ class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
 
   // Build subjects for this class from mock timetable data.
   List<DepartmentSubject> get _subjects {
+    final subjectsAsync = ref.watch(departmentSubjectsProvider);
+    if (subjectsAsync.value != null && subjectsAsync.value!.isNotEmpty) {
+      return subjectsAsync.value!;
+    }
     final semKey = widget.classId.length >= 2
         ? widget.classId.substring(0, 2).toUpperCase()
         : 'S2';
