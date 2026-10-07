@@ -21,7 +21,6 @@ import 'package:fahhhh/features/department/models/department_student.dart';
 
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// Attendance report: month selector, average-attendance chart, preview/download
@@ -85,20 +84,17 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
     final user = ref.watch(authProvider).user;
     final classId = user?.assignedClassId ?? user?.className ?? 'S2 BCA';
 
-    final studentsAsync = ref.watch(departmentStudentsProvider(null));
+    final studentsAsync = ref.watch(departmentStudentsProvider(classId));
     final List<_ReportEntry> students = studentsAsync.maybeWhen(
       data: (list) {
-        if (list.isNotEmpty) {
-          return List.generate(list.length, (index) {
-            return _ReportEntry(
-              student: list[index],
-              percent: _percentPattern[index % _percentPattern.length],
-            );
-          });
-        }
-        return _buildStudents(classId);
+        return List.generate(list.length, (index) {
+          return _ReportEntry(
+            student: list[index],
+            percent: _percentPattern[index % _percentPattern.length],
+          );
+        });
       },
-      orElse: () => _buildStudents(classId),
+      orElse: () => const [],
     );
     final query = _query.trim().toLowerCase();
     final visible = students
@@ -226,19 +222,7 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
       ..showSnackBar(SnackBar(content: Text('$message · $_selectedMonth')));
   }
 
-  List<_ReportEntry> _buildStudents(String classId) {
-    final raw = getStudentsForClass(classId);
-    return List.generate(raw.length, (index) {
-      final student = raw[index];
-      return _ReportEntry(
-        student: DepartmentStudent(
-          name: student.name,
-          rollNumber: student.rollNumber,
-        ),
-        percent: _percentPattern[index % _percentPattern.length],
-      );
-    });
-  }
+
 }
 
 class _ReportEntry {

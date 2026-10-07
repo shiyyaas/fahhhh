@@ -20,7 +20,6 @@ import 'package:fahhhh/features/department/models/department_subject.dart';
 
 //Providers
 import 'package:fahhhh/features/department/providers/department_provider.dart';
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 //Widgets
 import 'package:fahhhh/features/department/widgets/subject_list_tile.dart';
@@ -42,46 +41,16 @@ class DepartmentClassScreen extends ConsumerStatefulWidget {
 class _DepartmentClassScreenState extends ConsumerState<DepartmentClassScreen> {
   int _selectedTab = 0;
 
-  // Deterministic mock attendance pattern (mock until backend).
-  static const List<int> _attendancePattern = [
-    95, 82, 90, 65, 88, 74, 95, 78, 85, 70, 92, 80, 66,
-  ];
+
 
   List<DepartmentStudent> get _students {
     final studentsAsync = ref.watch(departmentStudentsProvider(widget.classId));
-    if (studentsAsync.value != null && studentsAsync.value!.isNotEmpty) {
-      return studentsAsync.value!;
-    }
-    final raw = getStudentsForClass(widget.classId);
-    return List.generate(raw.length, (index) {
-      final student = raw[index];
-      return DepartmentStudent(
-        name: student.name,
-        rollNumber: student.rollNumber,
-      );
-    });
+    return studentsAsync.value ?? [];
   }
 
-  // Build subjects for this class from mock timetable data.
   List<DepartmentSubject> get _subjects {
     final subjectsAsync = ref.watch(departmentSubjectsProvider);
-    if (subjectsAsync.value != null && subjectsAsync.value!.isNotEmpty) {
-      return subjectsAsync.value!;
-    }
-    final semKey = widget.classId.length >= 2
-        ? widget.classId.substring(0, 2).toUpperCase()
-        : 'S2';
-    final subjects = semesterSubjects[semKey] ?? [];
-    return subjects.map((name) {
-      final teacher = subjectTeachers[name] ?? 'Anu Varghese';
-      final index = subjects.indexOf(name);
-      return DepartmentSubject(
-        name: name,
-        teacher: teacher,
-        rollNumber: '${widget.classId}-${index + 1}',
-        attendancePercent: _attendancePattern[index % _attendancePattern.length],
-      );
-    }).toList();
+    return subjectsAsync.value ?? [];
   }
 
   @override

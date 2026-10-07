@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,57 +8,62 @@ import 'package:fahhhh/features/home/widgets/timetable_card.dart';
 import 'package:fahhhh/features/home/widgets/status_badge.dart';
 import '../../../core/widgets/app_back_header.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../attendance/providers/attendance_provider.dart';
+import '../../timetable/providers/timetable_provider.dart';
+
 enum DayAttendanceStatus { present, partial, absent, noClass, none }
 
-class AttendanceHistoryScreen extends StatefulWidget {
+class AttendanceHistoryScreen extends ConsumerStatefulWidget {
   const AttendanceHistoryScreen({super.key});
 
   @override
-  State<AttendanceHistoryScreen> createState() =>
+  ConsumerState<AttendanceHistoryScreen> createState() =>
       _AttendanceHistoryScreenState();
 }
 
-class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
+class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScreen> {
   late DateTime _currentMonth;
   DateTime? _selectedDay;
-  late Map<DateTime, DayAttendanceStatus> _attendanceData;
+  final Map<DateTime, DayAttendanceStatus> _attendanceData = {};
 
   @override
   void initState() {
     super.initState();
     _currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
     _selectedDay = DateTime.now();
-    _attendanceData = _generateMockAttendance();
   }
 
-  Map<DateTime, DayAttendanceStatus> _generateMockAttendance() {
-    final now = DateTime.now();
-    final map = <DateTime, DayAttendanceStatus>{};
-    final random = Random(42);
-    final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
-    for (int d = 1; d <= daysInMonth; d++) {
-      final date = DateTime(now.year, now.month, d);
-      if (date.isAfter(now)) {
-        continue;
-      }
-      if (date.weekday == DateTime.saturday ||
-          date.weekday == DateTime.sunday) {
-        map[date] = DayAttendanceStatus.noClass;
-        continue;
-      }
-      final r = random.nextDouble();
-      if (r < 0.15) {
-        map[date] = DayAttendanceStatus.noClass;
-      } else if (r < 0.5) {
-        map[date] = DayAttendanceStatus.present;
-      } else if (r < 0.75) {
-        map[date] = DayAttendanceStatus.partial;
-      } else {
-        map[date] = DayAttendanceStatus.absent;
-      }
-    }
-    return map;
-  }
+  // Commented out fallback mock attendance generator:
+  // Map<DateTime, DayAttendanceStatus> _generateMockAttendance() {
+  //   final now = DateTime.now();
+  //   final map = <DateTime, DayAttendanceStatus>{};
+  //   final random = Random(42);
+  //   final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
+  //   for (int d = 1; d <= daysInMonth; d++) {
+  //     final date = DateTime(now.year, now.month, d);
+  //     if (date.isAfter(now)) {
+  //       continue;
+  //     }
+  //     if (date.weekday == DateTime.saturday ||
+  //         date.weekday == DateTime.sunday) {
+  //       map[date] = DayAttendanceStatus.noClass;
+  //       continue;
+  //     }
+  //     final r = random.nextDouble();
+  //     if (r < 0.15) {
+  //       map[date] = DayAttendanceStatus.noClass;
+  //     } else if (r < 0.5) {
+  //       map[date] = DayAttendanceStatus.present;
+  //     } else if (r < 0.75) {
+  //       map[date] = DayAttendanceStatus.partial;
+  //     } else {
+  //       map[date] = DayAttendanceStatus.absent;
+  //     }
+  //   }
+  //   return map;
+  // }
 
   void _prevMonth() {
     setState(() {
@@ -95,6 +98,26 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(authProvider).user;
+    final studentId = user?.id ?? '';
+    final historyAsync = ref.watch(studentAttendanceHistoryProvider(studentId));
+    historyAsync.whenData((records) {
+      for (final r in records) {
+        if (r is Map && r['date'] != null) {
+          final dt = DateTime.tryParse(r['date'].toString());
+          if (dt != null) {
+            final key = DateTime(dt.year, dt.month, dt.day);
+            final statusStr = r['status']?.toString();
+            if (statusStr == 'Present') {
+              _attendanceData[key] = DayAttendanceStatus.present;
+            } else if (statusStr == 'Absent') {
+              _attendanceData[key] = DayAttendanceStatus.absent;
+            }
+          }
+        }
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -464,21 +487,34 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
     final dayStatus = _attendanceData[DateTime(date.year, date.month, date.day)];
     if (dayStatus == DayAttendanceStatus.noClass) return [];
 
-    // Default mock schedule for days with classes.
-    return [
-      ('Software Engineering', 'Sheethal', const TimeOfDay(hour: 9, minute: 30),
-          const TimeOfDay(hour: 10, minute: 15), AttendanceStatus.present),
-      ('Data Structures', 'Rahul', const TimeOfDay(hour: 10, minute: 30),
-          const TimeOfDay(hour: 11, minute: 30), AttendanceStatus.absent),
-      ('Operating Systems', 'Meena', const TimeOfDay(hour: 12, minute: 0),
-          const TimeOfDay(hour: 13, minute: 0), AttendanceStatus.present),
-      ('Computer Networks', 'Arjun', const TimeOfDay(hour: 14, minute: 0),
-          const TimeOfDay(hour: 15, minute: 0), AttendanceStatus.present),
-      ('Database Management', 'Priya', const TimeOfDay(hour: 15, minute: 0),
-          const TimeOfDay(hour: 16, minute: 0), AttendanceStatus.present),
-      ('Mathematics', 'Suresh', const TimeOfDay(hour: 16, minute: 30),
-          const TimeOfDay(hour: 17, minute: 30), AttendanceStatus.absent),
-    ];
+    final allSlots = ref.watch(allTimetableProvider).value ?? [];
+    final daySlots = allSlots.where((s) => s.dayOfWeek == date.weekday).toList();
+    if (daySlots.isNotEmpty) {
+      return daySlots.map((s) => (
+        s.subjectName,
+        s.teacherName,
+        s.startTime,
+        s.endTime,
+        s.studentStatus,
+      )).toList();
+    }
+    return [];
+
+    // Commented out fallback mock schedule:
+    // return [
+    //   ('Software Engineering', 'Sheethal', const TimeOfDay(hour: 9, minute: 30),
+    //       const TimeOfDay(hour: 10, minute: 15), AttendanceStatus.present),
+    //   ('Data Structures', 'Rahul', const TimeOfDay(hour: 10, minute: 30),
+    //       const TimeOfDay(hour: 11, minute: 30), AttendanceStatus.absent),
+    //   ('Operating Systems', 'Meena', const TimeOfDay(hour: 12, minute: 0),
+    //       const TimeOfDay(hour: 13, minute: 0), AttendanceStatus.present),
+    //   ('Computer Networks', 'Arjun', const TimeOfDay(hour: 14, minute: 0),
+    //       const TimeOfDay(hour: 15, minute: 0), AttendanceStatus.present),
+    //   ('Database Management', 'Priya', const TimeOfDay(hour: 15, minute: 0),
+    //       const TimeOfDay(hour: 16, minute: 0), AttendanceStatus.present),
+    //   ('Mathematics', 'Suresh', const TimeOfDay(hour: 16, minute: 30),
+    //       const TimeOfDay(hour: 17, minute: 30), AttendanceStatus.absent),
+    // ];
   }
 }
 

@@ -39,8 +39,8 @@ class _DepartmentState extends ConsumerState<Department> {
   Widget build(BuildContext context) {
     final classesAsync = ref.watch(departmentClassesProvider);
     final teachersAsync = ref.watch(departmentTeachersProvider);
-    final classes = classesAsync.value ?? mockDepartmentClasses;
-    final teachers = teachersAsync.value ?? mockDepartmentTeachers;
+    final classes = classesAsync.value ?? [];
+    final teachers = teachersAsync.value ?? [];
 
     final String countLabel = _selectedTab == 0
         ? '${classes.length} Classes'

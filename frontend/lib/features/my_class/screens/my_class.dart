@@ -23,7 +23,6 @@ import 'package:fahhhh/features/department/models/department_subject.dart';
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 
 class MyClass extends ConsumerStatefulWidget {
   const MyClass({super.key});
@@ -35,9 +34,7 @@ class MyClass extends ConsumerStatefulWidget {
 class _MyClassState extends ConsumerState<MyClass> {
   int _selectedTab = 0;
 
-  static const List<int> _attendancePattern = [
-    95, 82, 90, 65, 88, 74, 95, 78, 85, 70, 92, 80, 66,
-  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -82,39 +79,12 @@ class _MyClassState extends ConsumerState<MyClass> {
 
   List<DepartmentStudent> _buildStudents(String classId) {
     final studentsAsync = ref.watch(departmentStudentsProvider(classId));
-    if (studentsAsync.value != null && studentsAsync.value!.isNotEmpty) {
-      return studentsAsync.value!;
-    }
-    final raw = getStudentsForClass(classId);
-    return List.generate(raw.length, (index) {
-      final student = raw[index];
-      return DepartmentStudent(
-        name: student.name,
-        rollNumber: student.rollNumber,
-      );
-    });
+    return studentsAsync.value ?? [];
   }
 
   List<DepartmentSubject> _buildSubjects(String classId) {
     final subjectsAsync = ref.watch(departmentSubjectsProvider);
-    if (subjectsAsync.value != null && subjectsAsync.value!.isNotEmpty) {
-      return subjectsAsync.value!;
-    }
-    final semKey = classId.length >= 2
-        ? classId.substring(0, 2).toUpperCase()
-        : 'S2';
-    final subjects = semesterSubjects[semKey] ?? [];
-    return subjects.map((name) {
-      final teacher = subjectTeachers[name] ?? 'Anu Varghese';
-      final index = subjects.indexOf(name);
-      return DepartmentSubject(
-        name: name,
-        teacher: teacher,
-        rollNumber: '$classId-${index + 1}',
-        attendancePercent:
-            _attendancePattern[index % _attendancePattern.length],
-      );
-    }).toList();
+    return subjectsAsync.value ?? [];
   }
 }
 

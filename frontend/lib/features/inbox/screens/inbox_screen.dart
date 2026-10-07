@@ -44,9 +44,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
   @override
   void initState() {
     super.initState();
-    _adminMessages = List.from(mockAdminInboxMessages);
-    _teacherMessages = List.from(mockTeacherInboxMessages);
-    _studentMessages = List.from(mockStudentInboxMessages);
+    _adminMessages = [];
+    _teacherMessages = [];
+    _studentMessages = [];
   }
 
   bool get _isAdmin {
@@ -59,54 +59,54 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     return auth.role == UserRole.student;
   }
 
-  List<InboxMessage> get _filteredMessages {
+  List<InboxMessage> _getFilteredMessages(List<InboxMessage> source) {
     if (_isAdmin) {
       if (_selectedFilter == 1) {
-        return _adminMessages
+        return source
             .where((m) => m.type == InboxMessageType.teacherSwapRequest)
             .toList();
       } else if (_selectedFilter == 2) {
-        return _adminMessages
+        return source
             .where((m) => m.type == InboxMessageType.studentIssueReport)
             .toList();
       } else if (_selectedFilter == 3) {
-        return _adminMessages
+        return source
             .where((m) => m.type == InboxMessageType.leaveRequest)
             .toList();
       }
-      return _adminMessages;
+      return source;
     } else if (!_isStudent) {
       // Teacher role
       if (_selectedFilter == 1) {
-        return _teacherMessages
+        return source
             .where((m) => m.type == InboxMessageType.teacherSwapAccepted)
             .toList();
       } else if (_selectedFilter == 2) {
-        return _teacherMessages
+        return source
             .where((m) => m.type == InboxMessageType.teacherSwapRejected)
             .toList();
       } else if (_selectedFilter == 3) {
-        return _teacherMessages
+        return source
             .where((m) => m.type == InboxMessageType.leaveApproved)
             .toList();
       }
-      return _teacherMessages;
+      return source;
     } else {
       // Student role
       if (_selectedFilter == 1) {
-        return _studentMessages
+        return source
             .where((m) => m.type == InboxMessageType.studentIssueReview)
             .toList();
       } else if (_selectedFilter == 2) {
-        return _studentMessages
+        return source
             .where((m) => m.type == InboxMessageType.studentIssueVerified)
             .toList();
       } else if (_selectedFilter == 3) {
-        return _studentMessages
+        return source
             .where((m) => m.type == InboxMessageType.studentIssueRejected)
             .toList();
       }
-      return _studentMessages;
+      return source;
     }
   }
 
@@ -177,7 +177,16 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             ? _studentFilters
             : _teacherFilters;
 
-    final messages = _filteredMessages;
+    final authUser = ref.watch(authProvider).user;
+    final userId = authUser?.id ?? '';
+    final liveLeaves = ref.watch(pendingLeavesProvider).value ?? [];
+    final liveNotifications = ref.watch(userNotificationsProvider(userId)).value ?? [];
+
+    final activeLocal = _isAdmin
+        ? _adminMessages
+        : (!_isStudent ? _teacherMessages : _studentMessages);
+    final combined = [...liveLeaves, ...liveNotifications, ...activeLocal];
+    final messages = _getFilteredMessages(combined);
 
     return Scaffold(
       backgroundColor: AppColors.surface,

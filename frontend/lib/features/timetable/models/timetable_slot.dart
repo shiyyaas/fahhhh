@@ -12,6 +12,9 @@ class TimetableSlot {
   final AttendanceStatus status; // Teacher status: recorded, missed, recordNow, pending
   final AttendanceStatus studentStatus; // Student status for the logged-in student: present, absent, late, ongoing, pending
   final Map<String, AttendanceStatus> studentAttendance; // rollNumber -> status (for detailed marking)
+  final String? subjectId;
+  final String? teacherId;
+  final String? batchId;
 
   const TimetableSlot({
     required this.id,
@@ -24,6 +27,9 @@ class TimetableSlot {
     this.status = AttendanceStatus.pending,
     this.studentStatus = AttendanceStatus.pending,
     this.studentAttendance = const {},
+    this.subjectId,
+    this.teacherId,
+    this.batchId,
   });
 
   TimetableSlot copyWith({
@@ -37,6 +43,9 @@ class TimetableSlot {
     AttendanceStatus? status,
     AttendanceStatus? studentStatus,
     Map<String, AttendanceStatus>? studentAttendance,
+    String? subjectId,
+    String? teacherId,
+    String? batchId,
   }) {
     return TimetableSlot(
       id: id ?? this.id,
@@ -49,6 +58,9 @@ class TimetableSlot {
       status: status ?? this.status,
       studentStatus: studentStatus ?? this.studentStatus,
       studentAttendance: studentAttendance ?? this.studentAttendance,
+      subjectId: subjectId ?? this.subjectId,
+      teacherId: teacherId ?? this.teacherId,
+      batchId: batchId ?? this.batchId,
     );
   }
 }

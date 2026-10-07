@@ -12,25 +12,22 @@ import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import '../../../core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/class_list_tile.dart';
 
-//Models
-import 'package:fahhhh/features/department/models/department_class.dart';
-
-//Providers
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../department/providers/department_provider.dart';
 
 /// "Choose the class" screen: lists the classes a subject is taught in.
 /// Shown when a subject is assigned to more than one class. Tapping a class
 /// opens the subject detail page for that class. Pushed route (hides bottom nav).
-class SubjectClassListsScreen extends StatefulWidget {
+class SubjectClassListsScreen extends ConsumerStatefulWidget {
   final String subjectName;
 
   const SubjectClassListsScreen({super.key, required this.subjectName});
 
   @override
-  State<SubjectClassListsScreen> createState() => _SubjectClassListsScreenState();
+  ConsumerState<SubjectClassListsScreen> createState() => _SubjectClassListsScreenState();
 }
 
-class _SubjectClassListsScreenState extends State<SubjectClassListsScreen> {
+class _SubjectClassListsScreenState extends ConsumerState<SubjectClassListsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
   String _sortOption = 'Roll No';
@@ -43,7 +40,7 @@ class _SubjectClassListsScreenState extends State<SubjectClassListsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rawClasses = _classesForSubject(widget.subjectName);
+    final rawClasses = ref.watch(departmentClassesProvider).value ?? [];
     final query = _query.trim().toLowerCase();
     final classes = rawClasses
         .where((c) =>
@@ -121,13 +118,5 @@ class _SubjectClassListsScreenState extends State<SubjectClassListsScreen> {
         ),
       ),
     );
-  }
-
-  // Derive the classes that teach this subject from the mock timetable data.
-  List<DepartmentClass> _classesForSubject(String subject) {
-    return mockDepartmentClasses.where((classData) {
-      final semKey = classData.name.substring(0, 2).toUpperCase();
-      return semesterSubjects[semKey]?.contains(subject) ?? false;
-    }).toList();
   }
 }

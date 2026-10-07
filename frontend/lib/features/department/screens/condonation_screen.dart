@@ -18,8 +18,6 @@ import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 import 'package:fahhhh/features/department/models/department_student.dart';
 
 //Providers
-import 'package:fahhhh/features/auth/providers/auth_provider.dart';
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// Condonation Register: a searchable roster of students whose sessions have
@@ -47,28 +45,22 @@ class _CondonationScreenState extends ConsumerState<CondonationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider).user;
-    final classId = user?.assignedClassId ?? user?.className ?? 'S2 BCA';
-
     final defaultersAsync = ref.watch(defaultersProvider);
     final List<_CondonationEntry> students = defaultersAsync.maybeWhen(
       data: (defaulters) {
-        if (defaulters.isNotEmpty) {
-          return defaulters.map((d) {
-            final percent = double.tryParse(d['attendancePercentage']?.toString() ?? '0')?.round() ?? 0;
-            return _CondonationEntry(
-              student: DepartmentStudent(
-                id: d['studentId']?.toString(),
-                name: d['studentName']?.toString() ?? 'Student',
-                rollNumber: d['registerNo']?.toString() ?? '',
-              ),
-              percent: percent,
-            );
-          }).toList();
-        }
-        return _buildStudents(classId);
+        return defaulters.map((d) {
+          final percent = double.tryParse(d['attendancePercentage']?.toString() ?? '0')?.round() ?? 0;
+          return _CondonationEntry(
+            student: DepartmentStudent(
+              id: d['studentId']?.toString(),
+              name: d['studentName']?.toString() ?? 'Student',
+              rollNumber: d['registerNo']?.toString() ?? '',
+            ),
+            percent: percent,
+          );
+        }).toList();
       },
-      orElse: () => _buildStudents(classId),
+      orElse: () => const [],
     );
     final query = _query.trim().toLowerCase();
     var visible = students
@@ -165,20 +157,7 @@ class _CondonationScreenState extends ConsumerState<CondonationScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  List<_CondonationEntry> _buildStudents(String classId) {
-    final raw = getStudentsForClass(classId);
-    // Deterministic percentages until condonation data is wired to the backend.
-    const List<int> pattern = [95, 65, 88, 90, 68, 92, 72, 95, 65, 82];
-    return List.generate(raw.length, (index) {
-      return _CondonationEntry(
-        student: DepartmentStudent(
-          name: raw[index].name,
-          rollNumber: raw[index].rollNumber,
-        ),
-        percent: pattern[index % pattern.length],
-      );
-    });
-  }
+
 
   List<_CondonationEntry> _sort(
       List<_CondonationEntry> entries, String option) {

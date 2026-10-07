@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
-import 'package:fahhhh/features/department/models/department_teacher.dart';
 import 'package:fahhhh/features/department/widgets/teacher_list_tile.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
@@ -38,7 +37,7 @@ class _TeacherSettingsScreenState extends ConsumerState<TeacherSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final teachersAsync = ref.watch(departmentTeachersProvider);
-    final allTeachers = teachersAsync.value ?? mockDepartmentTeachers;
+    final allTeachers = teachersAsync.value ?? [];
 
     final query = _query.trim().toLowerCase();
     final teachers = allTeachers

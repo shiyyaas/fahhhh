@@ -3,7 +3,6 @@ import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
-import 'package:fahhhh/features/department/models/department_class.dart';
 import 'package:fahhhh/features/department/utils/header_menu_config.dart';
 import 'package:fahhhh/features/department/widgets/more_button.dart';
 
@@ -28,7 +27,7 @@ class DepartmentHeader extends ConsumerWidget {
     final user = ref.watch(authProvider).user;
 
     final String hodName = user?.name ?? "Anu Varghese";
-    final String count = countLabel ?? '${mockDepartmentClasses.length} Classes';
+    final String count = countLabel ?? 'Classes';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 26),

@@ -44,6 +44,9 @@ TimetableSlot _slotFromJson(Map<String, dynamic> json) {
       ? (batchObj['batchName'] as String? ?? 'Class')
       : 'Class';
 
+  final teacherId = teacherObj is Map ? (teacherObj['_id'] as String? ?? '') : (teacherObj as String? ?? '');
+  final batchId = batchObj is Map ? (batchObj['_id'] as String? ?? '') : (batchObj as String? ?? '');
+
   final day = json['day'] as String? ?? 'Monday';
   final startTimeStr = json['startTime'] as String? ?? '09:30';
   final endTimeStr = json['endTime'] as String? ?? '10:30';
@@ -59,6 +62,9 @@ TimetableSlot _slotFromJson(Map<String, dynamic> json) {
     status: AttendanceStatus.pending,
     studentStatus: AttendanceStatus.pending,
     studentAttendance: const {},
+    subjectId: subjectId,
+    teacherId: teacherId,
+    batchId: batchId,
   );
 }
 
@@ -103,6 +109,25 @@ class TimetableRepository {
       return [];
     } catch (e) {
       debugPrint('[TimetableRepository] getTeacherTimetable error: $e');
+      return [];
+    }
+  }
+
+  /// Fetches all timetable entries (General / HOD perspective).
+  Future<List<TimetableSlot>> getAllTimetable() async {
+    try {
+      final response = await _apiClient.dio.get(ApiEndpoints.timetable);
+      final data = response.data;
+      if (data is Map && data['success'] == true) {
+        final raw = data['timetable'] as List? ?? [];
+        return raw
+            .whereType<Map<String, dynamic>>()
+            .map(_slotFromJson)
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[TimetableRepository] getAllTimetable error: $e');
       return [];
     }
   }

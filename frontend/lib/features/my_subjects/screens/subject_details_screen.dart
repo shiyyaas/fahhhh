@@ -18,7 +18,7 @@ import 'package:fahhhh/features/department/widgets/student_list_tile.dart';
 import 'package:fahhhh/features/department/models/department_student.dart';
 
 //Providers
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
+import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// Subject details screen: month selector, attendance chart, preview/download
 /// buttons and the student list for a subject. Opened by pushing to
@@ -57,14 +57,8 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
   ];
 
   List<DepartmentStudent> get _students {
-    final raw = getStudentsForClass(widget.className);
-    return List.generate(raw.length, (index) {
-      final student = raw[index];
-      return DepartmentStudent(
-        name: student.name,
-        rollNumber: student.rollNumber,
-      );
-    });
+    final studentsAsync = ref.watch(departmentStudentsProvider(widget.className));
+    return studentsAsync.value ?? [];
   }
 
   @override

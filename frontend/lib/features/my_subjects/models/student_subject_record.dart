@@ -12,42 +12,5 @@ class StudentSubjectRecord {
   });
 }
 
-/// Mock date-wise attendance records for demo.
-const List<StudentSubjectRecord> mockStudentSubjectRecords = [
-  StudentSubjectRecord(
-    dateStr: "Jan 15 | Thursday",
-    status: StudentAttendanceStatus.present,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 14 | Wednesday",
-    status: StudentAttendanceStatus.absent,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 13 | Tuesday",
-    status: StudentAttendanceStatus.present,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 12 | Monday",
-    status: StudentAttendanceStatus.late,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 09 | Friday",
-    status: StudentAttendanceStatus.present,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 08 | Thursday",
-    status: StudentAttendanceStatus.absent,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 07 | Wednesday",
-    status: StudentAttendanceStatus.present,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 06 | Tuesday",
-    status: StudentAttendanceStatus.late,
-  ),
-  StudentSubjectRecord(
-    dateStr: "Jan 05 | Monday",
-    status: StudentAttendanceStatus.present,
-  ),
-];
+// Fallback mock date-wise attendance records commented out - live backend data is used instead.
+// const List<StudentSubjectRecord> mockStudentSubjectRecords = [ ... ];

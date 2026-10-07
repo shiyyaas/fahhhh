@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +5,11 @@ import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/theme_data/app_radius.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/department_provider.dart';
+import '../models/department_student.dart';
+import '../models/department_subject.dart';
 
 /// One student's attendance for the selected day.
 class StudentAttendance {
@@ -17,16 +20,16 @@ class StudentAttendance {
   StudentAttendance(this.name, this.rollNumber, this.subjects);
 }
 
-class TeacherAttendanceHistoryScreen extends StatefulWidget {
+class TeacherAttendanceHistoryScreen extends ConsumerStatefulWidget {
   const TeacherAttendanceHistoryScreen({super.key});
 
   @override
-  State<TeacherAttendanceHistoryScreen> createState() =>
+  ConsumerState<TeacherAttendanceHistoryScreen> createState() =>
       _TeacherAttendanceHistoryScreenState();
 }
 
 class _TeacherAttendanceHistoryScreenState
-    extends State<TeacherAttendanceHistoryScreen> {
+    extends ConsumerState<TeacherAttendanceHistoryScreen> {
   static const List<String> _subjectNames = [
     'PYTHON',
     'SOFTWARE ENG.',
@@ -40,7 +43,8 @@ class _TeacherAttendanceHistoryScreenState
   static const List<String> _statusCycle = ['a', 'p', 'l'];
 
   late DateTime _selectedDate;
-  late List<StudentAttendance> _attendanceData;
+  List<StudentAttendance> _attendanceData = [];
+  bool _dataInitialized = false;
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
   String _sort = 'sort_default';
@@ -50,7 +54,6 @@ class _TeacherAttendanceHistoryScreenState
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-    _attendanceData = _generateMockData();
   }
 
   @override
@@ -59,36 +62,43 @@ class _TeacherAttendanceHistoryScreenState
     super.dispose();
   }
 
-  List<StudentAttendance> _generateMockData() {
-    const names = [
-      'Shiyas',
-      'Anjali',
-      'Rahul',
-      'Meera',
-      'Kiran',
-      'Priya',
-      'Vishnu',
-      'Sneha',
-      'Arjun',
-      'Kavya',
-      'Ravi',
-      'Sara',
-      'John',
-      'Alice',
-      'Bob',
-    ];
-    final random = Random(DateTime.now().day);
-    return List.generate(15, (i) {
+  void _populateFromLive(List<DepartmentStudent> students, List<DepartmentSubject> subjects) {
+    if (_dataInitialized || students.isEmpty) return;
+    final subjectList = subjects.isNotEmpty
+        ? subjects.map((s) => s.name).toList()
+        : _subjectNames;
+    _attendanceData = students.map((s) {
       return StudentAttendance(
-        names[i % names.length],
-        '${i + 1}',
+        s.name,
+        s.rollNumber,
         {
-          for (final s in _subjectNames)
-            s: _statusCycle[random.nextInt(_statusCycle.length)],
+          for (final sub in subjectList)
+            sub: 'p',
         },
       );
-    });
+    }).toList();
+    _dataInitialized = true;
   }
+
+  // Commented out fallback mock data generator:
+  // List<StudentAttendance> _generateMockData() {
+  //   const names = [
+  //     'Shiyas', 'Anjali', 'Rahul', 'Meera', 'Kiran', 'Priya',
+  //     'Vishnu', 'Sneha', 'Arjun', 'Kavya', 'Ravi', 'Sara',
+  //     'John', 'Alice', 'Bob',
+  //   ];
+  //   final random = Random(DateTime.now().day);
+  //   return List.generate(15, (i) {
+  //     return StudentAttendance(
+  //       names[i % names.length],
+  //       '${i + 1}',
+  //       {
+  //         for (final s in _subjectNames)
+  //           s: _statusCycle[random.nextInt(_statusCycle.length)],
+  //       },
+  //     );
+  //   });
+  // }
 
   void _toggleStatus(int studentIndex, String subject) {
     final student = _attendanceData[studentIndex];
@@ -128,6 +138,10 @@ class _TeacherAttendanceHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
+    final students = ref.watch(departmentStudentsProvider(null)).value ?? [];
+    final subjects = ref.watch(departmentSubjectsProvider).value ?? [];
+    _populateFromLive(students, subjects);
+
     final query = _query.trim().toLowerCase();
     final indexes = [
       for (var i = 0; i < _attendanceData.length; i++)

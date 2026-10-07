@@ -6,7 +6,6 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
-import 'package:fahhhh/features/department/models/department_subject.dart';
 import 'package:fahhhh/features/department/screens/add_subject_dialog.dart';
 import 'package:fahhhh/features/department/screens/upload_subject_dialog.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
@@ -45,7 +44,7 @@ class _SubjectSettingsScreenState extends ConsumerState<SubjectSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final subjectsAsync = ref.watch(departmentSubjectsProvider);
-    final allSubjects = subjectsAsync.value ?? mockDepartmentSubjects;
+    final allSubjects = subjectsAsync.value ?? [];
 
     final query = _query.trim().toLowerCase();
     final subjects = allSubjects

@@ -22,33 +22,34 @@ class ArchivedBatch {
   });
 }
 
-const archivedBatches = [
-  ArchivedBatch(
-    name: '2024 - 28 BCA',
-    classTeacher: 'Rijina N M',
-    attendancePercent: 95,
-  ),
-  ArchivedBatch(
-    name: '2023 - 27 BCA',
-    classTeacher: 'Anu Varghese',
-    attendancePercent: 65,
-  ),
-  ArchivedBatch(
-    name: '2022 - 26 BCA',
-    classTeacher: 'Sheetal miss',
-    attendancePercent: 95,
-  ),
-  ArchivedBatch(
-    name: '2021 - 25 BCA',
-    classTeacher: 'Rijina N M',
-    attendancePercent: 65,
-  ),
-  ArchivedBatch(
-    name: '2020 - 24 BCA',
-    classTeacher: 'Anu Varghese',
-    attendancePercent: 95,
-  ),
-];
+// Fallback mock archived batches commented out - backend data is used instead.
+// const archivedBatches = [
+//   ArchivedBatch(
+//     name: '2024 - 28 BCA',
+//     classTeacher: 'Rijina N M',
+//     attendancePercent: 95,
+//   ),
+//   ArchivedBatch(
+//     name: '2023 - 27 BCA',
+//     classTeacher: 'Anu Varghese',
+//     attendancePercent: 65,
+//   ),
+//   ArchivedBatch(
+//     name: '2022 - 26 BCA',
+//     classTeacher: 'Sheetal miss',
+//     attendancePercent: 95,
+//   ),
+//   ArchivedBatch(
+//     name: '2021 - 25 BCA',
+//     classTeacher: 'Rijina N M',
+//     attendancePercent: 65,
+//   ),
+//   ArchivedBatch(
+//     name: '2020 - 24 BCA',
+//     classTeacher: 'Anu Varghese',
+//     attendancePercent: 95,
+//   ),
+// ];
 
 class ArchivedBatchesScreen extends ConsumerStatefulWidget {
   const ArchivedBatchesScreen({super.key});
@@ -82,7 +83,7 @@ class _ArchivedBatchesScreenState extends ConsumerState<ArchivedBatchesScreen> {
           )
           .toList();
     } else {
-      batchesList = archivedBatches;
+      batchesList = [];
     }
 
     final query = _query.trim().toLowerCase();

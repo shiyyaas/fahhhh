@@ -9,6 +9,8 @@ import '../../../core/widgets/app_back_header.dart';
 import '../../home/widgets/status_badge.dart';
 import '../../timetable/models/timetable_slot.dart';
 import '../../timetable/providers/timetable_provider.dart';
+import '../../department/models/department_student.dart';
+import '../../department/providers/department_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/attendance_provider.dart';
 
@@ -31,12 +33,10 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
   String _selectedSortFilter = "all"; // "all", "present", "absent", "late"
   DateTime? _lastSelectedDate;
 
-  void _initializeStates(TimetableSlot slot) {
-    if (_initialized) return;
-    final students = getStudentsForClass(slot.classId);
+  void _initializeStates(TimetableSlot slot, List<DepartmentStudent> students) {
+    if (_initialized || students.isEmpty) return;
     for (var s in students) {
       final existing = slot.studentAttendance[s.rollNumber];
-      // Default to pending initially as specified in the prompt
       _attendanceStates[s.rollNumber] = existing ?? AttendanceStatus.pending;
     }
     _initialized = true;
@@ -60,9 +60,6 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
         return AttendanceStatus.late;
       case AttendanceStatus.late:
         return AttendanceStatus.pending;
-      // Non-cycleable statuses (recorded, missed, ongoing) are read-only;
-      // _buildStatusCapsule passes isReadOnly=true so this branch is unreachable
-      // in normal usage, but guard here just in case.
       default:
         return current;
     }
@@ -77,24 +74,33 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final timetable = ref.watch(timetableNotifierProvider);
-    final slotIndex = timetable.indexWhere((s) => s.id == widget.slotId);
+    TimetableSlot? slot;
+    final localSlots = ref.watch(timetableNotifierProvider);
+    final allSlots = ref.watch(allTimetableProvider).value ?? [];
+    try {
+      slot = localSlots.firstWhere((s) => s.id == widget.slotId);
+    } catch (_) {
+      try {
+        slot = allSlots.firstWhere((s) => s.id == widget.slotId);
+      } catch (_) {
+        slot = null;
+      }
+    }
 
-    if (slotIndex == -1) {
+    if (slot == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Error")),
         body: const Center(child: Text("Schedule slot not found")),
       );
     }
 
-    final slot = timetable[slotIndex];
-    _initializeStates(slot);
+    final studentsAsync = ref.watch(departmentStudentsProvider(slot.classId));
+    final students = studentsAsync.value ?? [];
+    _initializeStates(slot, students);
 
     // Date calculations to determine past vs today vs future behavior
     final selectedDate = ref.watch(selectedDateProvider);
 
-    // Reset sort filter when the selected date changes so a stale "present"
-    // filter from a past day doesn't silently hide students on today's view.
     if (_lastSelectedDate != null && _lastSelectedDate != selectedDate) {
       _selectedSortFilter = "all";
     }
@@ -107,7 +113,6 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
     final bool isPast = selectedZero.isBefore(todayZero);
     final bool isFuture = selectedZero.isAfter(todayZero);
 
-    final students = getStudentsForClass(slot.classId);
     final filteredStudents = students.where((s) {
       final matchesSearch = s.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
           s.rollNumber.toLowerCase().contains(searchQuery.toLowerCase());
@@ -133,236 +138,244 @@ class _AttendanceTakingScreenState extends ConsumerState<AttendanceTakingScreen>
           ),
         ),
         child: SafeArea(
-        child: isFuture
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Minimal App Header for Future dates empty state
-                  _buildHeader(slot),
-                  Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.calendar_today_rounded,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Attendance Not Available',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54,
+          child: isFuture
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(slot),
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 64,
+                                color: Colors.grey.shade400,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Attendance is not available for future dates.',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Attendance Not Available',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                'Attendance is not available for future dates.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              )
-            : Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Section
-                      _buildHeader(slot),
+                  ],
+                )
+              : Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(slot),
 
-
-                      // Controls section (Search & Sort By)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: AppSearchBar(
-                                onChanged: (val) => setState(() => searchQuery = val),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SortDropdown(
-                              value: isPast
-                                  ? _getSortFilterLabel(_selectedSortFilter)
-                                  : 'Mark All',
-                              placeholder: isPast ? 'Sort by' : 'Mark All',
-                              options: isPast
-                                  ? const ['All', 'Present', 'Absent', 'Late']
-                                  : const ['All Present', 'All Absent', 'All Late'],
-                              onChanged: (val) {
-                                setState(() {
-                                  if (isPast) {
-                                    _selectedSortFilter = switch (val) {
-                                      'Present' => 'present',
-                                      'Absent' => 'absent',
-                                      'Late' => 'late',
-                                      _ => 'all',
-                                    };
-                                  } else {
-                                    final status = val == 'All Present'
-                                        ? AttendanceStatus.present
-                                        : val == 'All Absent'
-                                            ? AttendanceStatus.absent
-                                            : AttendanceStatus.late;
-                                    for (final s in students) {
-                                      _attendanceStates[s.rollNumber] = status;
-                                    }
-                                  }
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Student list view
-                      Expanded(
-                        child: ListView.builder(
-                          padding: EdgeInsets.only(
-                            top: 8,
-                            left: 0,
-                            right: 0,
-                            bottom: isToday ? 100 : 24,
+                        // Controls section (Search & Sort By)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
                           ),
-                          itemCount: filteredStudents.length,
-                          itemBuilder: (context, index) {
-                            final student = filteredStudents[index];
-                            final currentStatus = _attendanceStates[student.rollNumber] ?? AttendanceStatus.pending;
-
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 24),
-                              padding: const EdgeInsets.only(
-                                left: 16,
-                                right: 12,
-                                top: 11,
-                                bottom: 10,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: AppSearchBar(
+                                  onChanged: (val) => setState(() => searchQuery = val),
+                                ),
                               ),
+                              const SizedBox(width: 10),
+                              SortDropdown(
+                                value: isPast
+                                    ? _getSortFilterLabel(_selectedSortFilter)
+                                    : 'Mark All',
+                                placeholder: isPast ? 'Sort by' : 'Mark All',
+                                options: isPast
+                                    ? const ['All', 'Present', 'Absent', 'Late']
+                                    : const ['All Present', 'All Absent', 'All Late'],
+                                onChanged: (val) {
+                                  setState(() {
+                                    if (isPast) {
+                                      _selectedSortFilter = switch (val) {
+                                        'Present' => 'present',
+                                        'Absent' => 'absent',
+                                        'Late' => 'late',
+                                        _ => 'all',
+                                      };
+                                    } else {
+                                      final status = val == 'All Present'
+                                          ? AttendanceStatus.present
+                                          : val == 'All Absent'
+                                              ? AttendanceStatus.absent
+                                              : AttendanceStatus.late;
+                                      for (final s in students) {
+                                        _attendanceStates[s.rollNumber] = status;
+                                      }
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Student list view
+                        Expanded(
+                          child: studentsAsync.isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : filteredStudents.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        'No students found.',
+                                        style: TextStyle(color: Colors.grey.shade500),
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      padding: EdgeInsets.only(
+                                        top: 8,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: isToday ? 100 : 24,
+                                      ),
+                                      itemCount: filteredStudents.length,
+                                      itemBuilder: (context, index) {
+                                        final student = filteredStudents[index];
+                                        final currentStatus = _attendanceStates[student.rollNumber] ?? AttendanceStatus.pending;
+
+                                        return Container(
+                                          margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 24),
+                                          padding: const EdgeInsets.only(
+                                            left: 16,
+                                            right: 12,
+                                            top: 11,
+                                            bottom: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(color: Colors.black, width: 0.8),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.1),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  student.name,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                              _buildStatusCapsule(currentStatus, isPast, student.rollNumber),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                        ),
+                      ],
+                    ),
+
+                    // Black center floating Save Button (only for today)
+                    if (isToday)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              ref.read(timetableNotifierProvider.notifier).saveAttendance(
+                                    widget.slotId,
+                                    _attendanceStates,
+                                  );
+
+                              final authUser = ref.read(authProvider).user;
+                              final teacherId = authUser?.id ?? '';
+                              final attendanceRepo = ref.read(attendanceRepositoryProvider);
+
+                              final records = <Map<String, dynamic>>[];
+                              for (final s in students) {
+                                final status = _attendanceStates[s.rollNumber];
+                                if (status != null && status != AttendanceStatus.pending) {
+                                  records.add({
+                                    'student': s.id ?? s.rollNumber,
+                                    'subject': slot!.subjectId?.isNotEmpty == true ? slot.subjectId : slot.subjectName,
+                                    'teacher': slot.teacherId?.isNotEmpty == true ? slot.teacherId : teacherId,
+                                    'batch': slot.batchId?.isNotEmpty == true ? slot.batchId : (s.batchId ?? slot.classId),
+                                    'status': (status == AttendanceStatus.present || status == AttendanceStatus.late) ? 'Present' : 'Absent',
+                                  });
+                                }
+                              }
+                              attendanceRepo.markBulkAttendance(records: records);
+
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Attendance saved successfully!"),
+                                  backgroundColor: AppColors.primary,
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              context.pop();
+                            },
+                            child: Container(
+                              width: 180,
+                              height: 44,
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.black, width: 0.8),
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(22),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      student.name,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                                  ),
-                                  _buildStatusCapsule(currentStatus, isPast, student.rollNumber),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Black center floating Save Button (only for today)
-                  if (isToday)
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            ref.read(timetableNotifierProvider.notifier).saveAttendance(
-                                  widget.slotId,
-                                  _attendanceStates,
-                                );
-
-                            final authUser = ref.read(authProvider).user;
-                            final teacherId = authUser?.id ?? '';
-                            final attendanceRepo = ref.read(attendanceRepositoryProvider);
-                            
-                            final records = <Map<String, dynamic>>[];
-                            _attendanceStates.forEach((rollNo, status) {
-                              records.add({
-                                'student': rollNo,
-                                'subject': slot.subjectName,
-                                'teacher': teacherId,
-                                'batch': slot.classId,
-                                'status': (status == AttendanceStatus.present || status == AttendanceStatus.late) ? 'Present' : 'Absent',
-                              });
-                            });
-                            attendanceRepo.markBulkAttendance(records: records);
-
-                            // Guard before any context use
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Attendance saved successfully!"),
-                                backgroundColor: AppColors.primary,
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                            context.pop();
-                          },
-                          child: Container(
-                            width: 180,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(22),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
+                              alignment: Alignment.center,
+                              child: const Text(
+                                "Save",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
                                 ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              "Save",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-      ),
+                  ],
+                ),
+        ),
       ),
     );
   }

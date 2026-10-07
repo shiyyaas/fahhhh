@@ -6,7 +6,6 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
-import 'package:fahhhh/features/department/models/department_student.dart';
 import 'package:fahhhh/features/department/screens/add_student_dialog.dart';
 import 'package:fahhhh/features/department/screens/upload_student_dialog.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
@@ -45,7 +44,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final studentsAsync = ref.watch(departmentStudentsProvider(null));
-    final allStudents = studentsAsync.value ?? mockDepartmentStudents;
+    final allStudents = studentsAsync.value ?? [];
 
     final query = _query.trim().toLowerCase();
     final students = allStudents

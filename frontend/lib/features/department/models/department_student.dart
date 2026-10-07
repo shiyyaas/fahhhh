@@ -59,16 +59,16 @@ class DepartmentStudent {
   }
 }
 
-/// Fallback mock students for the department overview when offline/unseeded.
-const List<DepartmentStudent> mockDepartmentStudents = [
-  DepartmentStudent(name: "Alice Johnson", rollNumber: "S2023001"),
-  DepartmentStudent(name: "Bob Smith", rollNumber: "S2023002"),
-  DepartmentStudent(name: "Carol Davis", rollNumber: "S2023003"),
-  DepartmentStudent(name: "David Wilson", rollNumber: "S2023004"),
-  DepartmentStudent(name: "Emma Brown", rollNumber: "S2023005"),
-  DepartmentStudent(name: "Frank Miller", rollNumber: "S2023006"),
-  DepartmentStudent(name: "Grace Lee", rollNumber: "S2023007"),
-  DepartmentStudent(name: "Henry Taylor", rollNumber: "S2023008"),
-  DepartmentStudent(name: "Isabella Clark", rollNumber: "S2023009"),
-  DepartmentStudent(name: "Jack Anderson", rollNumber: "S2023010"),
-];
+// Fallback mock students commented out - backend data is used instead.
+// const List<DepartmentStudent> mockDepartmentStudents = [
+//   DepartmentStudent(name: "Alice Johnson", rollNumber: "S2023001"),
+//   DepartmentStudent(name: "Bob Smith", rollNumber: "S2023002"),
+//   DepartmentStudent(name: "Carol Davis", rollNumber: "S2023003"),
+//   DepartmentStudent(name: "David Wilson", rollNumber: "S2023004"),
+//   DepartmentStudent(name: "Emma Brown", rollNumber: "S2023005"),
+//   DepartmentStudent(name: "Frank Miller", rollNumber: "S2023006"),
+//   DepartmentStudent(name: "Grace Lee", rollNumber: "S2023007"),
+//   DepartmentStudent(name: "Henry Taylor", rollNumber: "S2023008"),
+//   DepartmentStudent(name: "Isabella Clark", rollNumber: "S2023009"),
+//   DepartmentStudent(name: "Jack Anderson", rollNumber: "S2023010"),
+// ];

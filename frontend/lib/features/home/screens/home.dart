@@ -33,9 +33,9 @@ class Home extends ConsumerWidget {
     final auth = ref.watch(authProvider);
     final user = auth.user;
     final isStudent = auth.role == UserRole.student;
+    final isTeacher = auth.role == UserRole.teacher;
 
     final selectedDate = ref.watch(selectedDateProvider);
-    final timetable = ref.watch(timetableNotifierProvider);
 
     final today = DateTime.now();
     final todayZero = DateTime(today.year, today.month, today.day);
@@ -46,6 +46,39 @@ class Home extends ConsumerWidget {
 
     // Saturday or Sunday holiday check
     final bool isWeekend = selectedDate.weekday == 6 || selectedDate.weekday == 7;
+
+    // ── Resolve real timetable from backend based on role ──────────────────
+    List<TimetableSlot> timetable = [];
+    bool isLoadingTimetable = false;
+
+    if (isStudent) {
+      // Use batch name from user profile. batchTimetableProvider takes a
+      // batchId — but our backend /api/timetable/batch/:batchId takes the
+      // MongoDB ObjectId. Since the student's className stores the batch name
+      // (e.g. "S2 BCA") we use allTimetableProvider and filter client-side.
+      final allAsync = ref.watch(allTimetableProvider);
+      allAsync.when(
+        data: (slots) => timetable = slots,
+        loading: () => isLoadingTimetable = true,
+        error: (_, __) => timetable = [],
+      );
+    } else if (isTeacher) {
+      // Teacher sees their own periods via name-match on allTimetable
+      final allAsync = ref.watch(allTimetableProvider);
+      allAsync.when(
+        data: (slots) => timetable = slots,
+        loading: () => isLoadingTimetable = true,
+        error: (_, __) => timetable = [],
+      );
+    } else {
+      // HOD: all timetable
+      final allAsync = ref.watch(allTimetableProvider);
+      allAsync.when(
+        data: (slots) => timetable = slots,
+        loading: () => isLoadingTimetable = true,
+        error: (_, __) => timetable = [],
+      );
+    }
 
     // Filter slots by weekday
     final filteredByDay = timetable.where((slot) => slot.dayOfWeek == selectedDate.weekday).toList();
@@ -150,43 +183,45 @@ class Home extends ConsumerWidget {
                           ],
                         ),
                       )
-                    : displaySlots.isEmpty
-                        ? Center(
-                            child: Text(
-                              'No scheduled periods found for this day.',
-                              style: TextStyle(color: Colors.grey.shade500),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: displaySlots.length,
-                            itemBuilder: (context, index) {
-                              final slot = displaySlots[index];
-                              final isNow = _isPeriodNow(slot.startTime, slot.endTime, isToday);
+                    : isLoadingTimetable
+                        ? const Center(child: CircularProgressIndicator())
+                        : displaySlots.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No scheduled periods found for this day.',
+                                  style: TextStyle(color: Colors.grey.shade500),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                itemCount: displaySlots.length,
+                                itemBuilder: (context, index) {
+                                  final slot = displaySlots[index];
+                                  final isNow = _isPeriodNow(slot.startTime, slot.endTime, isToday);
 
-                              return TimetableCard(
-                                subjectName: slot.subjectName,
-                                secondaryText: isStudent ? slot.teacherName : slot.classId,
-                                status: isStudent ? slot.studentStatus : slot.status,
-                                startTime: slot.startTime,
-                                endTime: slot.endTime,
-                                profileImage: isStudent ? "assets/images/student.png" : null,
-                                isStudent: isStudent,
-                                isToday: isToday,
-                                isFuture: isFuture,
-                                onTap: isStudent
-                                    ? null
-                                    : () {
-                                        if (!context.mounted) return;
-                                        if (isNow) {
-                                          context.push('/attendance-taking/${slot.id}');
-                                        } else {
-                                          context.push('/attendance-view/${slot.id}');
-                                        }
-                                      },
-                              );
-                            },
-                          ),
+                                  return TimetableCard(
+                                    subjectName: slot.subjectName,
+                                    secondaryText: isStudent ? slot.teacherName : slot.classId,
+                                    status: isStudent ? slot.studentStatus : slot.status,
+                                    startTime: slot.startTime,
+                                    endTime: slot.endTime,
+                                    profileImage: isStudent ? "assets/images/student.png" : null,
+                                    isStudent: isStudent,
+                                    isToday: isToday,
+                                    isFuture: isFuture,
+                                    onTap: isStudent
+                                        ? null
+                                        : () {
+                                            if (!context.mounted) return;
+                                            if (isNow) {
+                                              context.push('/attendance-taking/${slot.id}');
+                                            } else {
+                                              context.push('/attendance-view/${slot.id}');
+                                            }
+                                          },
+                                  );
+                                },
+                              ),
               ),
             ],
         ),

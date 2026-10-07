@@ -54,17 +54,17 @@ class DepartmentTeacher {
   }
 }
 
-/// Fallback mock teachers for the department overview when offline/unseeded.
-const List<DepartmentTeacher> mockDepartmentTeachers = [
-  DepartmentTeacher(name: "Sheetal miss", subject: "Software Engineering"),
-  DepartmentTeacher(name: "Anu Varghese", subject: "Data Science"),
-  DepartmentTeacher(name: "Rijina NM", subject: "Computer Networks"),
-  DepartmentTeacher(name: "Priya S", subject: "AI"),
-  DepartmentTeacher(name: "Rahul Menon", subject: "Digital Marketing"),
-  DepartmentTeacher(name: "Lakshmi N", subject: "Image Processing"),
-  DepartmentTeacher(name: "Arun Das", subject: "Cybersecurity"),
-  DepartmentTeacher(name: "Deepa R", subject: "Maths"),
-  DepartmentTeacher(name: "Fathima Beevi", subject: "NLP"),
-  DepartmentTeacher(name: "Vishnu P", subject: "Flutter"),
-  DepartmentTeacher(name: "Saranya K", subject: "Android"),
-];
+// Fallback mock teachers commented out - backend data is used instead.
+// const List<DepartmentTeacher> mockDepartmentTeachers = [
+//   DepartmentTeacher(name: "Sheetal miss", subject: "Software Engineering"),
+//   DepartmentTeacher(name: "Anu Varghese", subject: "Data Science"),
+//   DepartmentTeacher(name: "Rijina NM", subject: "Computer Networks"),
+//   DepartmentTeacher(name: "Priya S", subject: "AI"),
+//   DepartmentTeacher(name: "Rahul Menon", subject: "Digital Marketing"),
+//   DepartmentTeacher(name: "Lakshmi N", subject: "Image Processing"),
+//   DepartmentTeacher(name: "Arun Das", subject: "Cybersecurity"),
+//   DepartmentTeacher(name: "Deepa R", subject: "Maths"),
+//   DepartmentTeacher(name: "Fathima Beevi", subject: "NLP"),
+//   DepartmentTeacher(name: "Vishnu P", subject: "Flutter"),
+//   DepartmentTeacher(name: "Saranya K", subject: "Android"),
+// ];

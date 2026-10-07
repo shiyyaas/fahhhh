@@ -14,13 +14,10 @@ import 'package:fahhhh/features/my_subjects/widgets/my_subject_list_tile.dart';
 
 //Models
 import 'package:fahhhh/features/my_subjects/models/my_subject_item.dart';
-import 'package:fahhhh/features/department/models/department_class.dart';
 
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
-import 'package:fahhhh/features/auth/models/current_user.dart';
 import 'package:fahhhh/features/auth/models/user_role.dart';
-import 'package:fahhhh/features/timetable/providers/timetable_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 /// My Subjects screen for teacher: shows teacher's assigned subjects with attendance overview.
@@ -86,13 +83,9 @@ class _MySubjectState extends ConsumerState<MySubject> {
             });
           }
         }
-        return isStudent
-            ? _buildStudentSubjects(user, attendancePattern)
-            : _buildSubjects(user, attendancePattern);
+        return <MySubjectItem>[];
       },
-      orElse: () => isStudent
-          ? _buildStudentSubjects(user, attendancePattern)
-          : _buildSubjects(user, attendancePattern),
+      orElse: () => <MySubjectItem>[],
     );
 
     final query = _query.trim().toLowerCase();
@@ -203,61 +196,10 @@ class _MySubjectState extends ConsumerState<MySubject> {
     );
   }
 
-  List<MySubjectItem> _buildStudentSubjects(
-      CurrentUser? user, List<int> pattern) {
-    final String sem = user?.semester ?? '2';
-    final semKey = 'S$sem';
-    final names = semesterSubjects[semKey] ?? semesterSubjects['S2']!;
-    return List.generate(names.length, (index) {
-      final name = names[index];
-      final teacher = subjectTeachers[name] ?? 'Sheetal';
-      return MySubjectItem(
-        name: name,
-        classes: teacher,
-        attendancePercent: pattern[index % pattern.length],
-      );
-    });
-  }
 
-  List<MySubjectItem> _buildSubjects(CurrentUser? user, List<int> pattern) {
-    // Use activeSubjects from user if available, otherwise derive from subjectTeachers.
-    final List<String> subjectNames;
-    if (user?.activeSubjects != null && user!.activeSubjects!.isNotEmpty) {
-      subjectNames = user.activeSubjects!;
-    } else {
-      // Fallback: derive from subjectTeachers mock map.
-      subjectNames = subjectTeachers.entries
-          .where((e) => e.value == (user?.name ?? ''))
-          .map((e) => e.key)
-          .toList();
-    }
-
-    if (subjectNames.isEmpty) {
-      // Default fallback subjects for demo.
-      subjectNames.addAll(['Software Engineering', 'Computer Networks', 'Data Science', 'AI', 'Python']);
-    }
-
-    return List.generate(subjectNames.length, (index) {
-      // Find which classes this subject is taught in.
-      final classes = _classesForSubject(subjectNames[index]);
-      return MySubjectItem(
-        name: subjectNames[index],
-        classes: classes.isEmpty ? 'No class' : classes,
-        attendancePercent: pattern[index % pattern.length],
-      );
-    });
-  }
 
   String _classesForSubject(String subject) {
-    // From mockDepartmentClasses - return the actual class names teaching this subject.
-    final List<String> matchingClasses = [];
-    for (final classData in mockDepartmentClasses) {
-      final semKey = classData.name.substring(0, 2).toUpperCase();
-      if ((semesterSubjects[semKey] ?? []).contains(subject)) {
-        matchingClasses.add(classData.name); // e.g., "S2 BCA"
-      }
-    }
-    return matchingClasses.join(', ');
+    return 'BCA';
   }
 }
 

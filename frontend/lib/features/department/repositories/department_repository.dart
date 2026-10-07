@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../models/department_class.dart';
@@ -15,14 +16,12 @@ class DepartmentRepository {
       final response = await _apiClient.get(ApiEndpoints.batches);
       if (response.data is Map && response.data['success'] == true) {
         final list = response.data['batches'] as List<dynamic>? ?? [];
-        if (list.isNotEmpty) {
-          return list.map((item) => DepartmentClass.fromJson(item as Map<String, dynamic>)).toList();
-        }
+        return list.map((item) => DepartmentClass.fromJson(item as Map<String, dynamic>)).toList();
       }
-    } catch (_) {
-      // Graceful fallback to mock data on offline/network errors
+    } catch (e) {
+      debugPrint('[DepartmentRepository] getClasses error: $e');
     }
-    return mockDepartmentClasses;
+    return [];
   }
 
   Future<List<DepartmentTeacher>> getTeachers() async {
@@ -30,14 +29,12 @@ class DepartmentRepository {
       final response = await _apiClient.get(ApiEndpoints.teachers);
       if (response.data is Map && response.data['success'] == true) {
         final list = response.data['teachers'] as List<dynamic>? ?? [];
-        if (list.isNotEmpty) {
-          return list.map((item) => DepartmentTeacher.fromJson(item as Map<String, dynamic>)).toList();
-        }
+        return list.map((item) => DepartmentTeacher.fromJson(item as Map<String, dynamic>)).toList();
       }
-    } catch (_) {
-      // Graceful fallback to mock data on offline/network errors
+    } catch (e) {
+      debugPrint('[DepartmentRepository] getTeachers error: $e');
     }
-    return mockDepartmentTeachers;
+    return [];
   }
 
   Future<List<DepartmentStudent>> getStudents({String? batchId}) async {
@@ -45,18 +42,16 @@ class DepartmentRepository {
       final response = await _apiClient.get(ApiEndpoints.students);
       if (response.data is Map && response.data['success'] == true) {
         final list = response.data['students'] as List<dynamic>? ?? [];
-        if (list.isNotEmpty) {
-          var students = list.map((item) => DepartmentStudent.fromJson(item as Map<String, dynamic>)).toList();
-          if (batchId != null && batchId.isNotEmpty) {
-            students = students.where((s) => s.batchId == batchId || (s.batchName ?? '').toLowerCase() == batchId.toLowerCase()).toList();
-          }
-          return students;
+        var students = list.map((item) => DepartmentStudent.fromJson(item as Map<String, dynamic>)).toList();
+        if (batchId != null && batchId.isNotEmpty) {
+          students = students.where((s) => s.batchId == batchId || (s.batchName ?? '').toLowerCase() == batchId.toLowerCase()).toList();
         }
+        return students;
       }
-    } catch (_) {
-      // Graceful fallback to mock data on offline/network errors
+    } catch (e) {
+      debugPrint('[DepartmentRepository] getStudents error: $e');
     }
-    return mockDepartmentStudents;
+    return [];
   }
 
   Future<List<DepartmentSubject>> getSubjects() async {
@@ -64,14 +59,12 @@ class DepartmentRepository {
       final response = await _apiClient.get(ApiEndpoints.subjects);
       if (response.data is Map && response.data['success'] == true) {
         final list = response.data['subjects'] as List<dynamic>? ?? [];
-        if (list.isNotEmpty) {
-          return list.map((item) => DepartmentSubject.fromJson(item as Map<String, dynamic>)).toList();
-        }
+        return list.map((item) => DepartmentSubject.fromJson(item as Map<String, dynamic>)).toList();
       }
-    } catch (_) {
-      // Graceful fallback to mock data on offline/network errors
+    } catch (e) {
+      debugPrint('[DepartmentRepository] getSubjects error: $e');
     }
-    return mockDepartmentSubjects;
+    return [];
   }
 
   Future<DepartmentTeacher> createTeacher({
