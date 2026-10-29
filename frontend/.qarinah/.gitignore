@@ -1,0 +1,13 @@
+events/
+objects/
+records/
+graph/
+index/
+snapshots/
+locks/
+dashboard/
+receipts/
+archive/
+
+!.gitignore
+!config.json

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "qarinah.config.v1",
+  "workspaceId": "ws_efcc6953d40d89213ffe9b6372c5b3ec",
+  "enabled": true,
+  "capture": "metadata",
+  "maxEventBytes": 1048576,
+  "maxLogBytes": 33554432,
+  "contextMaxChars": 12000,
+  "retentionClass": "project",
+  "createdAt": "2026-10-29T15:45:33.424Z"
+}
