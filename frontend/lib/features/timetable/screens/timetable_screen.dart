@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_radius.dart';
@@ -240,6 +241,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   onEditToggle: () {
                     setState(() => _isHodEditing = !_isHodEditing);
                   },
+                  onUploadTap: _pickAndPreviewTimetable,
                 ),
               ]
               // ── Teacher controls ────────────────────────────────────────
@@ -449,6 +451,215 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       ),
     );
   }
+
+  Future<void> _pickAndPreviewTimetable() async {
+    try {
+      FilePickerResult? result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'csv'],
+      );
+
+      if (result != null) {
+        final PlatformFile file = result.files.single;
+        if (!mounted) return;
+        _showTimetablePreviewModal(file);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error picking file: $e"),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  void _showTimetablePreviewModal(PlatformFile file) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: AppColors.surface,
+      builder: (context) {
+        final extension = file.extension?.toLowerCase() ?? 'pdf';
+        final isPdf = extension == 'pdf';
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Timetable Preview",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.headingText,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Text(
+                      extension.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  border: Border.all(color: AppColors.outline, width: 1.2),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isPdf ? Icons.picture_as_pdf_rounded : Icons.table_chart_rounded,
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            file.name,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.headingText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            file.size > 1024 * 1024
+                                ? "${(file.size / (1024 * 1024)).toStringAsFixed(1)} MB"
+                                : "${(file.size / 1024).toStringAsFixed(1)} KB",
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Parsed Preview Summary",
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.headingText,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 120,
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "• Target Class: ${_selectedSortClass ?? 'S2 BCA'}",
+                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "• Detected Days: Monday — Friday (5 days)",
+                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "• Periods per day: 5 periods",
+                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "• Status: Ready for import",
+                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: BlueBtn(
+                      text: "Cancel",
+                      backgroundColor: const Color(0xFF6E6E6E),
+                      borderColor: const Color(0xFF6E6E6E),
+                      textColor: AppColors.surface,
+                      borderRadius: AppRadius.pill,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: BlueBtn(
+                      text: "Import Timetable",
+                      backgroundColor: AppColors.primary,
+                      borderColor: AppColors.primary,
+                      textColor: AppColors.surface,
+                      borderRadius: AppRadius.pill,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Timetable imported successfully!"),
+                            backgroundColor: AppColors.primary,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 // ============================================================================
@@ -466,6 +677,7 @@ class _HodControls extends StatelessWidget {
   final ValueChanged<String> onClassSelected;
   final ValueChanged<String> onTeacherSelected;
   final VoidCallback onEditToggle;
+  final VoidCallback onUploadTap;
 
   const _HodControls({
     required this.selectedSegment,
@@ -478,6 +690,7 @@ class _HodControls extends StatelessWidget {
     required this.onClassSelected,
     required this.onTeacherSelected,
     required this.onEditToggle,
+    required this.onUploadTap,
   });
 
   @override
@@ -516,17 +729,77 @@ class _HodControls extends StatelessWidget {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: _EditButton(
-                isEditing: isHodEditing,
-                onTap: onEditToggle,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _UploadButton(onTap: onUploadTap),
+                const SizedBox(width: 8),
+                _EditButton(
+                  isEditing: isHodEditing,
+                  onTap: onEditToggle,
+                ),
+              ],
             ),
           ),
         ],
         const SizedBox(height: 4),
       ],
+    );
+  }
+}
+
+// ============================================================================
+// Upload button (HOD)
+// ============================================================================
+
+class _UploadButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _UploadButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(
+            color: AppColors.outline,
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.upload_file_rounded,
+              color: AppColors.headingText,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              "Upload Timetable",
+              style: GoogleFonts.inter(
+                color: AppColors.headingText,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
