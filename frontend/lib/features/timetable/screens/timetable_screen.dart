@@ -13,6 +13,9 @@ import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';
 import '../providers/timetable_provider.dart';
 import '../../department/providers/department_provider.dart';
+import '../../department/models/department_class.dart';
+import '../../department/models/department_teacher.dart';
+import '../../department/models/department_subject.dart';
 
 // ---------------------------------------------------------------------------
 // Sizing constants derived from Figma node 1378-5595
@@ -177,6 +180,13 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final currentTeachers = deptTeachers.isNotEmpty
         ? deptTeachers.map((t) => t.name).toList()
         : _teachersList;
+    final selectedTeacherRecord = deptTeachers.cast<dynamic?>().firstWhere(
+      (teacher) =>
+          teacher != null &&
+          _matchesTeacher(teacher.name.toString(), _selectedTeacher),
+      orElse: () => null,
+    );
+    final selectedTeacherId = selectedTeacherRecord?.id?.toString();
 
     if (isStudent && user?.className != null) {
       _selectedSortClass = user!.className!;
@@ -187,57 +197,55 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     // Watch backend timetable data
     final allTimetableAsync = ref.watch(allTimetableProvider);
     final rawSlots = allTimetableAsync.value ?? [];
-    final notifierSlots = ref.watch(timetableNotifierProvider);
-    final allSlots = notifierSlots.isEmpty ? rawSlots : notifierSlots;
+    // MongoDB query is the source of truth; successful CRUD invalidates it.
+    final allSlots = rawSlots;
 
-    // Build a 5×5 grid: [period 0..4][day 0..4]
-    final List<List<TimetableSlot?>> gridSlots = List.generate(
-      5,
-      (_) => List.generate(5, (_) => null),
-    );
-
-    if (isStudent ||
-        isClassSpecific ||
-        (isHOD && _selectedSegment == "Classes")) {
-      final targetClass = _selectedSortClass ?? "S2 BCA";
-      for (final slot in allSlots) {
-        if (slot.classId == targetClass) {
-          final dayIndex = slot.dayOfWeek - 1;
-          final periodIndex = int.tryParse(slot.id.split('_').last) != null
-              ? int.parse(slot.id.split('_').last) - 1
-              : 0;
-          if (dayIndex >= 0 &&
-              dayIndex < 5 &&
-              periodIndex >= 0 &&
-              periodIndex < 5) {
-            gridSlots[periodIndex][dayIndex] = slot;
-          }
+    // Use actual start times to determine period rows. MongoDB ObjectIds
+    // must never be interpreted as period numbers.
+    final classView = isStudent || isClassSpecific ||
+        (isHOD && _selectedSegment == "Classes");
+    final targetClass = _selectedSortClass ?? "S2 BCA";
+    final visibleSlots = allSlots.where((slot) {
+      if (classView) {
+        // Match batch by its MongoDB ID when possible, with the display
+        // name as a fallback for older/unpopulated records.
+        final selectedBatch = deptClasses.cast<dynamic?>().firstWhere(
+          (batch) => batch != null && batch.name.toString() == targetClass,
+          orElse: () => null,
+        );
+        final selectedBatchId = selectedBatch?.id?.toString();
+        if (selectedBatchId != null &&
+            selectedBatchId.isNotEmpty &&
+            slot.batchId != null &&
+            slot.batchId!.isNotEmpty) {
+          return slot.batchId == selectedBatchId;
         }
+        return slot.classId.trim().toLowerCase() ==
+            targetClass.trim().toLowerCase();
       }
-    } else {
-      final activeTeacher = isHOD && _selectedSegment == "Classes"
-          ? null
-          : _selectedTeacher;
 
-      for (final slot in allSlots) {
-        final matchesClass =
-            _selectedSortClass == null || slot.classId == _selectedSortClass;
-        final matchesTeacher =
-            activeTeacher == null ||
-            _matchesTeacher(slot.teacherName, activeTeacher);
+      // Teacher timetable is derived from the same all-batches collection.
+      // Prefer MongoDB reference IDs; fall back to names for legacy records.
+      if (selectedTeacherId != null &&
+          selectedTeacherId.isNotEmpty &&
+          slot.teacherId != null &&
+          slot.teacherId!.isNotEmpty) {
+        return slot.teacherId == selectedTeacherId;
+      }
+      return _matchesTeacher(slot.teacherName, _selectedTeacher);
+    }).toList();
 
-        if (matchesClass && matchesTeacher) {
-          final dayIndex = slot.dayOfWeek - 1;
-          final periodIndex = int.tryParse(slot.id.split('_').last) != null
-              ? int.parse(slot.id.split('_').last) - 1
-              : 0;
-          if (dayIndex >= 0 &&
-              dayIndex < 5 &&
-              periodIndex >= 0 &&
-              periodIndex < 5) {
-            gridSlots[periodIndex][dayIndex] = slot;
-          }
-        }
+    int minutes(TimeOfDay t) => t.hour * 60 + t.minute;
+    final periodStarts = visibleSlots.map((e) => minutes(e.startTime)).toSet().toList()
+      ..sort();
+    final List<List<TimetableSlot?>> gridSlots = List.generate(
+      5, (_) => List<TimetableSlot?>.filled(5, null),
+    );
+    for (final slot in visibleSlots) {
+      final dayIndex = slot.dayOfWeek - 1;
+      final periodIndex = periodStarts.indexOf(minutes(slot.startTime));
+      if (dayIndex >= 0 && dayIndex < 5 && periodIndex >= 0 && periodIndex < 5) {
+        gridSlots[periodIndex][dayIndex] = slot;
       }
     }
 
@@ -375,6 +383,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 isSwapMode: _isSwapMode,
                 isHOD: isHOD,
                 isHodEditing: _isHodEditing,
+                isTeacherSchedule: !classView,
                 onCellTap: _handleCellTap,
               ),
 
@@ -392,154 +401,185 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final auth = ref.read(authProvider);
     final isHOD = (auth.user?.isHOD ?? false) && !widget.forceTeacherMode;
 
-    if (_isSwapMode) {
-      if (slot != null) {
-        _showSelectTeacherModal(slot);
-      } else {
-        _showSelectTeacherModalForEmptySlot(day, period);
-      }
-    } else if (isHOD && _isHodEditing) {
-      if (slot != null) {
-        _showSelectTeacherModal(slot);
-      } else {
-        _showSelectTeacherModalForEmptySlot(day, period);
-      }
+    if (isHOD && _isHodEditing) {
+      _showTimetableEditor(slot, day);
     } else if (slot != null) {
       _showSlotDetailsModal(slot);
     }
   }
 
-  // ── Modals ────────────────────────────────────────────────────────────────
+  Future<void> _showTimetableEditor(TimetableSlot? existing, int day) async {
+    final classes = ref.read(departmentClassesProvider).value ?? [];
+    final teachers = ref.read(departmentTeachersProvider).value ?? [];
+    final subjects = ref.read(departmentSubjectsProvider).value ?? [];
 
-  void _showSlotDetailsModal(TimetableSlot slot) {
-    showModalBottomSheet(
+    if (classes.isEmpty || teachers.isEmpty || subjects.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not load batches, teachers or subjects. Please refresh and try again.')),
+      );
+      return;
+    }
+
+    final matchingBatches = classes.where(
+      (e) => e.name == (existing?.classId ?? _selectedSortClass),
+    ).toList();
+    final batch = matchingBatches.isNotEmpty ? matchingBatches.first : classes.first;
+    final matchingTeachers = teachers.where((e) => e.id == existing?.teacherId).toList();
+    final selectedTeacher = matchingTeachers.isNotEmpty ? matchingTeachers.first : teachers.first;
+    final matchingSubjects = subjects.where((e) => e.id == existing?.subjectId).toList();
+    final selectedSubject = matchingSubjects.isNotEmpty ? matchingSubjects.first : subjects.first;
+
+
+    if (selectedBatchId == null || selectedTeacher.id == null || selectedSubject.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Batch, teacher or subject is missing a database ID.')),
+      );
+      return;
+    }
+
+    final roomController = TextEditingController(text: existing?.roomNo ?? '');
+    String batchId = selectedBatchId;
+    String teacherId = selectedTeacher.id!;
+    String subjectId = selectedSubject.id!;
+    int selectedDay = existing?.dayOfWeek ?? day;
+    TimeOfDay start = existing?.startTime ?? const TimeOfDay(hour: 9, minute: 0);
+    TimeOfDay end = existing?.endTime ?? const TimeOfDay(hour: 10, minute: 0);
+    bool saving = false;
+
+    await showDialog<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      backgroundColor: AppColors.surface,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      slot.subjectName,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.headingText,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Text(
-                      slot.classId,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ],
+      barrierDismissible: !saving,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(existing == null ? 'Add timetable entry' : 'Edit timetable entry'),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              DropdownButtonFormField<String>(
+                value: batchId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Batch / Class'),
+                items: classes.where((e) => e.id != null).map((e) =>
+                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
+                onChanged: existing == null ? (v) => setDialogState(() => batchId = v!) : null,
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Teacher: ${slot.teacherName}",
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                ],
+              DropdownButtonFormField<String>(
+                value: subjectId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Subject'),
+                items: subjects.where((e) => e.id != null).map((e) =>
+                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
+                onChanged: (v) => setDialogState(() => subjectId = v!),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.access_time,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Time: ${slot.startTime.format(context)} - ${slot.endTime.format(context)}",
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColors.darkText,
-                    ),
-                  ),
-                ],
+              DropdownButtonFormField<String>(
+                value: teacherId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Teacher'),
+                items: teachers.where((e) => e.id != null).map((e) =>
+                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
+                onChanged: (v) => setDialogState(() => teacherId = v!),
               ),
-              const SizedBox(height: 20),
-            ],
+              DropdownButtonFormField<int>(
+                value: selectedDay,
+                decoration: const InputDecoration(labelText: 'Day'),
+                items: const [
+                  DropdownMenuItem(value: 1, child: Text('Monday')),
+                  DropdownMenuItem(value: 2, child: Text('Tuesday')),
+                  DropdownMenuItem(value: 3, child: Text('Wednesday')),
+                  DropdownMenuItem(value: 4, child: Text('Thursday')),
+                  DropdownMenuItem(value: 5, child: Text('Friday')),
+                ],
+                onChanged: (v) => setDialogState(() => selectedDay = v!),
+              ),
+              TextField(controller: roomController, decoration: const InputDecoration(labelText: 'Room')),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: OutlinedButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(context: context, initialTime: start);
+                    if (picked != null) setDialogState(() => start = picked);
+                  },
+                  child: Text('Start: ${start.format(context)}'),
+                )),
+                const SizedBox(width: 8),
+                Expanded(child: OutlinedButton(
+                  onPressed: () async {
+                    final picked = await showTimePicker(context: context, initialTime: end);
+                    if (picked != null) setDialogState(() => end = picked);
+                  },
+                  child: Text('End: ${end.format(context)}'),
+                )),
+              ]),
+            ]),
           ),
-        );
-      },
-    );
-  }
-
-  void _showSelectTeacherModal(TimetableSlot slot) {
-    showDialog(
-      context: context,
-      builder: (_) => _SelectTeacherDialog(
-        currentTeacher: slot.teacherName,
-        onSelected: (newTeacher) {
-          final updatedSlot = slot.copyWith(teacherName: newTeacher);
-          ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
-          setState(() {});
-        },
+          actions: [
+            if (existing != null)
+              TextButton(
+                onPressed: saving ? null : () async {
+                  setDialogState(() => saving = true);
+                  try {
+                    await ref.read(timetableNotifierProvider.notifier).deleteSlot(existing.id);
+                    if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    if (mounted) ScaffoldMessenger.of(this.context).showSnackBar(
+                      const SnackBar(content: Text('Timetable entry deleted')),
+                    );
+                  } catch (e) {
+                    setDialogState(() => saving = false);
+                    ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+                  }
+                },
+                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            FilledButton(
+              onPressed: saving ? null : () async {
+                if (roomController.text.trim().isEmpty || end.hour * 60 + end.minute <= start.hour * 60 + start.minute) {
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    const SnackBar(content: Text('Enter a room and a valid end time.')),
+                  );
+                  return;
+                }
+                final selectedBatch = classes.firstWhere((e) => e.id == batchId);
+                final selectedSub = subjects.firstWhere((e) => e.id == subjectId);
+                final selectedTeach = teachers.firstWhere((e) => e.id == teacherId);
+                final slot = TimetableSlot(
+                  id: existing?.id ?? '',
+                  dayOfWeek: selectedDay,
+                  startTime: start,
+                  endTime: end,
+                  roomNo: roomController.text.trim(),
+                  subjectName: selectedSub.name,
+                  teacherName: selectedTeach.name,
+                  classId: selectedBatch.name,
+                  batchId: batchId,
+                  subjectId: subjectId,
+                  teacherId: teacherId,
+                );
+                setDialogState(() => saving = true);
+                try {
+                  final notifier = ref.read(timetableNotifierProvider.notifier);
+                  if (existing == null) {
+                    await notifier.createSlot(slot);
+                  } else {
+                    await notifier.saveSlot(slot);
+                  }
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+                  if (mounted) ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(content: Text(existing == null ? 'Timetable entry created' : 'Timetable entry updated')),
+                  );
+                } catch (e) {
+                  setDialogState(() => saving = false);
+                  ScaffoldMessenger.of(this.context).showSnackBar(
+                    SnackBar(content: Text('Could not save timetable: $e')),
+                  );
+                }
+              },
+              child: Text(saving ? 'Saving...' : 'Save'),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  void _showSelectTeacherModalForEmptySlot(int day, int period) {
-    final classId = _selectedSortClass ?? "S2 BCA";
-    final slotId = "slot_${classId.replaceAll(' ', '_')}_${day}_$period";
-    final dummySlot = TimetableSlot(
-      id: slotId,
-      dayOfWeek: day,
-      startTime: TimeOfDay(hour: 8 + period, minute: 30),
-      endTime: TimeOfDay(hour: 9 + period, minute: 30),
-      subjectName: "Python",
-      teacherName: _selectedTeacher,
-      classId: classId,
-    );
-
-    showDialog(
-      context: context,
-      builder: (_) => _SelectTeacherDialog(
-        currentTeacher: _selectedTeacher,
-        onSelected: (newTeacher) {
-          final updatedSlot = dummySlot.copyWith(teacherName: newTeacher);
-          ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
-          setState(() {});
-        },
-      ),
-    );
+    roomController.dispose();
   }
 
   void _submitSwapRequest() {
@@ -935,6 +975,7 @@ class _TimetableTableCard extends StatelessWidget {
   final bool isSwapMode;
   final bool isHOD;
   final bool isHodEditing;
+  final bool isTeacherSchedule;
   final void Function(TimetableSlot? slot, int day, int period) onCellTap;
 
   const _TimetableTableCard({
@@ -945,6 +986,7 @@ class _TimetableTableCard extends StatelessWidget {
     required this.isSwapMode,
     required this.isHOD,
     required this.isHodEditing,
+    required this.isTeacherSchedule,
     required this.onCellTap,
   });
 
@@ -1076,6 +1118,9 @@ class _TimetableTableCard extends StatelessWidget {
           for (int day = 1; day <= 5; day++)
             _DataCell(
               slot: gridSlots[period - 1][day - 1],
+              secondaryLabel: isTeacherSchedule
+                  ? gridSlots[period - 1][day - 1]?.classId
+                  : gridSlots[period - 1][day - 1]?.teacherName,
               isInteractive: isInteractive,
               showLeftBorder: true,
               onTap: () =>
@@ -1095,12 +1140,14 @@ class _DataCell extends StatelessWidget {
   final TimetableSlot? slot;
   final bool isInteractive;
   final bool showLeftBorder;
+  final String? secondaryLabel;
   final VoidCallback onTap;
 
   const _DataCell({
     required this.slot,
     required this.isInteractive,
     required this.showLeftBorder,
+    required this.secondaryLabel,
     required this.onTap,
   });
 
@@ -1166,7 +1213,7 @@ class _DataCell extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                slot!.teacherName,
+                secondaryLabel ?? slot!.teacherName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,

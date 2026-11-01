@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../home/widgets/status_badge.dart';
 import '../models/timetable_slot.dart';
 import '../../../core/network/api_client.dart';
@@ -6,7 +8,7 @@ import '../repositories/timetable_repository.dart';
 
 part 'timetable_provider.g.dart';
 
-// Reactive local selected date state provider
+// Reactive selected date state.
 @riverpod
 class SelectedDate extends _$SelectedDate {
   @override
@@ -17,7 +19,7 @@ class SelectedDate extends _$SelectedDate {
   }
 }
 
-// Student mock model (kept for type compatibility; no mock data remains)
+// Kept for compatibility with existing attendance-related code.
 class Student {
   final String rollNumber;
   final String name;
@@ -25,37 +27,72 @@ class Student {
   const Student({required this.rollNumber, required this.name});
 }
 
-// ─── All mock static lists have been removed ──────────────────────────────────
-// s2BcaStudents, s4BcaStudents, s6BcaStudents, s8BcaStudents — removed
-// getStudentsForClass() — removed
-// semesterSubjects map — removed
-// subjectTeachers map — removed
-// ─────────────────────────────────────────────────────────────────────────────
-
 @riverpod
 class TimetableNotifier extends _$TimetableNotifier {
   @override
-  List<TimetableSlot> build() {
-    // Initial state is empty; real timetable is loaded by role-specific
-    // FutureProviders (allTimetableProvider / batchTimetableProvider /
-    // teacherTimetableProvider) and pushed into this notifier via
-    // TimetableNotifier.loadSlots() called from home.dart.
-    return [];
-  }
+  List<TimetableSlot> build() => [];
 
-  /// Replaces the full slot list (called after fetching from backend).
+  /// Replaces the local list after a successful backend fetch.
   void loadSlots(List<TimetableSlot> slots) {
     state = slots;
   }
 
+  /// Local-only update. Keep this for UI-only changes such as attendance.
+  /// For HOD timetable edits, call saveSlot() instead.
   void updateSlot(TimetableSlot updatedSlot) {
     state = [
       for (final slot in state)
-        if (slot.id == updatedSlot.id) updatedSlot else slot
+        if (slot.id == updatedSlot.id) updatedSlot else slot,
     ];
   }
 
-  void saveAttendance(String slotId, Map<String, AttendanceStatus> attendance) {
+  /// Creates a timetable entry in MongoDB and adds the server-returned record.
+  Future<TimetableSlot> createSlot(TimetableSlot slot) async {
+    final repository = ref.read(timetableRepositoryProvider);
+    final createdSlot = await repository.createTimetable(slot);
+
+    state = [
+      ...state.where((item) => item.id != createdSlot.id),
+      createdSlot,
+    ];
+    _invalidateTimetableQueries();
+    return createdSlot;
+  }
+
+  /// Updates an existing MongoDB timetable entry and replaces local state.
+  Future<TimetableSlot> saveSlot(TimetableSlot slot) async {
+    if (slot.id.isEmpty) {
+      throw ArgumentError('Cannot update a timetable entry without a MongoDB ID.');
+    }
+
+    final repository = ref.read(timetableRepositoryProvider);
+    final savedSlot = await repository.updateTimetable(slot);
+
+    state = [
+      for (final item in state)
+        if (item.id == savedSlot.id) savedSlot else item,
+    ];
+    _invalidateTimetableQueries();
+    return savedSlot;
+  }
+
+  /// Deletes an entry from MongoDB, then removes it from local state.
+  Future<void> deleteSlot(String id) async {
+    if (id.isEmpty) {
+      throw ArgumentError('Timetable ID is required.');
+    }
+
+    final repository = ref.read(timetableRepositoryProvider);
+    await repository.deleteTimetable(id);
+
+    state = state.where((slot) => slot.id != id).toList();
+    _invalidateTimetableQueries();
+  }
+
+  void saveAttendance(
+    String slotId,
+    Map<String, AttendanceStatus> attendance,
+  ) {
     state = [
       for (final slot in state)
         if (slot.id == slotId)
@@ -64,12 +101,18 @@ class TimetableNotifier extends _$TimetableNotifier {
             studentAttendance: attendance,
           )
         else
-          slot
+          slot,
     ];
   }
 
   void resetAll() {
     ref.invalidateSelf();
+  }
+
+  void _invalidateTimetableQueries() {
+    ref.invalidate(allTimetableProvider);
+    ref.invalidate(batchTimetableProvider);
+    ref.invalidate(teacherTimetableProvider);
   }
 }
 
@@ -80,16 +123,18 @@ final timetableRepositoryProvider = Provider<TimetableRepository>((ref) {
 
 /// All timetable entries — used by HOD.
 final allTimetableProvider = FutureProvider<List<TimetableSlot>>((ref) async {
-  final repo = ref.watch(timetableRepositoryProvider);
-  return repo.getAllTimetable();
+  final repository = ref.watch(timetableRepositoryProvider);
+  return repository.getAllTimetable();
 });
 
-final batchTimetableProvider = FutureProvider.family<List<TimetableSlot>, String>((ref, batchId) async {
-  final repo = ref.watch(timetableRepositoryProvider);
-  return repo.getBatchTimetable(batchId);
+final batchTimetableProvider =
+    FutureProvider.family<List<TimetableSlot>, String>((ref, batchId) async {
+  final repository = ref.watch(timetableRepositoryProvider);
+  return repository.getBatchTimetable(batchId);
 });
 
-final teacherTimetableProvider = FutureProvider.family<List<TimetableSlot>, String>((ref, teacherId) async {
-  final repo = ref.watch(timetableRepositoryProvider);
-  return repo.getTeacherTimetable(teacherId);
+final teacherTimetableProvider =
+    FutureProvider.family<List<TimetableSlot>, String>((ref, teacherId) async {
+  final repository = ref.watch(timetableRepositoryProvider);
+  return repository.getTeacherTimetable(teacherId);
 });

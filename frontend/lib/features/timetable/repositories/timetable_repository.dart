@@ -81,7 +81,7 @@ String _formatTime(TimeOfDay time) {
 /// or an unpopulated ObjectId string.
 String _extractId(dynamic value) {
   if (value is Map) {
-    return value['_id']?.toString() ?? '';
+    return (value['_id'] ?? value['id'])?.toString() ?? '';
   }
 
   return value?.toString() ?? '';
@@ -98,15 +98,15 @@ TimetableSlot _slotFromJson(Map<String, dynamic> json) {
   final batchId = _extractId(batchObj);
 
   final subjectName = subjectObj is Map
-      ? subjectObj['subjectName']?.toString() ?? 'Subject'
+      ? (subjectObj['subjectName'] ?? subjectObj['name'] ?? subjectObj['title'])?.toString() ?? 'Subject'
       : 'Subject';
 
   final teacherName = teacherObj is Map
-      ? teacherObj['teacherName']?.toString() ?? 'Teacher'
+      ? (teacherObj['teacherName'] ?? teacherObj['name'] ?? teacherObj['fullName'])?.toString() ?? 'Teacher'
       : 'Teacher';
 
   final batchName = batchObj is Map
-      ? batchObj['batchName']?.toString() ?? 'Class'
+      ? (batchObj['batchName'] ?? batchObj['name'] ?? batchObj['className'] ?? batchObj['title'])?.toString() ?? 'Class'
       : 'Class';
 
   final id = json['_id']?.toString();
