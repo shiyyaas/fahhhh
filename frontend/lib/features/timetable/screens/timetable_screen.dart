@@ -26,6 +26,7 @@ const double _kTableWidth = _kPeriodColWidth + _kDayColWidth * 5; // ~591 px
 class TimetableScreen extends ConsumerStatefulWidget {
   /// When true, skip HOD admin/edit controls and show the teacher timetable.
   final bool forceTeacherMode;
+
   /// Specific class ID if viewed from inside a class (no dropdown).
   final String? classId;
 
@@ -154,11 +155,18 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
-    final isHOD = (user?.isHOD ?? false) && !widget.forceTeacherMode && widget.classId == null;
+    final isHOD =
+        (user?.isHOD ?? false) &&
+        !widget.forceTeacherMode &&
+        widget.classId == null;
     final isStudent = auth.role == UserRole.student;
     final bool isClassSpecific = widget.classId != null;
-    final bool isTeacherMode = widget.forceTeacherMode || (!isHOD && !isStudent && !isClassSpecific);
-    final bool isOwnTeacher = isTeacherMode && user != null && _matchesTeacher(_selectedTeacher, user.name);
+    final bool isTeacherMode =
+        widget.forceTeacherMode || (!isHOD && !isStudent && !isClassSpecific);
+    final bool isOwnTeacher =
+        isTeacherMode &&
+        user != null &&
+        _matchesTeacher(_selectedTeacher, user.name);
 
     final deptClasses = ref.watch(departmentClassesProvider).value ?? [];
     final currentClasses = deptClasses.isNotEmpty
@@ -188,7 +196,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       (_) => List.generate(5, (_) => null),
     );
 
-    if (isStudent || isClassSpecific || (isHOD && _selectedSegment == "Classes")) {
+    if (isStudent ||
+        isClassSpecific ||
+        (isHOD && _selectedSegment == "Classes")) {
       final targetClass = _selectedSortClass ?? "S2 BCA";
       for (final slot in allSlots) {
         if (slot.classId == targetClass) {
@@ -205,13 +215,15 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         }
       }
     } else {
-      final activeTeacher =
-          isHOD && _selectedSegment == "Classes" ? null : _selectedTeacher;
+      final activeTeacher = isHOD && _selectedSegment == "Classes"
+          ? null
+          : _selectedTeacher;
 
       for (final slot in allSlots) {
         final matchesClass =
             _selectedSortClass == null || slot.classId == _selectedSortClass;
-        final matchesTeacher = activeTeacher == null ||
+        final matchesTeacher =
+            activeTeacher == null ||
             _matchesTeacher(slot.teacherName, activeTeacher);
 
         if (matchesClass && matchesTeacher) {
@@ -240,13 +252,19 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 title: 'Time Table',
                 subtitle: isClassSpecific
                     ? 'Timetable for ${widget.classId}'
-                    : (isTeacherMode ? 'Teacher Timetable ($_selectedTeacher)' : 'View your timetable here'),
+                    : (isTeacherMode
+                          ? 'Teacher Timetable ($_selectedTeacher)'
+                          : 'View your timetable here'),
                 onBack: () {
                   if (!context.mounted) return;
                   context.pop();
                 },
-                padding:
-                    const EdgeInsets.only(left: 8, top: 16, right: 16, bottom: 8),
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  top: 16,
+                  right: 16,
+                  bottom: 8,
+                ),
               ),
 
               const SizedBox(height: 12),
@@ -277,10 +295,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   },
                   onUploadTap: _pickAndPreviewTimetable,
                 ),
-              ]
-<<<<<<< HEAD
-              // ── Teacher controls (with dropdown to switch, and swap only for own timetable) ──
-              else if (isTeacherMode) ...[
+              ] else if (isTeacherMode) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -288,7 +303,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       Expanded(
                         child: _OutlinedDropdown(
                           label: _selectedTeacher,
-                          items: _teachersList,
+                          items: currentTeachers,
                           onSelected: (val) {
                             setState(() {
                               _selectedTeacher = val;
@@ -306,11 +321,18 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             },
                             child: Container(
                               height: 44,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(AppRadius.pill),
-                                border: Border.all(color: AppColors.outline, width: 1.2),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
+                                border: Border.all(
+                                  color: AppColors.outline,
+                                  width: 1.2,
+                                ),
                               ),
                               child: Center(
                                 child: Text(
@@ -339,35 +361,12 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       ],
                     ],
                   ),
-=======
-              // ── Teacher controls ────────────────────────────────────────
-              else if (!isStudent) ...[
-                _TeacherControls(
-                  selectedSortClass: _selectedSortClass,
-                  classesList: currentClasses,
-                  isSwapMode: _isSwapMode,
-                  onClassSelected: (val) {
-                    setState(() {
-                      _selectedSortClass = val == "ALL" ? null : val;
-                    });
-                  },
-                  onSwapTap: () {
-                    if (_isSwapMode) {
-                      _submitSwapRequest();
-                    } else {
-                      setState(() => _isSwapMode = true);
-                    }
-                  },
-                  onCancelSwap: () {
-                    setState(() => _isSwapMode = false);
-                  },
->>>>>>> ecb909d (fix: resolve Flutter analyzer issues and update timetable file picker)
                 ),
               ],
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-              // ── Timetable Table Card (contains table + scrollbar inside) ──
+              // ── Timetable table card ─────────────────────────────────────
               _TimetableTableCard(
                 gridSlots: gridSlots,
                 scrollController: _tableScrollController,
@@ -379,7 +378,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 onCellTap: _handleCellTap,
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -440,7 +439,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondary,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -459,7 +461,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 20, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 20,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     "Teacher: ${slot.teacherName}",
@@ -473,7 +479,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 20, color: AppColors.textSecondary),
+                  const Icon(
+                    Icons.access_time,
+                    size: 20,
+                    color: AppColors.textSecondary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     "Time: ${slot.startTime.format(context)} - ${slot.endTime.format(context)}",
@@ -499,9 +509,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         currentTeacher: slot.teacherName,
         onSelected: (newTeacher) {
           final updatedSlot = slot.copyWith(teacherName: newTeacher);
-          ref
-              .read(timetableNotifierProvider.notifier)
-              .updateSlot(updatedSlot);
+          ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
           setState(() {});
         },
       ),
@@ -510,8 +518,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
   void _showSelectTeacherModalForEmptySlot(int day, int period) {
     final classId = _selectedSortClass ?? "S2 BCA";
-    final slotId =
-        "slot_${classId.replaceAll(' ', '_')}_${day}_$period";
+    final slotId = "slot_${classId.replaceAll(' ', '_')}_${day}_$period";
     final dummySlot = TimetableSlot(
       id: slotId,
       dayOfWeek: day,
@@ -528,9 +535,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         currentTeacher: _selectedTeacher,
         onSelected: (newTeacher) {
           final updatedSlot = dummySlot.copyWith(teacherName: newTeacher);
-          ref
-              .read(timetableNotifierProvider.notifier)
-              .updateSlot(updatedSlot);
+          ref.read(timetableNotifierProvider.notifier).updateSlot(updatedSlot);
           setState(() {});
         },
       ),
@@ -605,7 +610,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.secondary,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -632,7 +640,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      isPdf ? Icons.picture_as_pdf_rounded : Icons.table_chart_rounded,
+                      isPdf
+                          ? Icons.picture_as_pdf_rounded
+                          : Icons.table_chart_rounded,
                       color: AppColors.primary,
                       size: 32,
                     ),
@@ -656,8 +666,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             file.lengthSync() == null
                                 ? "Size unavailable"
                                 : file.lengthSync()! >= 1024 * 1024
-                                    ? "${(file.lengthSync()! / (1024 * 1024)).toStringAsFixed(1)} MB"
-                                    : "${(file.lengthSync()! / 1024).toStringAsFixed(1)} KB",
+                                ? "${(file.lengthSync()! / (1024 * 1024)).toStringAsFixed(1)} MB"
+                                : "${(file.lengthSync()! / 1024).toStringAsFixed(1)} KB",
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               color: AppColors.textSecondary,
@@ -694,22 +704,35 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     children: [
                       Text(
                         "• Target Class: ${_selectedSortClass ?? 'S2 BCA'}",
-                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.headingText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "• Detected Days: Monday — Friday (5 days)",
-                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.headingText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "• Periods per day: 5 periods",
-                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.headingText),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.headingText,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "• Status: Ready for import",
-                        style: GoogleFonts.inter(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -814,7 +837,9 @@ class _HodControls extends StatelessWidget {
                   label: selectedSegment == "Classes"
                       ? (selectedSortClass ?? "S2 BCA")
                       : selectedTeacher,
-                  items: selectedSegment == "Classes" ? classesList : teachersList,
+                  items: selectedSegment == "Classes"
+                      ? classesList
+                      : teachersList,
                   onSelected: selectedSegment == "Classes"
                       ? onClassSelected
                       : onTeacherSelected,
@@ -832,10 +857,7 @@ class _HodControls extends StatelessWidget {
               children: [
                 _UploadButton(onTap: onUploadTap),
                 const SizedBox(width: 8),
-                _EditButton(
-                  isEditing: isHodEditing,
-                  onTap: onEditToggle,
-                ),
+                _EditButton(isEditing: isHodEditing, onTap: onEditToggle),
               ],
             ),
           ),
@@ -866,10 +888,7 @@ class _UploadButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          border: Border.all(
-            color: AppColors.outline,
-            width: 1.2,
-          ),
+          border: Border.all(color: AppColors.outline, width: 1.2),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
@@ -982,11 +1001,7 @@ class _TimetableTableCard extends StatelessWidget {
             ),
           ),
           // ── Divider separating table body from scrollbar area ──
-          const Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0xFFE2E8F0),
-          ),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
           // ── Scrollbar inside the timetable card ──
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1063,11 +1078,8 @@ class _TimetableTableCard extends StatelessWidget {
               slot: gridSlots[period - 1][day - 1],
               isInteractive: isInteractive,
               showLeftBorder: true,
-              onTap: () => onCellTap(
-                gridSlots[period - 1][day - 1],
-                day,
-                period,
-              ),
+              onTap: () =>
+                  onCellTap(gridSlots[period - 1][day - 1], day, period),
             ),
         ],
       ),
@@ -1180,10 +1192,7 @@ class _ScrollTrack extends StatelessWidget {
   final double progress;
   final ValueChanged<double>? onScrolled;
 
-  const _ScrollTrack({
-    required this.progress,
-    this.onScrolled,
-  });
+  const _ScrollTrack({required this.progress, this.onScrolled});
 
   @override
   Widget build(BuildContext context) {
@@ -1202,8 +1211,10 @@ class _ScrollTrack extends StatelessWidget {
               ? (details) {
                   final RenderBox box = context.findRenderObject() as RenderBox;
                   final localPos = box.globalToLocal(details.globalPosition);
-                  final double newProgress =
-                      (localPos.dx / trackWidth).clamp(0.0, 1.0);
+                  final double newProgress = (localPos.dx / trackWidth).clamp(
+                    0.0,
+                    1.0,
+                  );
                   onScrolled!(newProgress);
                 }
               : null,
@@ -1294,8 +1305,7 @@ class _PillSegment extends StatelessWidget {
             onTap: () => onChanged(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -1303,8 +1313,9 @@ class _PillSegment extends StatelessWidget {
               child: Text(
                 labels[i],
                 style: GoogleFonts.inter(
-                  color:
-                      isSelected ? AppColors.surface : const Color(0xFF6B7280),
+                  color: isSelected
+                      ? AppColors.surface
+                      : const Color(0xFF6B7280),
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -1341,13 +1352,15 @@ class _OutlinedDropdown extends StatelessWidget {
       ),
       offset: const Offset(0, 48),
       itemBuilder: (_) => items
-          .map((item) => PopupMenuItem<String>(
-                value: item,
-                child: Text(
-                  item,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w500),
-                ),
-              ))
+          .map(
+            (item) => PopupMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+              ),
+            ),
+          )
           .toList(),
       child: Container(
         height: 44,
@@ -1407,8 +1420,7 @@ class _EditButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         height: 44,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           color: isEditing ? AppColors.primary : AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -1495,8 +1507,7 @@ class _SwapButton extends StatelessWidget {
             Text(
               isSwapMode ? "Request" : "Swap",
               style: GoogleFonts.inter(
-                color:
-                    isSwapMode ? AppColors.surface : AppColors.headingText,
+                color: isSwapMode ? AppColors.surface : AppColors.headingText,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -1587,15 +1598,15 @@ class _SelectTeacherDialogState extends State<_SelectTeacherDialog> {
               ),
               offset: const Offset(0, 52),
               itemBuilder: (_) => _availableTeachers
-                  .map((t) => PopupMenuItem<String>(
-                        value: t,
-                        child: Text(
-                          t,
-                          style: GoogleFonts.inter(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ))
+                  .map(
+                    (t) => PopupMenuItem<String>(
+                      value: t,
+                      child: Text(
+                        t,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  )
                   .toList(),
               child: Container(
                 height: 50,
@@ -1603,10 +1614,7 @@ class _SelectTeacherDialogState extends State<_SelectTeacherDialog> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(
-                    color: AppColors.outline,
-                    width: 1.2,
-                  ),
+                  border: Border.all(color: AppColors.outline, width: 1.2),
                 ),
                 child: Row(
                   children: [
