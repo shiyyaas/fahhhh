@@ -91,6 +91,18 @@ class DepartmentRepository {
     throw Exception(data['message'] ?? 'Failed to create teacher');
   }
 
+  Future<DepartmentTeacher> updateTeacher(String id, Map<String, dynamic> data) async {
+    final response = await _apiClient.put(
+      ApiEndpoints.teacher(id),
+      data: data,
+    );
+    final resData = response.data as Map<String, dynamic>;
+    if (resData['success'] == true && resData['teacher'] != null) {
+      return DepartmentTeacher.fromJson(resData['teacher'] as Map<String, dynamic>);
+    }
+    throw Exception(resData['message'] ?? 'Failed to update teacher');
+  }
+
   Future<void> deleteTeacher(String id) async {
     final response = await _apiClient.delete(ApiEndpoints.teacher(id));
     final data = response.data as Map<String, dynamic>;
@@ -127,6 +139,18 @@ class DepartmentRepository {
     throw Exception(data['message'] ?? 'Failed to create student');
   }
 
+  Future<DepartmentStudent> updateStudent(String id, Map<String, dynamic> data) async {
+    final response = await _apiClient.put(
+      ApiEndpoints.student(id),
+      data: data,
+    );
+    final resData = response.data as Map<String, dynamic>;
+    if (resData['success'] == true && resData['student'] != null) {
+      return DepartmentStudent.fromJson(resData['student'] as Map<String, dynamic>);
+    }
+    throw Exception(resData['message'] ?? 'Failed to update student');
+  }
+
   Future<void> deleteStudent(String id) async {
     final response = await _apiClient.delete(ApiEndpoints.student(id));
     final data = response.data as Map<String, dynamic>;
@@ -159,6 +183,18 @@ class DepartmentRepository {
       return DepartmentSubject.fromJson(data['subject'] as Map<String, dynamic>);
     }
     throw Exception(data['message'] ?? 'Failed to create subject');
+  }
+
+  Future<DepartmentSubject> updateSubject(String id, Map<String, dynamic> data) async {
+    final response = await _apiClient.put(
+      ApiEndpoints.subject(id),
+      data: data,
+    );
+    final resData = response.data as Map<String, dynamic>;
+    if (resData['success'] == true && resData['subject'] != null) {
+      return DepartmentSubject.fromJson(resData['subject'] as Map<String, dynamic>);
+    }
+    throw Exception(resData['message'] ?? 'Failed to update subject');
   }
 
   Future<void> deleteSubject(String id) async {
