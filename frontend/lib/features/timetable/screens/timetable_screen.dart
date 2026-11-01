@@ -408,6 +408,81 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     }
   }
 
+  void _showSlotDetailsModal(TimetableSlot slot) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: AppColors.surface,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    slot.subjectName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.headingText,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary,
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Text(
+                    slot.classId,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.person_outline, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Teacher: ${slot.teacherName}')),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Text('Time: ${slot.startTime.format(sheetContext)} - ${slot.endTime.format(sheetContext)}'),
+              ],
+            ),
+            if (slot.roomNo.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(Icons.room_outlined, size: 20, color: AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Text('Room: ${slot.roomNo}'),
+                ],
+              ),
+            ],
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showTimetableEditor(TimetableSlot? existing, int day) async {
     final classes = ref.read(departmentClassesProvider).value ?? [];
     final teachers = ref.read(departmentTeachersProvider).value ?? [];
@@ -424,6 +499,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       (e) => e.name == (existing?.classId ?? _selectedSortClass),
     ).toList();
     final batch = matchingBatches.isNotEmpty ? matchingBatches.first : classes.first;
+    final selectedBatchId = batch.id;
     final matchingTeachers = teachers.where((e) => e.id == existing?.teacherId).toList();
     final selectedTeacher = matchingTeachers.isNotEmpty ? matchingTeachers.first : teachers.first;
     final matchingSubjects = subjects.where((e) => e.id == existing?.subjectId).toList();
