@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_picker/file_picker.dart' as picker;
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_radius.dart';
@@ -12,6 +12,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';
 import '../providers/timetable_provider.dart';
+import '../../department/providers/department_provider.dart';
 
 // ---------------------------------------------------------------------------
 // Sizing constants derived from Figma node 1378-5595
@@ -159,6 +160,16 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final bool isTeacherMode = widget.forceTeacherMode || (!isHOD && !isStudent && !isClassSpecific);
     final bool isOwnTeacher = isTeacherMode && user != null && _matchesTeacher(_selectedTeacher, user.name);
 
+    final deptClasses = ref.watch(departmentClassesProvider).value ?? [];
+    final currentClasses = deptClasses.isNotEmpty
+        ? deptClasses.map((c) => c.name).toList()
+        : _classesList;
+
+    final deptTeachers = ref.watch(departmentTeachersProvider).value ?? [];
+    final currentTeachers = deptTeachers.isNotEmpty
+        ? deptTeachers.map((t) => t.name).toList()
+        : _teachersList;
+
     if (isStudent && user?.className != null) {
       _selectedSortClass = user!.className!;
     } else if (isClassSpecific) {
@@ -246,8 +257,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   selectedSegment: _selectedSegment,
                   selectedSortClass: _selectedSortClass,
                   selectedTeacher: _selectedTeacher,
-                  classesList: _classesList,
-                  teachersList: _teachersList,
+                  classesList: currentClasses,
+                  teachersList: currentTeachers,
                   isHodEditing: _isHodEditing,
                   onSegmentChanged: (seg) {
                     setState(() {
@@ -267,6 +278,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   onUploadTap: _pickAndPreviewTimetable,
                 ),
               ]
+<<<<<<< HEAD
               // ── Teacher controls (with dropdown to switch, and swap only for own timetable) ──
               else if (isTeacherMode) ...[
                 Padding(
@@ -327,6 +339,29 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       ],
                     ],
                   ),
+=======
+              // ── Teacher controls ────────────────────────────────────────
+              else if (!isStudent) ...[
+                _TeacherControls(
+                  selectedSortClass: _selectedSortClass,
+                  classesList: currentClasses,
+                  isSwapMode: _isSwapMode,
+                  onClassSelected: (val) {
+                    setState(() {
+                      _selectedSortClass = val == "ALL" ? null : val;
+                    });
+                  },
+                  onSwapTap: () {
+                    if (_isSwapMode) {
+                      _submitSwapRequest();
+                    } else {
+                      setState(() => _isSwapMode = true);
+                    }
+                  },
+                  onCancelSwap: () {
+                    setState(() => _isSwapMode = false);
+                  },
+>>>>>>> ecb909d (fix: resolve Flutter analyzer issues and update timetable file picker)
                 ),
               ],
 
@@ -516,18 +551,17 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
   Future<void> _pickAndPreviewTimetable() async {
     try {
-      FilePickerResult? result = await FilePicker.pickFiles(
-        type: FileType.custom,
+      final files = await picker.FilePicker.pickFiles(
+        type: picker.FileType.custom,
         allowedExtensions: ['pdf', 'csv'],
       );
 
-      if (result != null) {
-        final PlatformFile file = result.files.single;
-        if (!mounted) return;
-        _showTimetablePreviewModal(file);
-      }
+      if (files.isEmpty || !mounted) return;
+
+      _showTimetablePreviewModal(files.first);
     } catch (e) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error picking file: $e"),
@@ -537,7 +571,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     }
   }
 
-  void _showTimetablePreviewModal(PlatformFile file) {
+  void _showTimetablePreviewModal(picker.PlatformFile file) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -619,9 +653,11 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            file.size > 1024 * 1024
-                                ? "${(file.size / (1024 * 1024)).toStringAsFixed(1)} MB"
-                                : "${(file.size / 1024).toStringAsFixed(1)} KB",
+                            file.lengthSync() == null
+                                ? "Size unavailable"
+                                : file.lengthSync()! >= 1024 * 1024
+                                    ? "${(file.lengthSync()! / (1024 * 1024)).toStringAsFixed(1)} MB"
+                                    : "${(file.lengthSync()! / 1024).toStringAsFixed(1)} KB",
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               color: AppColors.textSecondary,

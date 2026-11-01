@@ -77,6 +77,17 @@ class _AddTeacherDialogState extends ConsumerState<AddTeacherDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final subjectsAsync = ref.watch(departmentSubjectsProvider);
+    final classesAsync = ref.watch(departmentClassesProvider);
+
+    final liveSubjects = subjectsAsync.value != null && subjectsAsync.value!.isNotEmpty
+        ? subjectsAsync.value!.map((s) => s.name).toList()
+        : _subjects;
+
+    final liveClasses = classesAsync.value != null && classesAsync.value!.isNotEmpty
+        ? classesAsync.value!.map((c) => c.name).toList()
+        : _classes;
+
     return AppFormDialog(
       formKey: _formKey,
       title: 'Add New Teacher',
@@ -101,13 +112,13 @@ class _AddTeacherDialogState extends ConsumerState<AddTeacherDialog> {
         AppDropdownField(
           label: 'Assigned Subject',
           value: _selectedSubject,
-          items: _subjects,
+          items: liveSubjects,
           onChanged: (value) => setState(() => _selectedSubject = value),
         ),
         AppDropdownField(
           label: 'Assigned Class',
           value: _selectedClass,
-          items: _classes,
+          items: liveClasses,
           onChanged: (value) => setState(() => _selectedClass = value),
         ),
       ],

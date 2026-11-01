@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 // Design
 import 'package:fahhhh/core/theme_data/app_colors.dart';
@@ -26,6 +28,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
+  XFile? _pickedImage;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -42,6 +46,61 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 800,
+    );
+    if (picked != null) {
+      setState(() => _pickedImage = picked);
+    }
+  }
+
+  Widget _buildAvatar(String? imageUrl) {
+    ImageProvider? provider;
+
+    if (_pickedImage != null) {
+      // Locally picked image (not yet uploaded)
+      provider = FileImage(File(_pickedImage!.path));
+    } else if (imageUrl != null && imageUrl.startsWith('http')) {
+      // Network image from backend
+      provider = NetworkImage(imageUrl);
+    } else if (imageUrl != null && imageUrl.isNotEmpty) {
+      // Local asset
+      provider = AssetImage(imageUrl);
+    }
+
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          CircleAvatar(
+            radius: 55,
+            backgroundImage: provider,
+            child: provider == null
+                ? const Icon(Icons.person, size: 60, color: Colors.white)
+                : null,
+          ),
+          Container(
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: const Icon(
+              Icons.camera_alt,
+              size: 18,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -78,20 +137,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Center(
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 55,
-                        backgroundImage: user.imageUrl != null
-                            ? AssetImage(user.imageUrl!)
-                            : null,
-                        child: user.imageUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.white,
-                              )
-                            : null,
+                      _buildAvatar(user.imageUrl),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap to change photo',
+                        style: AppTextStyles.small.copyWith(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 4),
                       Text(
                         'Modify your core credentials below',
                         style: AppTextStyles.small.copyWith(
@@ -163,26 +218,43 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 const SizedBox(height: 40),
 
                 // SAVE BUTTON
-                BlueBtn(
-                  text: "Save Changes",
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      await ref.read(authNotifierProvider.notifier).updateProfile(
-                            name: _nameController.text.trim(),
-                            email: _emailController.text.trim(),
-                            phone: _phoneController.text.trim(),
-                          );
-                      if (!context.mounted) return;
-                      context.pop();
-                    }
-                  },
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 14,
+                if (_isUploading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  BlueBtn(
+                    text: "Save Changes",
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() => _isUploading = true);
+                        try {
+                          // Upload avatar first if user picked a new image
+                          if (_pickedImage != null) {
+                            await ref
+                                .read(authNotifierProvider.notifier)
+                                .uploadAvatar(_pickedImage!);
+                          }
+                          // Then update text fields
+                          await ref
+                              .read(authNotifierProvider.notifier)
+                              .updateProfile(
+                                name: _nameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                phone: _phoneController.text.trim(),
+                              );
+                        } finally {
+                          if (mounted) setState(() => _isUploading = false);
+                        }
+                        if (!context.mounted) return;
+                        context.pop();
+                      }
+                    },
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    mainAxisAlignment: MainAxisAlignment.center,
                   ),
-                  mainAxisAlignment: MainAxisAlignment.center,
-                ),
                 const SizedBox(height: 20),
                       ],
                     ),

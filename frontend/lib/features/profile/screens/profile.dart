@@ -87,18 +87,9 @@ class Profile extends ConsumerWidget {
               Center(
                 child: Column(
                   children: [
-                    const SizedBox(height: 16),
-                    Container(
-                      width: 99,
-                      height: 99,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 1),
-                        image: DecorationImage(
-                          image: AssetImage(imageUrl),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                    CircleAvatar(
+                      radius: 55,
+                      backgroundImage: AssetImage(imageUrl),
                     ),
                     const SizedBox(height: 16),
                     Text(

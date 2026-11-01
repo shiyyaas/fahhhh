@@ -1,12 +1,14 @@
+
 import 'package:flutter/material.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../models/timetable_slot.dart';
 import '../../home/widgets/status_badge.dart';
 
-/// Maps a backend day-name string to a 1–6 integer (Mon=1 … Sat=6).
+/// Converts backend day names into integers.
+/// Monday = 1 ... Saturday = 6.
 int _dayNameToInt(String day) {
-  const map = {
+  const days = {
     'Monday': 1,
     'Tuesday': 2,
     'Wednesday': 3,
@@ -14,51 +16,122 @@ int _dayNameToInt(String day) {
     'Friday': 5,
     'Saturday': 6,
   };
-  return map[day] ?? 1;
+
+  final result = days[day];
+
+  if (result == null) {
+    throw FormatException('Invalid timetable day: $day');
+  }
+
+  return result;
 }
 
-/// Parses "HH:mm" (e.g. "09:30") to [TimeOfDay].
+/// Converts integer day values into backend day names.
+String _dayIntToName(int day) {
+  const days = {
+    1: 'Monday',
+    2: 'Tuesday',
+    3: 'Wednesday',
+    4: 'Thursday',
+    5: 'Friday',
+    6: 'Saturday',
+  };
+
+  final result = days[day];
+
+  if (result == null) {
+    throw FormatException('Invalid day number: $day');
+  }
+
+  return result;
+}
+
+/// Parses HH:mm into TimeOfDay.
 TimeOfDay _parseTime(String time) {
   final parts = time.split(':');
-  if (parts.length < 2) return const TimeOfDay(hour: 9, minute: 0);
-  return TimeOfDay(
-    hour: int.tryParse(parts[0]) ?? 9,
-    minute: int.tryParse(parts[1]) ?? 0,
-  );
+
+  if (parts.length != 2) {
+    throw FormatException('Invalid time format: $time');
+  }
+
+  final hour = int.tryParse(parts[0]);
+  final minute = int.tryParse(parts[1]);
+
+  if (hour == null ||
+      minute == null ||
+      hour < 0 ||
+      hour > 23 ||
+      minute < 0 ||
+      minute > 59) {
+    throw FormatException('Invalid time: $time');
+  }
+
+  return TimeOfDay(hour: hour, minute: minute);
 }
 
-/// Converts a backend timetable JSON entry to [TimetableSlot].
+/// Converts TimeOfDay into HH:mm.
+String _formatTime(TimeOfDay time) {
+  final hour = time.hour.toString().padLeft(2, '0');
+  final minute = time.minute.toString().padLeft(2, '0');
+
+  return '$hour:$minute';
+}
+
+/// Safely extracts an ID from a populated MongoDB reference
+/// or an unpopulated ObjectId string.
+String _extractId(dynamic value) {
+  if (value is Map) {
+    return value['_id']?.toString() ?? '';
+  }
+
+  return value?.toString() ?? '';
+}
+
+/// Converts backend timetable JSON into TimetableSlot.
 TimetableSlot _slotFromJson(Map<String, dynamic> json) {
   final subjectObj = json['subject'];
   final teacherObj = json['teacher'];
   final batchObj = json['batch'];
 
-  final subjectId = subjectObj is Map ? (subjectObj['_id'] as String? ?? '') : (subjectObj as String? ?? '');
+  final subjectId = _extractId(subjectObj);
+  final teacherId = _extractId(teacherObj);
+  final batchId = _extractId(batchObj);
+
   final subjectName = subjectObj is Map
-      ? (subjectObj['subjectName'] as String? ?? 'Subject')
+      ? subjectObj['subjectName']?.toString() ?? 'Subject'
       : 'Subject';
+
   final teacherName = teacherObj is Map
-      ? (teacherObj['teacherName'] as String? ?? 'Teacher')
+      ? teacherObj['teacherName']?.toString() ?? 'Teacher'
       : 'Teacher';
+
   final batchName = batchObj is Map
-      ? (batchObj['batchName'] as String? ?? 'Class')
+      ? batchObj['batchName']?.toString() ?? 'Class'
       : 'Class';
 
-  final teacherId = teacherObj is Map ? (teacherObj['_id'] as String? ?? '') : (teacherObj as String? ?? '');
-  final batchId = batchObj is Map ? (batchObj['_id'] as String? ?? '') : (batchObj as String? ?? '');
+  final id = json['_id']?.toString();
 
-  final day = json['day'] as String? ?? 'Monday';
-  final startTimeStr = json['startTime'] as String? ?? '09:30';
-  final endTimeStr = json['endTime'] as String? ?? '10:30';
+  if (id == null || id.isEmpty) {
+    throw const FormatException(
+      'Timetable entry is missing its MongoDB ID',
+    );
+  }
 
   return TimetableSlot(
-    id: json['_id'] as String? ?? subjectId,
-    dayOfWeek: _dayNameToInt(day),
-    startTime: _parseTime(startTimeStr),
-    endTime: _parseTime(endTimeStr),
+    id: id,
+    dayOfWeek: _dayNameToInt(
+      json['day']?.toString() ?? '',
+    ),
+    startTime: _parseTime(
+      json['startTime']?.toString() ?? '',
+    ),
+    endTime: _parseTime(
+      json['endTime']?.toString() ?? '',
+    ),
     subjectName: subjectName,
     teacherName: teacherName,
     classId: batchName,
+    roomNo: json['roomNo']?.toString() ?? '',
     status: AttendanceStatus.pending,
     studentStatus: AttendanceStatus.pending,
     studentAttendance: const {},
@@ -68,67 +141,172 @@ TimetableSlot _slotFromJson(Map<String, dynamic> json) {
   );
 }
 
+/// Converts a JSON response into a timetable slot.
+TimetableSlot _slotFromResponse(dynamic responseData) {
+  if (responseData is! Map) {
+    throw const FormatException('Invalid server response');
+  }
+
+  if (responseData['success'] != true ||
+      responseData['timetable'] is! Map) {
+    throw Exception(
+      responseData['message']?.toString() ??
+          'Timetable operation failed',
+    );
+  }
+
+  return _slotFromJson(
+    Map<String, dynamic>.from(responseData['timetable'] as Map),
+  );
+}
+
+/// Converts a JSON list into timetable slots.
+List<TimetableSlot> _slotsFromResponse(dynamic responseData) {
+  if (responseData is! Map ||
+      responseData['success'] != true) {
+    throw Exception(
+      responseData is Map
+          ? responseData['message']?.toString() ??
+              'Unable to fetch timetable'
+          : 'Invalid server response',
+    );
+  }
+
+  final raw = responseData['timetable'];
+
+  if (raw is! List) {
+    throw const FormatException(
+      'Invalid timetable list from server',
+    );
+  }
+
+  return raw.map((item) {
+    if (item is! Map) {
+      throw const FormatException(
+        'Invalid timetable entry',
+      );
+    }
+
+    return _slotFromJson(
+      Map<String, dynamic>.from(item),
+    );
+  }).toList();
+}
+
 class TimetableRepository {
   final ApiClient _apiClient;
 
-  TimetableRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  TimetableRepository({
+    required ApiClient apiClient,
+  }) : _apiClient = apiClient;
 
-  /// Fetches timetable for a batch (HOD/Student perspective).
-  /// Falls back to an empty list on error.
-  Future<List<TimetableSlot>> getBatchTimetable(String batchId) async {
-    try {
-      final response = await _apiClient.dio.get(ApiEndpoints.batchTimetable(batchId));
-      final data = response.data;
-      if (data is Map && data['success'] == true) {
-        final raw = data['timetable'] as List? ?? [];
-        return raw
-            .whereType<Map<String, dynamic>>()
-            .map(_slotFromJson)
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      debugPrint('[TimetableRepository] getBatchTimetable error: $e');
-      return [];
+  /// Builds the request body for create and update.
+  Map<String, dynamic> _slotToJson(TimetableSlot slot) {
+    if (slot.batchId == null || slot.batchId!.isEmpty) {
+      throw ArgumentError('Batch ID is required');
     }
+
+    if (slot.subjectId == null || slot.subjectId!.isEmpty) {
+      throw ArgumentError('Subject ID is required');
+    }
+
+    if (slot.teacherId == null || slot.teacherId!.isEmpty) {
+      throw ArgumentError('Teacher ID is required');
+    }
+
+    if (slot.roomNo.trim().isEmpty) {
+      throw ArgumentError('Room number is required');
+    }
+
+    return {
+      'batch': slot.batchId,
+      'subject': slot.subjectId,
+      'teacher': slot.teacherId,
+      'day': _dayIntToName(slot.dayOfWeek),
+      'startTime': _formatTime(slot.startTime),
+      'endTime': _formatTime(slot.endTime),
+      'roomNo': slot.roomNo.trim(),
+    };
   }
 
-  /// Fetches timetable for a teacher (Teacher perspective).
-  /// Falls back to an empty list on error.
-  Future<List<TimetableSlot>> getTeacherTimetable(String teacherId) async {
-    try {
-      final response = await _apiClient.dio.get(ApiEndpoints.teacherTimetable(teacherId));
-      final data = response.data;
-      if (data is Map && data['success'] == true) {
-        final raw = data['timetable'] as List? ?? [];
-        return raw
-            .whereType<Map<String, dynamic>>()
-            .map(_slotFromJson)
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      debugPrint('[TimetableRepository] getTeacherTimetable error: $e');
-      return [];
-    }
-  }
-
-  /// Fetches all timetable entries (General / HOD perspective).
+  /// GET: Fetch all timetable entries.
   Future<List<TimetableSlot>> getAllTimetable() async {
-    try {
-      final response = await _apiClient.dio.get(ApiEndpoints.timetable);
-      final data = response.data;
-      if (data is Map && data['success'] == true) {
-        final raw = data['timetable'] as List? ?? [];
-        return raw
-            .whereType<Map<String, dynamic>>()
-            .map(_slotFromJson)
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      debugPrint('[TimetableRepository] getAllTimetable error: $e');
-      return [];
+    final response = await _apiClient.dio.get(
+      ApiEndpoints.timetable,
+    );
+
+    return _slotsFromResponse(response.data);
+  }
+
+  /// GET: Fetch timetable for a batch.
+  Future<List<TimetableSlot>> getBatchTimetable(
+    String batchId,
+  ) async {
+    final response = await _apiClient.dio.get(
+      ApiEndpoints.batchTimetable(batchId),
+    );
+
+    return _slotsFromResponse(response.data);
+  }
+
+  /// GET: Fetch timetable for a teacher.
+  Future<List<TimetableSlot>> getTeacherTimetable(
+    String teacherId,
+  ) async {
+    final response = await _apiClient.dio.get(
+      ApiEndpoints.teacherTimetable(teacherId),
+    );
+
+    return _slotsFromResponse(response.data);
+  }
+
+  /// POST: Create a timetable entry.
+  Future<TimetableSlot> createTimetable(
+    TimetableSlot slot,
+  ) async {
+    final response = await _apiClient.dio.post(
+      ApiEndpoints.timetable,
+      data: _slotToJson(slot),
+    );
+
+    return _slotFromResponse(response.data);
+  }
+
+  /// PATCH: Update an existing timetable entry.
+  Future<TimetableSlot> updateTimetable(
+    TimetableSlot slot,
+  ) async {
+    if (slot.id.isEmpty) {
+      throw ArgumentError('Timetable ID is required');
+    }
+
+    final response = await _apiClient.dio.patch(
+      ApiEndpoints.updateTimetable(slot.id),
+      data: _slotToJson(slot),
+    );
+
+    return _slotFromResponse(response.data);
+  }
+
+  /// DELETE: Delete a timetable entry.
+  Future<void> deleteTimetable(String id) async {
+    if (id.isEmpty) {
+      throw ArgumentError('Timetable ID is required');
+    }
+
+    final response = await _apiClient.dio.delete(
+      ApiEndpoints.deleteTimetable(id),
+    );
+
+    final data = response.data;
+
+    if (data is! Map || data['success'] != true) {
+      throw Exception(
+        data is Map
+            ? data['message']?.toString() ??
+                'Unable to delete timetable'
+            : 'Invalid server response',
+      );
     }
   }
 }

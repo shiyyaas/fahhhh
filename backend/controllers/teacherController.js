@@ -1,5 +1,6 @@
 const Teacher = require("../models/Teacher");
 const Department = require("../models/Department");
+const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 // Create Teacher
@@ -61,6 +62,20 @@ exports.createTeacher = async (req, res) => {
                 departments
             });
 
+        // Also create matching User for login authentication
+        await User.findOneAndUpdate(
+            { email: email.toLowerCase().trim() },
+            {
+                name: teacherName,
+                email: email.toLowerCase().trim(),
+                password: hashedPassword,
+                role: "TEACHER",
+                phone: phoneNo,
+                department: "Computer Science",
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
         res.status(201).json({
             success: true,
             message: "Teacher created successfully",
@@ -117,6 +132,20 @@ exports.getTeacher = async (req, res) => {
                 success: false,
                 message: "Teacher not found"
             });
+        }
+
+        // Keep User in sync
+        const userUpdate = {};
+        if (req.body.teacherName) userUpdate.name = req.body.teacherName;
+        if (req.body.email) userUpdate.email = req.body.email.toLowerCase().trim();
+        if (req.body.phoneNo) userUpdate.phone = req.body.phoneNo;
+        if (req.body.avatar) userUpdate.avatar = req.body.avatar;
+
+        if (Object.keys(userUpdate).length > 0) {
+            await User.findOneAndUpdate(
+                { email: teacher.email.toLowerCase().trim() },
+                { $set: userUpdate }
+            );
         }
 
         res.status(200).json({
@@ -184,6 +213,10 @@ exports.deleteTeacher = async (req, res) => {
                 success: false,
                 message: "Teacher not found"
             });
+        }
+
+        if (teacher.email) {
+            await User.findOneAndDelete({ email: teacher.email.toLowerCase().trim() });
         }
 
         res.status(200).json({

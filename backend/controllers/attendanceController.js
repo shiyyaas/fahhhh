@@ -9,19 +9,35 @@ exports.markAttendance = async (req, res) => {
             subject,
             teacher,
             batch,
-            status
+            status,
+            date
         } = req.body;
 
-        const attendance =
-            await Attendance.create({
+        const targetDate = date ? new Date(date) : new Date();
+        const startOfDay = new Date(targetDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(targetDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const attendance = await Attendance.findOneAndUpdate(
+            {
+                student,
+                subject,
+                batch,
+                date: { $gte: startOfDay, $lte: endOfDay }
+            },
+            {
                 student,
                 subject,
                 teacher,
                 batch,
-                status
-            });
+                status,
+                date: targetDate
+            },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
 
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             message: "Attendance marked successfully",
             attendance

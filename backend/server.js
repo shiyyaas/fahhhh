@@ -5,6 +5,8 @@ const cors = require("cors");
 
 const connectDB = require("./config/db");
 
+const path = require("path");
+
 const authRoutes = require("./routes/authRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const batchRoutes = require("./routes/batchRoutes");
@@ -17,6 +19,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const timetableRoutes = require("./routes/timetableRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
@@ -24,6 +27,9 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static uploaded files (avatars, documents, etc.)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
@@ -37,6 +43,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/timetable", timetableRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
     res.send("Attendance ERP API Running");

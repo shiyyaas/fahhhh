@@ -6,10 +6,10 @@ import '../../features/auth/providers/auth_provider.dart';
 
 class ApiClient {
   final Dio dio;
-  final SharedPreferences _prefs;
+  final SharedPreferences? _prefs;
 
   ApiClient({
-    required SharedPreferences prefs,
+    SharedPreferences? prefs,
     Dio? customDio,
   })  : _prefs = prefs,
         dio = customDio ??
@@ -27,7 +27,7 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          final token = _prefs.getString('auth_token');
+          final token = _prefs?.getString('auth_token');
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -79,6 +79,10 @@ class ApiClient {
 }
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return ApiClient(prefs: prefs);
+  try {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return ApiClient(prefs: prefs);
+  } catch (_) {
+    return ApiClient();
+  }
 });

@@ -2,18 +2,29 @@ import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 
 class ApiEndpoints {
-  static String get baseUrl {
-    if (kIsWeb) return 'http://localhost:5000/api';
+  static String get baseUrl => '$serverBaseUrl/api';
+
+  static String get serverBaseUrl {
+    if (kIsWeb) return 'http://localhost:5000';
     try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:5000/api';
+      if (Platform.isAndroid) return 'http://10.0.2.2:5000';
     } catch (_) {
       // In web or environments where dart:io Platform is unavailable
     }
-    return 'http://localhost:5000/api';
+    return 'http://localhost:5000';
   }
 
-  // Auth
+  static String resolveUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.startsWith('assets/')) return path;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return '$serverBaseUrl$cleanPath';
+  }
+
+  // Auth & Upload
   static const String login = '/auth/login';
+  static const String uploadAvatar = '/upload/avatar';
 
   // Dashboard
   static const String hodDashboard = '/dashboard/hod';
@@ -41,10 +52,13 @@ class ApiEndpoints {
   static String department(String id) => '/departments/$id';
 
   // Timetable
+     
   static const String timetable = '/timetable';
-  static String batchTimetable(String id) => '/timetable/batch/$id';
-  static String teacherTimetable(String id) => '/timetable/teacher/$id';
-  static String deleteTimetable(String id) => '/timetable/$id';
+  static String batchTimetable(String id) =>'/timetable/batch/$id';
+  static String teacherTimetable(String id) =>'/timetable/teacher/$id';
+  static String createTimetable = '/timetable';
+  static String updateTimetable(String id) =>'/timetable/$id';
+  static String deleteTimetable(String id) =>'/timetable/$id';
 
   // Attendance
   static const String markAttendance = '/attendance/mark';

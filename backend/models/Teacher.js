@@ -31,6 +31,11 @@ const teacherSchema = new mongoose.Schema({
         type: String
     },
 
+    avatar: {
+        type: String,
+        default: ""
+    },
+
     departments: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Department"

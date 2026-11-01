@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/auth_state.dart';
 import '../models/current_user.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_endpoints.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/network_auth_repository.dart';
 
@@ -85,8 +88,78 @@ class AuthNotifier extends _$AuthNotifier {
       final prefs = ref.read(sharedPreferencesProvider);
       await prefs.setString('cached_user_profile', jsonEncode(updatedUser.toJson()));
 
+      // Optionally sync to backend if user id is available
+      final userId = updatedUser.id;
+      if (userId != null && userId.isNotEmpty) {
+        try {
+          final apiClient = ref.read(apiClientProvider);
+          if (updatedUser.role.name == 'student') {
+            await apiClient.put(
+              ApiEndpoints.student(userId),
+              data: {
+                'studentName': name,
+                'email': email,
+                'phoneNo': phone,
+              },
+            );
+          } else {
+            await apiClient.put(
+              ApiEndpoints.teacher(userId),
+              data: {
+                'teacherName': name,
+                'email': email,
+                'phoneNo': phone,
+              },
+            );
+          }
+        } catch (_) {
+          // Graceful fallback if offline
+        }
+      }
+
       state = Authenticated(updatedUser);
     }
+  }
+
+  Future<String?> uploadAvatar(XFile imageFile) async {
+    final currentState = state;
+    if (currentState is! Authenticated) return null;
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final user = currentState.user;
+
+      final bytes = await imageFile.readAsBytes();
+      final formData = FormData.fromMap({
+        'avatar': MultipartFile.fromBytes(
+          bytes,
+          filename: imageFile.name,
+        ),
+        'userId': user.id ?? '',
+        'email': user.email,
+        'role': user.role.name,
+      });
+
+      final response = await apiClient.post(
+        ApiEndpoints.uploadAvatar,
+        data: formData,
+      );
+
+      final data = response.data;
+      if (data is Map && data['success'] == true) {
+        final avatarRelative = data['avatarUrl'] as String;
+        final fullAvatarUrl = ApiEndpoints.resolveUrl(avatarRelative);
+
+        final updatedUser = user.copyWith(imageUrl: fullAvatarUrl);
+        final prefs = ref.read(sharedPreferencesProvider);
+        await prefs.setString('cached_user_profile', jsonEncode(updatedUser.toJson()));
+        state = Authenticated(updatedUser);
+        return fullAvatarUrl;
+      }
+    } catch (e) {
+      // Return null on upload failure
+    }
+    return null;
   }
 }
 

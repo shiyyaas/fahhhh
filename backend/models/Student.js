@@ -35,6 +35,11 @@ const studentSchema = new mongoose.Schema({
         type: String
     },
 
+    avatar: {
+        type: String,
+        default: ""
+    },
+
     batchId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Batch",

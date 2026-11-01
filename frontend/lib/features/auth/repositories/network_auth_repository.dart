@@ -72,7 +72,9 @@ class NetworkAuthRepository implements AuthRepository {
         departmentId: userMap['department'] as String? ?? 'Department of Computer Science',
         designation: isHOD ? 'Head Of Department' : (role == UserRole.teacher ? 'Assistant Professor' : null),
         phone: userMap['phone'] as String? ?? '',
-        imageUrl: role == UserRole.student ? 'assets/images/student.png' : 'assets/images/profile.png',
+        imageUrl: (userMap['avatar'] != null && (userMap['avatar'] as String).isNotEmpty)
+            ? ApiEndpoints.resolveUrl(userMap['avatar'] as String)
+            : (role == UserRole.student ? 'assets/images/student.png' : 'assets/images/profile.png'),
       );
 
       return currentUser;

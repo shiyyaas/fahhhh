@@ -65,7 +65,9 @@ class _MySubjectState extends ConsumerState<MySubject> {
               return MySubjectItem(
                 name: sub.name,
                 classes: sub.teacher.isNotEmpty ? sub.teacher : 'Faculty',
-                attendancePercent: attendancePattern[index % attendancePattern.length],
+                attendancePercent: sub.attendancePercent > 0
+                    ? sub.attendancePercent
+                    : attendancePattern[index % attendancePattern.length],
               );
             });
           } else {
@@ -78,7 +80,9 @@ class _MySubjectState extends ConsumerState<MySubject> {
               return MySubjectItem(
                 name: sub.name,
                 classes: classes.isEmpty ? 'No class' : classes,
-                attendancePercent: attendancePattern[index % attendancePattern.length],
+                attendancePercent: sub.attendancePercent > 0
+                    ? sub.attendancePercent
+                    : attendancePattern[index % attendancePattern.length],
               );
             });
           }
