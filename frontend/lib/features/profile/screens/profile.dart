@@ -9,6 +9,7 @@ import 'package:fahhhh/core/theme_data/app_radius.dart';
 
 // Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 // Models
 import 'package:fahhhh/features/auth/models/user_role.dart';
@@ -53,9 +54,36 @@ class Profile extends ConsumerWidget {
     final String email = user.email;
     final String phone = user.phone.isEmpty ? '—' : user.phone;
     final String classText = user.assignedClassId ?? user.className ?? 'S2 BCA';
-    final String subjectsText = (user.activeSubjects?.isNotEmpty ?? false)
-        ? user.activeSubjects!.join(', ')
-        : 'Python, Software Engineering';
+
+    // Fetch subjects from backend departmentSubjectsProvider
+    final subjectsAsync = ref.watch(departmentSubjectsProvider);
+    final allSubjects = subjectsAsync.value ?? [];
+    String subjectsText = 'Python, Software Engineering';
+    if (allSubjects.isNotEmpty) {
+      if (isTeacher) {
+        final teacherName = user.name.toLowerCase();
+        final teacherSubs = allSubjects
+            .where((s) => s.teacher.toLowerCase().contains(teacherName))
+            .map((s) => s.name)
+            .toList();
+        if (teacherSubs.isNotEmpty) {
+          subjectsText = teacherSubs.join(', ');
+        } else if (allSubjects.isNotEmpty) {
+          subjectsText = allSubjects.take(2).map((s) => s.name).join(', ');
+        }
+      } else {
+        final sem = user.semester ?? '2';
+        final studentSubs = allSubjects
+            .where((s) => s.semester == null || s.semester.toString() == sem)
+            .map((s) => s.name)
+            .toList();
+        if (studentSubs.isNotEmpty) {
+          subjectsText = studentSubs.join(', ');
+        }
+      }
+    } else if (user.activeSubjects?.isNotEmpty ?? false) {
+      subjectsText = user.activeSubjects!.join(', ');
+    }
 
     final notificationsEnabled = ref.watch(notificationsEnabledProvider);
 

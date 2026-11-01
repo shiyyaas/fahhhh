@@ -229,4 +229,28 @@ class DepartmentRepository {
     }
     return [];
   }
+
+  Future<Map<String, dynamic>> getBatchReport(String batchId) async {
+    final response = await _apiClient.get(ApiEndpoints.batchReport(batchId));
+    if (response.data is Map && response.data['success'] == true) {
+      return (response.data['report'] as Map<String, dynamic>?) ?? {};
+    }
+    return {};
+  }
+
+  Future<String> getBatchMonthlyPreviewUrl(String batchId, int month, int year) async {
+    return '${ApiEndpoints.serverBaseUrl}${ApiEndpoints.batchMonthlyPreview(batchId)}?month=$month&year=$year';
+  }
+
+  Future<String> getBatchMonthlyPdfUrl(String batchId, int month, int year) async {
+    return '${ApiEndpoints.serverBaseUrl}${ApiEndpoints.batchMonthlyPdf(batchId)}?month=$month&year=$year';
+  }
+
+  Future<Map<String, dynamic>> getBatchMonthlyPreview(String batchId, int month, int year) async {
+    final response = await _apiClient.get('${ApiEndpoints.batchMonthlyPreview(batchId)}?month=$month&year=$year');
+    if (response.data is Map) {
+      return response.data as Map<String, dynamic>;
+    }
+    return {'success': false};
+  }
 }
