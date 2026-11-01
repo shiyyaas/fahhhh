@@ -51,7 +51,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/timetable',
         builder: (context, state) {
           final mode = state.uri.queryParameters['mode'];
-          return TimetableScreen(forceTeacherMode: mode == 'teacher');
+          final classId = state.uri.queryParameters['classId'];
+          return TimetableScreen(
+            forceTeacherMode: mode == 'teacher',
+            classId: classId != null ? Uri.decodeComponent(classId) : null,
+          );
         },
       ),
       // Attendance Taking Route - outside StatefulShellRoute to hide bottom navigation bar completely

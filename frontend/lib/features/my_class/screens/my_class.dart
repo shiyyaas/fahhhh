@@ -127,6 +127,7 @@ class _MyClassHeader extends StatelessWidget {
               final route = HeaderMenuConfig.routeFor(
                 option,
                 pageType: HeaderPageType.myClass,
+                classId: classId,
               );
               if (route != null && context.mounted) {
                 context.push(route);

@@ -25,8 +25,14 @@ const double _kTableWidth = _kPeriodColWidth + _kDayColWidth * 5; // ~591 px
 class TimetableScreen extends ConsumerStatefulWidget {
   /// When true, skip HOD admin/edit controls and show the teacher timetable.
   final bool forceTeacherMode;
+  /// Specific class ID if viewed from inside a class (no dropdown).
+  final String? classId;
 
-  const TimetableScreen({super.key, this.forceTeacherMode = false});
+  const TimetableScreen({
+    super.key,
+    this.forceTeacherMode = false,
+    this.classId,
+  });
 
   @override
   ConsumerState<TimetableScreen> createState() => _TimetableScreenState();
@@ -69,7 +75,13 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       _onTableScroll();
       final auth = ref.read(authProvider);
       final user = auth.user;
-      if (user != null) {
+
+      if (widget.classId != null) {
+        setState(() {
+          _selectedSortClass = widget.classId!;
+          _selectedSegment = "Classes";
+        });
+      } else if (user != null) {
         if (user.role == UserRole.student && user.className != null) {
           setState(() {
             _selectedSortClass = user.className!;
@@ -141,14 +153,23 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
     final user = auth.user;
-    final isHOD = (user?.isHOD ?? false) && !widget.forceTeacherMode;
+    final isHOD = (user?.isHOD ?? false) && !widget.forceTeacherMode && widget.classId == null;
     final isStudent = auth.role == UserRole.student;
+    final bool isClassSpecific = widget.classId != null;
+    final bool isTeacherMode = widget.forceTeacherMode || (!isHOD && !isStudent && !isClassSpecific);
+    final bool isOwnTeacher = isTeacherMode && user != null && _matchesTeacher(_selectedTeacher, user.name);
 
     if (isStudent && user?.className != null) {
       _selectedSortClass = user!.className!;
+    } else if (isClassSpecific) {
+      _selectedSortClass = widget.classId!;
     }
 
-    final allSlots = ref.watch(timetableNotifierProvider);
+    // Watch backend timetable data
+    final allTimetableAsync = ref.watch(allTimetableProvider);
+    final rawSlots = allTimetableAsync.value ?? [];
+    final notifierSlots = ref.watch(timetableNotifierProvider);
+    final allSlots = notifierSlots.isEmpty ? rawSlots : notifierSlots;
 
     // Build a 5×5 grid: [period 0..4][day 0..4]
     final List<List<TimetableSlot?>> gridSlots = List.generate(
@@ -156,7 +177,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       (_) => List.generate(5, (_) => null),
     );
 
-    if (isStudent || (isHOD && _selectedSegment == "Classes")) {
+    if (isStudent || isClassSpecific || (isHOD && _selectedSegment == "Classes")) {
       final targetClass = _selectedSortClass ?? "S2 BCA";
       for (final slot in allSlots) {
         if (slot.classId == targetClass) {
@@ -206,7 +227,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             children: [
               AppBackHeader(
                 title: 'Time Table',
-                subtitle: 'View your timetable here',
+                subtitle: isClassSpecific
+                    ? 'Timetable for ${widget.classId}'
+                    : (isTeacherMode ? 'Teacher Timetable ($_selectedTeacher)' : 'View your timetable here'),
                 onBack: () {
                   if (!context.mounted) return;
                   context.pop();
@@ -244,27 +267,66 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   onUploadTap: _pickAndPreviewTimetable,
                 ),
               ]
-              // ── Teacher controls ────────────────────────────────────────
-              else if (!isStudent) ...[
-                _TeacherControls(
-                  selectedSortClass: _selectedSortClass,
-                  classesList: _classesList,
-                  isSwapMode: _isSwapMode,
-                  onClassSelected: (val) {
-                    setState(() {
-                      _selectedSortClass = val == "ALL" ? null : val;
-                    });
-                  },
-                  onSwapTap: () {
-                    if (_isSwapMode) {
-                      _submitSwapRequest();
-                    } else {
-                      setState(() => _isSwapMode = true);
-                    }
-                  },
-                  onCancelSwap: () {
-                    setState(() => _isSwapMode = false);
-                  },
+              // ── Teacher controls (with dropdown to switch, and swap only for own timetable) ──
+              else if (isTeacherMode) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _OutlinedDropdown(
+                          label: _selectedTeacher,
+                          items: _teachersList,
+                          onSelected: (val) {
+                            setState(() {
+                              _selectedTeacher = val;
+                              _isSwapMode = false;
+                            });
+                          },
+                        ),
+                      ),
+                      if (isOwnTeacher) ...[
+                        const SizedBox(width: 12),
+                        if (_isSwapMode) ...[
+                          GestureDetector(
+                            onTap: () {
+                              setState(() => _isSwapMode = false);
+                            },
+                            child: Container(
+                              height: 44,
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(AppRadius.pill),
+                                border: Border.all(color: AppColors.outline, width: 1.2),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "Cancel",
+                                  style: GoogleFonts.inter(
+                                    color: AppColors.headingText,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        _SwapButton(
+                          isSwapMode: _isSwapMode,
+                          onTap: () {
+                            if (_isSwapMode) {
+                              _submitSwapRequest();
+                            } else {
+                              setState(() => _isSwapMode = true);
+                            }
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ],
 
@@ -805,71 +867,6 @@ class _UploadButton extends StatelessWidget {
 }
 
 // ============================================================================
-// Teacher controls row
-// ============================================================================
-
-class _TeacherControls extends StatelessWidget {
-  final String? selectedSortClass;
-  final List<String> classesList;
-  final bool isSwapMode;
-  final ValueChanged<String> onClassSelected;
-  final VoidCallback onSwapTap;
-  final VoidCallback onCancelSwap;
-
-  const _TeacherControls({
-    required this.selectedSortClass,
-    required this.classesList,
-    required this.isSwapMode,
-    required this.onClassSelected,
-    required this.onSwapTap,
-    required this.onCancelSwap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: _OutlinedDropdown(
-              label: selectedSortClass ?? "Sort by",
-              items: ["ALL", ...classesList],
-              onSelected: onClassSelected,
-            ),
-          ),
-          const SizedBox(width: 12),
-          if (isSwapMode) ...[
-            GestureDetector(
-              onTap: onCancelSwap,
-              child: Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(color: AppColors.outline, width: 1.2),
-                ),
-                child: Center(
-                  child: Text(
-                    "Cancel",
-                    style: GoogleFonts.inter(
-                      color: AppColors.headingText,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          _SwapButton(isSwapMode: isSwapMode, onTap: onSwapTap),
-        ],
-      ),
-    );
-  }
-}
 
 // ============================================================================
 // Timetable Table Card (the main card containing scrollable grid & scrollbar)

@@ -8,15 +8,16 @@ class HeaderMenuConfig {
   ///
   /// Pass [pageType] so that 'Timetable' resolves to the admin editable view
   /// from the Department screen and to the read-only teacher view from My Class.
-  static String? routeFor(String option, {HeaderPageType? pageType}) {
+  static String? routeFor(String option, {HeaderPageType? pageType, String? classId}) {
     switch (option) {
       case 'Generate Report':
         return '/generate-report';
       case 'Timetable':
         // Department (admin/HOD) → full admin timetable with edit capability.
-        // My Class → teacher view (forced via query param).
+        // My Class → class timetable view with no dropdown.
         if (pageType == HeaderPageType.myClass) {
-          return '/timetable?mode=teacher';
+          final target = classId ?? 'S2 BCA';
+          return '/timetable?classId=${Uri.encodeComponent(target)}';
         }
         return '/timetable';
       case 'Attendance history':

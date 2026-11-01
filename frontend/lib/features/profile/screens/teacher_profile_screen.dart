@@ -130,7 +130,7 @@ class TeacherProfileScreen extends ConsumerWidget {
                     // the top (below the avatar, above the info cards).
                     GestureDetector(
                       onTap: () {
-                        if (context.mounted) context.push('/timetable');
+                        if (context.mounted) context.push('/timetable?mode=teacher');
                       },
                       child: Container(
                         width: double.infinity,

@@ -214,7 +214,7 @@ class Profile extends ConsumerWidget {
                           showArrow: true,
                           onTap: () {
                             if (!context.mounted) return;
-                            context.push(isTeacher ? '/timetable' : '/attendance-history');
+                            context.push(isTeacher ? '/timetable?mode=teacher' : '/attendance-history');
                           },
                         ),
                         _InfoItem(
