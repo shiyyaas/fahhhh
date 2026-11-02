@@ -118,11 +118,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final className = Uri.decodeComponent(state.pathParameters['className']!);
           final rollNumber = Uri.decodeComponent(state.pathParameters['rollNumber']!);
           final name = Uri.decodeComponent(state.pathParameters['name']!);
+          final imageUrl = state.uri.queryParameters['avatar'];
           return StudentProfileScreen(
             profile: buildStudentProfile(
               name: name,
               rollNumber: rollNumber,
               className: className,
+              imageUrl: imageUrl,
             ),
           );
         },

@@ -121,15 +121,19 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
+  
   Future<String?> uploadAvatar(XFile imageFile) async {
     final currentState = state;
+
     if (currentState is! Authenticated) return null;
 
     try {
       final apiClient = ref.read(apiClientProvider);
       final user = currentState.user;
 
+      // Read image bytes - compatible with Web, Android and iOS.
       final bytes = await imageFile.readAsBytes();
+
       final formData = FormData.fromMap({
         'avatar': MultipartFile.fromBytes(
           bytes,
@@ -146,21 +150,49 @@ class AuthNotifier extends _$AuthNotifier {
       );
 
       final data = response.data;
-      if (data is Map && data['success'] == true) {
-        final avatarRelative = data['avatarUrl'] as String;
-        final fullAvatarUrl = ApiEndpoints.resolveUrl(avatarRelative);
 
-        final updatedUser = user.copyWith(imageUrl: fullAvatarUrl);
-        final prefs = ref.read(sharedPreferencesProvider);
-        await prefs.setString('cached_user_profile', jsonEncode(updatedUser.toJson()));
-        state = Authenticated(updatedUser);
-        return fullAvatarUrl;
+      if (data is! Map || data['success'] != true) {
+        throw Exception(data is Map
+            ? data['message'] ?? 'Avatar upload failed'
+            : 'Invalid server response');
       }
+
+      // Support both backend response formats.
+      final responseUser = data['user'];
+
+      final String? avatarUrl =
+          (responseUser is Map ? responseUser['avatar'] : null)?.toString() ??
+          data['avatarUrl']?.toString() ??
+          data['avatar']?.toString();
+
+      if (avatarUrl == null || avatarUrl.isEmpty) {
+        throw Exception('Avatar URL missing from server response');
+      }
+
+      // Cloudinary already returns an absolute URL.
+      final fullAvatarUrl = ApiEndpoints.resolveUrl(avatarUrl);
+
+      final updatedUser = user.copyWith(
+        imageUrl: fullAvatarUrl,
+      );
+
+      // Update local cache.
+      final prefs = ref.read(sharedPreferencesProvider);
+
+      await prefs.setString(
+        'cached_user_profile',
+        jsonEncode(updatedUser.toJson()),
+      );
+
+      // Update Riverpod state so the UI refreshes.
+      state = Authenticated(updatedUser);
+
+      return fullAvatarUrl;
     } catch (e) {
-      // Return null on upload failure
+      throw Exception('Profile photo upload failed: $e');
     }
-    return null;
   }
+
 }
 
 // Keep a backward-compatible authProvider so existing files don't break

@@ -40,7 +40,7 @@ class TeacherProfileScreen extends ConsumerWidget {
 
     final bool isHOD = user.isHOD;
     final String name = user.name;
-    final String imageUrl = user.imageUrl ?? 'assets/images/teacher.png';
+    final String? imageUrl = user.imageUrl;
     final String designation = user.designation ??
         (isHOD ? 'Head Of Department' : 'Assistant Professor');
     final String staffId = user.assignedClassId != null
@@ -86,7 +86,10 @@ class TeacherProfileScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.border, width: 1),
                         image: DecorationImage(
-                          image: AssetImage(imageUrl),
+                          image: imageUrl != null && imageUrl.startsWith('http')
+                              ? NetworkImage(imageUrl)
+                              : const AssetImage('assets/images/teacher.png')
+                                  as ImageProvider,
                           fit: BoxFit.cover,
                         ),
                       ),
