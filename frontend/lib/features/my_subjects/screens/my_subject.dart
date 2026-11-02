@@ -72,14 +72,17 @@ class _MySubjectState extends ConsumerState<MySubject> {
             });
           } else {
             final teacherName = user?.name ?? '';
-            final filtered = deptSubjects.where((s) => s.teacher.toLowerCase().contains(teacherName.toLowerCase())).toList();
+            final filtered = deptSubjects.where((s) {
+              final tName = s.teacher.toLowerCase();
+              final uName = teacherName.toLowerCase();
+              return tName.contains(uName) || uName.contains(tName) || tName == 'faculty';
+            }).toList();
             final listToUse = filtered.isNotEmpty ? filtered : deptSubjects;
             return List.generate(listToUse.length, (index) {
               final sub = listToUse[index];
-              final classes = _classesForSubject(sub.name);
               return MySubjectItem(
                 name: sub.name,
-                classes: classes.isEmpty ? 'No class' : classes,
+                classes: sub.rollNumber.isNotEmpty ? 'S2 BCA (${sub.rollNumber})' : 'S2 BCA',
                 attendancePercent: sub.attendancePercent > 0
                     ? sub.attendancePercent
                     : attendancePattern[index % attendancePattern.length],
@@ -198,12 +201,6 @@ class _MySubjectState extends ConsumerState<MySubject> {
         ),
       ),
     );
-  }
-
-
-
-  String _classesForSubject(String subject) {
-    return 'BCA';
   }
 }
 
