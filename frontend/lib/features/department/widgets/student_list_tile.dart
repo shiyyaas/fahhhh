@@ -42,9 +42,13 @@ class StudentListTile extends StatelessWidget {
           color: Colors.white,
           border: Border.all(color: AppColors.border, width: 0.8),
           image: DecorationImage(
-            image: AssetImage(student.imageUrl ?? 'assets/images/student.png'),
-            fit: BoxFit.cover,
-          ),
+          image: (student.imageUrl != null &&
+                  student.imageUrl!.startsWith('http'))
+              ? NetworkImage(student.imageUrl!)
+              : const AssetImage('assets/images/student.png')
+                  as ImageProvider,
+          fit: BoxFit.cover,
+        ),
         ),
       ),
       onTap: onTap,

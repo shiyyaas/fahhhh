@@ -1,6 +1,7 @@
 const Teacher = require("../models/Teacher");
 const Department = require("../models/Department");
 const User = require("../models/User");
+const Subject = require("../models/Subject");
 const bcrypt = require("bcryptjs");
 
 // Create Teacher
@@ -96,25 +97,39 @@ exports.createTeacher = async (req, res) => {
 // Get All Teachers
 exports.getTeachers = async (req, res) => {
     try {
+        const teachers = await Teacher.find()
+            .populate("departments")
+            .select("-password")
+            .sort({ createdAt: -1 })
+            .lean();
 
-        const teachers =
-            await Teacher.find()
-                .populate("departments")
-                .select("-password")
-                .sort({ createdAt: -1 });
+        const teachersWithSubjects = await Promise.all(
+            teachers.map(async (teacher) => {
+                const subjects = await Subject.find({
+                    teachers: teacher._id,
+                    isActive: true
+                }).select("subjectName subjectCode");
+
+                return {
+                    ...teacher,
+                    subjects: subjects.map(subject => ({
+                        subjectName: subject.subjectName,
+                        subjectCode: subject.subjectCode
+                    }))
+                };
+            })
+        );
 
         res.status(200).json({
             success: true,
-            teachers
+            teachers: teachersWithSubjects
         });
 
     } catch (error) {
-
         res.status(500).json({
             success: false,
             message: error.message
         });
-
     }
 };
 

@@ -158,7 +158,8 @@ class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
                           context.push(
                             '/student-profile/${Uri.encodeComponent(widget.className)}/'
                             '${Uri.encodeComponent(student.rollNumber)}/'
-                            '${Uri.encodeComponent(student.name)}',
+                            '${Uri.encodeComponent(student.name)}'
+                            '?avatar=${Uri.encodeComponent(student.avatar ?? '')}',
                           );
                         },
                       ),
