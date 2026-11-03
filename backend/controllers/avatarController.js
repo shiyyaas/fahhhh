@@ -1,3 +1,4 @@
+
 const User = require("../models/User");
 const Teacher = require("../models/Teacher");
 const cloudinary = require("../config/cloudinary");
@@ -8,9 +9,7 @@ const uploadToCloudinary = (buffer) => {
       {
         folder: "college-erp/avatars",
         resource_type: "image",
-        transformation: [
-          { width: 500, height: 500, crop: "limit" },
-        ],
+        transformation: [{ width: 500, height: 500, crop: "limit" }],
       },
       (error, result) => {
         if (error) return reject(error);
@@ -33,7 +32,6 @@ exports.updateAvatar = async (req, res) => {
       });
     }
 
-    // Identify the authenticated user
     const user = await User.findById(req.user.userId);
 
     if (!user) {
@@ -43,26 +41,44 @@ exports.updateAvatar = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
+    // Upload image to Cloudinary
     const result = await uploadToCloudinary(req.file.buffer);
     uploadedPublicId = result.public_id;
 
     const oldPublicId = user.avatarPublicId;
+    const avatarUrl = result.secure_url;
 
     // Update User collection
-    user.avatar = result.secure_url;
-    user.avatarPublicId = result.public_id;
+    user.avatar = avatarUrl;
+    user.avatarPublicId = uploadedPublicId;
     await user.save();
 
-    // Synchronize teacher profile using email, not User ID
-    if (["TEACHER", "HOD"].includes(user.role)) {
-      await Teacher.findOneAndUpdate(
-        { email: user.email },
-        { avatar: result.secure_url }
+    // Synchronize Teacher collection
+    if (user.role === "TEACHER" || user.role === "HOD") {
+      const escapedEmail = user.email.trim().replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
       );
+
+      const teacher = await Teacher.findOneAndUpdate(
+        {
+          email: {
+            $regex: `^${escapedEmail}$`,
+            $options: "i",
+          },
+        },
+        {
+          $set: { avatar: avatarUrl },
+        },
+        { new: true }
+      );
+
+      if (!teacher) {
+        console.warn("Teacher record not found:", user.email);
+      }
     }
 
-    // Delete old Cloudinary image after successful update
+    // Delete old Cloudinary image after successful updates
     if (oldPublicId && oldPublicId !== uploadedPublicId) {
       try {
         await cloudinary.uploader.destroy(oldPublicId);
@@ -74,29 +90,23 @@ exports.updateAvatar = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Avatar updated successfully",
+      avatarUrl,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar,
+        avatar: avatarUrl,
       },
     });
 
   } catch (error) {
-    if (uploadedPublicId) {
-      try {
-        await cloudinary.uploader.destroy(uploadedPublicId);
-      } catch (cleanupError) {
-        console.error("Avatar cleanup failed:", cleanupError.message);
-      }
-    }
-
     console.error("Avatar upload error:", error);
 
     return res.status(500).json({
       success: false,
       message: "Failed to update avatar",
+      error: error.message,
     });
   }
 };
