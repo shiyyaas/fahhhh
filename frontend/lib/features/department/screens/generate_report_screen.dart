@@ -23,6 +23,9 @@ import 'package:fahhhh/features/department/models/department_student.dart';
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
+// Packages
+import 'package:url_launcher/url_launcher_string.dart';
+
 /// Attendance report: month selector, average-attendance chart, preview/download
 /// actions and a searchable roster where every student ends in a percentage
 /// badge. Pushed from the My Class "More" menu (hides bottom navigation).
@@ -150,7 +153,32 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                     child: _ReportActionButton(
                       icon: Icons.visibility_outlined,
                       label: 'Show Preview',
-                      onTap: () => _notify('Preview generated'),
+                      onTap: () async {
+                        try {
+                          final repo = ref.read(departmentRepositoryProvider);
+                          final batches = await repo.getClasses();
+                          final batchId = batches.isNotEmpty ? (batches.first.id ?? 'default') : 'default';
+                          final now = DateTime.now();
+                          final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
+                          final month = monthIdx > 0 ? monthIdx : now.month;
+                          final year = now.year;
+                          final url = await repo.getBatchMonthlyPreviewUrl(batchId, month, year);
+                          if (await canLaunchUrlString(url)) {
+                            await launchUrlString(url, mode: LaunchMode.externalApplication);
+                          } else {
+                            final bytes = await repo.getBatchMonthlyPreviewBytes(batchId, month, year);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Preview PDF loaded (${bytes.length} bytes)')),
+                            );
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Preview error: $e'), backgroundColor: AppColors.danger),
+                          );
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -158,7 +186,32 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                     child: _ReportActionButton(
                       icon: Icons.file_download_outlined,
                       label: 'Download',
-                      onTap: () => _notify('Report downloaded'),
+                      onTap: () async {
+                        try {
+                          final repo = ref.read(departmentRepositoryProvider);
+                          final batches = await repo.getClasses();
+                          final batchId = batches.isNotEmpty ? (batches.first.id ?? 'default') : 'default';
+                          final now = DateTime.now();
+                          final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
+                          final month = monthIdx > 0 ? monthIdx : now.month;
+                          final year = now.year;
+
+                          final url = await repo.getBatchMonthlyPdfUrl(batchId, month, year);
+                          if (await canLaunchUrlString(url)) {
+                            await launchUrlString(url, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Could not open download URL: $url'), backgroundColor: AppColors.danger),
+                            );
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Download error: $e'), backgroundColor: AppColors.danger),
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -215,12 +268,6 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
     );
   }
 
-  void _notify(String message) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$message · $_selectedMonth')));
-  }
 
 
 }
