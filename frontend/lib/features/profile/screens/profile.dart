@@ -42,7 +42,7 @@ class Profile extends ConsumerWidget {
 
     // Common values depending on role
     final String name = user.name;
-    final String imageUrl = user.imageUrl ?? (isTeacher ? 'assets/images/teacher.png' : 'assets/images/student.png');
+    final String imageUrl = user.imageUrl ?? '';
     final String designation = isTeacher
         ? (user.isHOD ? "Head Of Department" : "Assistant Professor")
         : (user.className ?? "S2 BCA");
@@ -117,7 +117,17 @@ class Profile extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 55,
-                      backgroundImage: AssetImage(imageUrl),
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: imageUrl.isNotEmpty
+                          ? NetworkImage(imageUrl)
+                          : null,
+                      child: imageUrl.isEmpty
+                          ? const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: Colors.grey,
+                            )
+                          : null,
                     ),
                     const SizedBox(height: 16),
                     Text(

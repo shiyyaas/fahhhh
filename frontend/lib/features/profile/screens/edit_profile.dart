@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +29,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   XFile? _pickedImage;
+  Uint8List? _pickedImageBytes;
   bool _isUploading = false;
 
   @override
@@ -49,41 +50,60 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 800,
-    );
-    if (picked != null) {
-      setState(() => _pickedImage = picked);
+    try {
+      final picker = ImagePicker();
+
+      final XFile? picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 800,
+      );
+
+      if (picked == null) return;
+
+      final bytes = await picked.readAsBytes();
+
+      if (!mounted) return;
+
+      setState(() {
+        _pickedImage = picked;
+        _pickedImageBytes = bytes;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to select image: $e')),
+      );
     }
   }
 
   Widget _buildAvatar(String? imageUrl) {
     ImageProvider? provider;
 
-    if (_pickedImage != null) {
-      // Locally picked image (not yet uploaded)
-      provider = FileImage(File(_pickedImage!.path));
+    if (_pickedImageBytes != null) {
+      provider = MemoryImage(_pickedImageBytes!);
     } else if (imageUrl != null && imageUrl.startsWith('http')) {
-      // Network image from backend
       provider = NetworkImage(imageUrl);
     } else if (imageUrl != null && imageUrl.isNotEmpty) {
-      // Local asset
       provider = AssetImage(imageUrl);
     }
 
     return GestureDetector(
-      onTap: _pickImage,
+      onTap: _isUploading ? null : _pickImage,
       child: Stack(
         alignment: Alignment.bottomRight,
         children: [
           CircleAvatar(
             radius: 55,
+            backgroundColor: Colors.grey.shade300,
             backgroundImage: provider,
             child: provider == null
-                ? const Icon(Icons.person, size: 60, color: Colors.white)
+                ? const Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Colors.white,
+                  )
                 : null,
           ),
           Container(

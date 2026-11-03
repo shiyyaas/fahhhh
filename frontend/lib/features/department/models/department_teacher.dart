@@ -1,8 +1,10 @@
+
 /// A teacher entry shown in the Department - Teachers list.
 class DepartmentTeacher {
   final String? id;
   final String name;
   final String subject;
+  final List<String> subjects;
   final String? employeeId;
   final String? email;
   final String? phoneNo;
@@ -12,6 +14,7 @@ class DepartmentTeacher {
     this.id,
     required this.name,
     required this.subject,
+    this.subjects = const [],
     this.employeeId,
     this.email,
     this.phoneNo,
@@ -19,25 +22,50 @@ class DepartmentTeacher {
   });
 
   factory DepartmentTeacher.fromJson(Map<String, dynamic> json) {
-    // Subject might be derived or defaults
-    String subjectName = 'Faculty';
-    if (json['subject'] != null) {
-      subjectName = json['subject'] as String;
-    } else if (json['departments'] is List && (json['departments'] as List).isNotEmpty) {
-      final dept = (json['departments'] as List).first;
-      if (dept is Map && dept['departmentName'] != null) {
-        subjectName = dept['departmentName'] as String;
+    // Read assigned subjects from the backend.
+    final List<String> subjectsList = [];
+
+    if (json['subjects'] is List) {
+      for (final item in json['subjects']) {
+        String subjectName = '';
+
+        if (item is Map) {
+          subjectName = item['subjectName']?.toString() ?? '';
+        } else {
+          subjectName = item.toString();
+        }
+
+        if (subjectName.isNotEmpty) {
+          subjectsList.add(subjectName);
+        }
       }
     }
 
+    // Backward compatibility with the old subject field.
+    final oldSubject = json['subject'];
+
+    if (subjectsList.isEmpty &&
+        oldSubject is String &&
+        oldSubject.isNotEmpty) {
+      subjectsList.add(oldSubject);
+    }
+
+    final String subjectText = subjectsList.isNotEmpty
+        ? subjectsList.join(', ')
+        : 'No subjects assigned';
+
     return DepartmentTeacher(
-      id: json['_id'] as String? ?? json['id'] as String?,
-      name: json['teacherName'] as String? ?? json['name'] as String? ?? '',
-      subject: subjectName,
-      employeeId: json['employeeId'] as String?,
-      email: json['email'] as String?,
-      phoneNo: json['phoneNo'] as String?,
-      imageUrl: json['imageUrl'] as String?,
+      id: json['_id']?.toString() ?? json['id']?.toString(),
+      name: json['teacherName']?.toString() ??
+          json['name']?.toString() ??
+          '',
+      subject: subjectText,
+      subjects: subjectsList,
+      employeeId: json['employeeId']?.toString(),
+      email: json['email']?.toString(),
+      phoneNo: json['phoneNo']?.toString(),
+      imageUrl: json['imageUrl']?.toString() ??
+          json['avatar']?.toString(),
     );
   }
 
@@ -46,6 +74,7 @@ class DepartmentTeacher {
       'id': id,
       'teacherName': name,
       'subject': subject,
+      'subjects': subjects,
       'employeeId': employeeId,
       'email': email,
       'phoneNo': phoneNo,
@@ -53,6 +82,7 @@ class DepartmentTeacher {
     };
   }
 }
+
 
 // Fallback mock teachers commented out - backend data is used instead.
 // const List<DepartmentTeacher> mockDepartmentTeachers = [

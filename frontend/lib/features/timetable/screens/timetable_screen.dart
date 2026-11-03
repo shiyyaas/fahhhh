@@ -180,7 +180,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final currentTeachers = deptTeachers.isNotEmpty
         ? deptTeachers.map((t) => t.name).toList()
         : _teachersList;
-    final selectedTeacherRecord = deptTeachers.cast<dynamic?>().firstWhere(
+    final selectedTeacherRecord = deptTeachers.cast<dynamic>().firstWhere(
       (teacher) =>
           teacher != null &&
           _matchesTeacher(teacher.name.toString(), _selectedTeacher),
@@ -209,7 +209,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       if (classView) {
         // Match batch by its MongoDB ID when possible, with the display
         // name as a fallback for older/unpopulated records.
-        final selectedBatch = deptClasses.cast<dynamic?>().firstWhere(
+        final selectedBatch = deptClasses.cast<dynamic>().firstWhere(
           (batch) => batch != null && batch.name.toString() == targetClass,
           orElse: () => null,
         );
@@ -483,17 +483,52 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     );
   }
 
-  Future<void> _showTimetableEditor(TimetableSlot? existing, int day) async {
-    final classes = ref.read(departmentClassesProvider).value ?? [];
-    final teachers = ref.read(departmentTeachersProvider).value ?? [];
-    final subjects = ref.read(departmentSubjectsProvider).value ?? [];
+    
+  Future<void> _showTimetableEditor(
+    TimetableSlot? existing,
+    int day,
+  ) async {
+    try {
+      // Wait for all three API requests to complete.
+      final results = await Future.wait([
+        ref.read(departmentClassesProvider.future),
+        ref.read(departmentTeachersProvider.future),
+        ref.read(departmentSubjectsProvider.future),
+      ]);
 
-    if (classes.isEmpty || teachers.isEmpty || subjects.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not load batches, teachers or subjects. Please refresh and try again.')),
-      );
-      return;
-    }
+      final classes = results[0] as List<DepartmentClass>;
+      final teachers = results[1] as List<DepartmentTeacher>;
+      final subjects = results[2] as List<DepartmentSubject>;
+
+      debugPrint('========== TIMETABLE EDIT ==========');
+      debugPrint('Classes: ${classes.length}');
+      debugPrint('Teachers: ${teachers.length}');
+      debugPrint('Subjects: ${subjects.length}');
+
+      if (!mounted) return;
+
+      if (classes.isEmpty || teachers.isEmpty || subjects.isEmpty) {
+        final missing = [
+          if (classes.isEmpty) 'Batches',
+          if (teachers.isEmpty) 'Teachers',
+          if (subjects.isEmpty) 'Subjects',
+        ].join(', ');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Missing data: $missing. Check the backend API.'),
+          ),
+        );
+        return;
+      }
+  
+
+    // if (classes.isEmpty || teachers.isEmpty || subjects.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Could not load batches, teachers or subjects. Please refresh and try again.')),
+    //   );
+    //   return;
+    // }
 
     final matchingBatches = classes.where(
       (e) => e.name == (existing?.classId ?? _selectedSortClass),
@@ -512,8 +547,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       );
       return;
     }
-
-    final roomController = TextEditingController(text: existing?.roomNo ?? '');
+ 
     String batchId = selectedBatchId;
     String teacherId = selectedTeacher.id!;
     String subjectId = selectedSubject.id!;
@@ -531,7 +565,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               DropdownButtonFormField<String>(
-                value: batchId,
+                initialValue: batchId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Batch / Class'),
                 items: classes.where((e) => e.id != null).map((e) =>
@@ -539,7 +573,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 onChanged: existing == null ? (v) => setDialogState(() => batchId = v!) : null,
               ),
               DropdownButtonFormField<String>(
-                value: subjectId,
+                initialValue: subjectId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Subject'),
                 items: subjects.where((e) => e.id != null).map((e) =>
@@ -547,7 +581,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 onChanged: (v) => setDialogState(() => subjectId = v!),
               ),
               DropdownButtonFormField<String>(
-                value: teacherId,
+                initialValue: teacherId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Teacher'),
                 items: teachers.where((e) => e.id != null).map((e) =>
@@ -555,7 +589,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 onChanged: (v) => setDialogState(() => teacherId = v!),
               ),
               DropdownButtonFormField<int>(
-                value: selectedDay,
+                initialValue: selectedDay,
                 decoration: const InputDecoration(labelText: 'Day'),
                 items: const [
                   DropdownMenuItem(value: 1, child: Text('Monday')),
@@ -566,8 +600,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                 ],
                 onChanged: (v) => setDialogState(() => selectedDay = v!),
               ),
-              TextField(controller: roomController, decoration: const InputDecoration(labelText: 'Room')),
-              const SizedBox(height: 12),
+               
               Row(children: [
                 Expanded(child: OutlinedButton(
                   onPressed: () async {
@@ -592,15 +625,32 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               TextButton(
                 onPressed: saving ? null : () async {
                   setDialogState(() => saving = true);
+                 final messenger = ScaffoldMessenger.of(context);
                   try {
-                    await ref.read(timetableNotifierProvider.notifier).deleteSlot(existing.id);
-                    if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    if (mounted) ScaffoldMessenger.of(this.context).showSnackBar(
+                    await ref.read(timetableNotifierProvider.notifier)
+                        .deleteSlot(existing.id);
+
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext);
+                    }
+
+                    if (messenger.mounted) {
+                    messenger.showSnackBar(
                       const SnackBar(content: Text('Timetable entry deleted')),
                     );
+                  }
                   } catch (e) {
-                    setDialogState(() => saving = false);
-                    ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+                    if (dialogContext.mounted) {
+                      setDialogState(() => saving = false);
+                    }
+
+                    if (!mounted) return;
+
+                    if (messenger.mounted) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Delete failed: $e')),
+                      );
+                    }
                   }
                 },
                 child: const Text('Delete', style: TextStyle(color: Colors.red)),
@@ -608,7 +658,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
             TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
             FilledButton(
               onPressed: saving ? null : () async {
-                if (roomController.text.trim().isEmpty || end.hour * 60 + end.minute <= start.hour * 60 + start.minute) {
+                if (end.hour * 60 + end.minute <= start.hour * 60 + start.minute) {
                   ScaffoldMessenger.of(this.context).showSnackBar(
                     const SnackBar(content: Text('Enter a room and a valid end time.')),
                   );
@@ -621,8 +671,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   id: existing?.id ?? '',
                   dayOfWeek: selectedDay,
                   startTime: start,
-                  endTime: end,
-                  roomNo: roomController.text.trim(),
+                  endTime: end, 
                   subjectName: selectedSub.name,
                   teacherName: selectedTeach.name,
                   classId: selectedBatch.name,
@@ -631,22 +680,45 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   teacherId: teacherId,
                 );
                 setDialogState(() => saving = true);
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   final notifier = ref.read(timetableNotifierProvider.notifier);
+
                   if (existing == null) {
                     await notifier.createSlot(slot);
                   } else {
                     await notifier.saveSlot(slot);
                   }
-                  if (dialogContext.mounted) Navigator.pop(dialogContext);
-                  if (mounted) ScaffoldMessenger.of(this.context).showSnackBar(
-                    SnackBar(content: Text(existing == null ? 'Timetable entry created' : 'Timetable entry updated')),
-                  );
+
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+
+                  if (!mounted) return;
+
+                  if (messenger.mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          existing == null
+                              ? 'Timetable entry created'
+                              : 'Timetable entry updated',
+                        ),
+                      ),
+                    );
+                  }
                 } catch (e) {
-                  setDialogState(() => saving = false);
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    SnackBar(content: Text('Could not save timetable: $e')),
-                  );
+                  if (dialogContext.mounted) {
+                    setDialogState(() => saving = false);
+                  }
+
+                  if (!mounted) return;
+
+                  if (messenger.mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('Could not save timetable: $e')),
+                    );
+                  }
                 }
               },
               child: Text(saving ? 'Saving...' : 'Save'),
@@ -654,8 +726,21 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           ],
         ),
       ),
-    );
-    roomController.dispose();
+    ); 
+
+      } catch (e, stackTrace) {
+        debugPrint('Timetable editor loading error: $e');
+        debugPrintStack(stackTrace: stackTrace);
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load timetable edit data: $e'),
+          ),
+        );
+      }
+     
   }
 
   void _submitSwapRequest() {

@@ -226,7 +226,8 @@ class _StudentsTabState extends State<_StudentsTab> {
                   context.push(
                     '/student-profile/${Uri.encodeComponent(widget.classId)}/'
                     '${Uri.encodeComponent(student.rollNumber)}/'
-                    '${Uri.encodeComponent(student.name)}',
+                    '${Uri.encodeComponent(student.name)}'
+                    '?avatar=${Uri.encodeComponent(student.avatar ?? '')}',
                   );
                 },
               );

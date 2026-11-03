@@ -1,3 +1,4 @@
+
 /// A student entry shown in the Department - Students list.
 class DepartmentStudent {
   final String? id;
@@ -9,6 +10,9 @@ class DepartmentStudent {
   final String? batchId;
   final String? batchName;
   final String? imageUrl;
+
+  // Alias for imageUrl, used by student profile navigation.
+  String? get avatar => imageUrl;
 
   const DepartmentStudent({
     this.id,
@@ -25,6 +29,7 @@ class DepartmentStudent {
   factory DepartmentStudent.fromJson(Map<String, dynamic> json) {
     String? bId;
     String? bName;
+
     if (json['batchId'] is Map) {
       bId = json['batchId']['_id'] as String?;
       bName = json['batchId']['batchName'] as String?;
@@ -35,13 +40,15 @@ class DepartmentStudent {
     return DepartmentStudent(
       id: json['_id'] as String? ?? json['id'] as String?,
       name: json['studentName'] as String? ?? json['name'] as String? ?? '',
-      rollNumber: json['registerNo'] as String? ?? json['rollNumber'] as String? ?? '',
+      rollNumber: json['registerNo'] as String? ??
+          json['rollNumber'] as String? ??
+          '',
       email: json['email'] as String?,
       phoneNo: json['phoneNo'] as String?,
       apaarId: json['apaarId'] as String?,
       batchId: bId,
       batchName: bName,
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['avatar'] as String? ?? json['imageUrl'] as String?,
     );
   }
 
@@ -58,17 +65,3 @@ class DepartmentStudent {
     };
   }
 }
-
-// Fallback mock students commented out - backend data is used instead.
-// const List<DepartmentStudent> mockDepartmentStudents = [
-//   DepartmentStudent(name: "Alice Johnson", rollNumber: "S2023001"),
-//   DepartmentStudent(name: "Bob Smith", rollNumber: "S2023002"),
-//   DepartmentStudent(name: "Carol Davis", rollNumber: "S2023003"),
-//   DepartmentStudent(name: "David Wilson", rollNumber: "S2023004"),
-//   DepartmentStudent(name: "Emma Brown", rollNumber: "S2023005"),
-//   DepartmentStudent(name: "Frank Miller", rollNumber: "S2023006"),
-//   DepartmentStudent(name: "Grace Lee", rollNumber: "S2023007"),
-//   DepartmentStudent(name: "Henry Taylor", rollNumber: "S2023008"),
-//   DepartmentStudent(name: "Isabella Clark", rollNumber: "S2023009"),
-//   DepartmentStudent(name: "Jack Anderson", rollNumber: "S2023010"),
-// ];

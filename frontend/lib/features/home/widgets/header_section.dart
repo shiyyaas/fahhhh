@@ -41,22 +41,39 @@ class HeaderSection extends ConsumerWidget {
         vertical: 12,
       ),
       child: Row(
-        children: [
+        children: [          
           Container(
             width: 58,
             height: 58,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.grey.shade300,
-              image: imageUrl != null ? DecorationImage(
-                image: AssetImage(
-                  imageUrl,
-                ),
-                fit: BoxFit.cover,
-              ) : null,
             ),
-            child: imageUrl == null ? const Icon(Icons.person, color: Colors.white, size: 30) : null,
+            child: ClipOval(
+              child: imageUrl != null &&
+                      imageUrl.isNotEmpty &&
+                      imageUrl.startsWith('http')
+                  ? Image.network(
+                      imageUrl,
+                      width: 58,
+                      height: 58,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 30,
+                        );
+                      },
+                    )
+                  : const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+            ),
           ),
+
           const SizedBox(width: 16),
           Expanded(
             child: Column(

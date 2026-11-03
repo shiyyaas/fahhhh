@@ -55,18 +55,38 @@ class StudentProfileScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 32),
-                    Container(
-                      width: 99,
-                      height: 99,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 1),
-                        image: const DecorationImage(
-                          image: AssetImage('assets/images/student.png'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                    
+                  Container(
+                    width: 99,
+                    height: 99,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.border, width: 1),
                     ),
+                    child: ClipOval(
+                      child: profile.imageUrl != null &&
+                              profile.imageUrl!.startsWith('http')
+                          ? Image.network(
+                              profile.imageUrl!,
+                              width: 99,
+                              height: 99,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/student.png',
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              'assets/images/student.png',
+                              width: 99,
+                              height: 99,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                  ),
+
                     const SizedBox(height: 16),
                     Text(
                       profile.name,

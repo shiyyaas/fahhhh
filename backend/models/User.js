@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
+    // Cloudinary image ID for replacing/deleting old avatars
+    avatarPublicId: {
+      type: String,
+      default: "",
+    },
+
     isActive: {
       type: Boolean,
       default: true,
