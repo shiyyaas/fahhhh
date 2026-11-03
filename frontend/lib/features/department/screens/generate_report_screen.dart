@@ -18,13 +18,16 @@ import 'package:fahhhh/features/department/widgets/attendance_percentage_badge.d
 
 //Models
 import 'package:fahhhh/features/department/models/department_student.dart';
+import 'package:fahhhh/features/department/models/department_class.dart';
 
 //Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
 // Packages
-import 'package:url_launcher/url_launcher_string.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart';
 
 /// Attendance report: month selector, average-attendance chart, preview/download
 /// actions and a searchable roster where every student ends in a percentage
@@ -157,19 +160,26 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                         try {
                           final repo = ref.read(departmentRepositoryProvider);
                           final batches = await repo.getClasses();
-                          final batchId = batches.isNotEmpty ? (batches.first.id ?? 'default') : 'default';
+                          final matchingBatch = batches.firstWhere(
+                            (b) => b.id == classId || b.name.toLowerCase() == classId.toLowerCase(),
+                            orElse: () => batches.isNotEmpty ? batches.first : const DepartmentClass(name: 'default', classTeacher: '', attendancePercent: 0),
+                          );
+                          final batchId = matchingBatch.id ?? classId;
                           final now = DateTime.now();
                           final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
                           final month = monthIdx > 0 ? monthIdx : now.month;
                           final year = now.year;
-                          final url = await repo.getBatchMonthlyPreviewUrl(batchId, month, year);
-                          if (await canLaunchUrlString(url)) {
-                            await launchUrlString(url, mode: LaunchMode.externalApplication);
+
+                          final bytes = await repo.getBatchMonthlyPreviewBytes(batchId, month, year);
+                          if (bytes.isNotEmpty) {
+                            await Printing.layoutPdf(
+                              onLayout: (_) async => bytes,
+                              name: 'Monthly_Attendance_Preview_${_selectedMonth.replaceAll(' ', '_')}.pdf',
+                            );
                           } else {
-                            final bytes = await repo.getBatchMonthlyPreviewBytes(batchId, month, year);
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Preview PDF loaded (${bytes.length} bytes)')),
+                              const SnackBar(content: Text('Failed to load preview PDF'), backgroundColor: AppColors.danger),
                             );
                           }
                         } catch (e) {
@@ -190,21 +200,36 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                         try {
                           final repo = ref.read(departmentRepositoryProvider);
                           final batches = await repo.getClasses();
-                          final batchId = batches.isNotEmpty ? (batches.first.id ?? 'default') : 'default';
+                          final matchingBatch = batches.firstWhere(
+                            (b) => b.id == classId || b.name.toLowerCase() == classId.toLowerCase(),
+                            orElse: () => batches.isNotEmpty ? batches.first : const DepartmentClass(name: 'default', classTeacher: '', attendancePercent: 0),
+                          );
+                          final batchId = matchingBatch.id ?? classId;
                           final now = DateTime.now();
                           final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
                           final month = monthIdx > 0 ? monthIdx : now.month;
                           final year = now.year;
 
-                          final url = await repo.getBatchMonthlyPdfUrl(batchId, month, year);
-                          if (await canLaunchUrlString(url)) {
-                            await launchUrlString(url, mode: LaunchMode.externalApplication);
-                          } else {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Could not open download URL: $url'), backgroundColor: AppColors.danger),
-                            );
-                          }
+                          final bytes = await repo.getBatchMonthlyPdfBytes(batchId, month, year);
+                          final dir = await getApplicationDocumentsDirectory();
+                          final fileName = 'Monthly_Attendance_${_selectedMonth.replaceAll(' ', '_')}.pdf';
+                          final file = File('${dir.path}/$fileName');
+                          await file.writeAsBytes(bytes);
+
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Downloaded to ${file.path}'),
+                              action: SnackBarAction(
+                                label: 'Open',
+                                onPressed: () {
+                                  Printing.sharePdf(bytes: bytes, filename: fileName);
+                                },
+                              ),
+                            ),
+                          );
+
+                          await Printing.sharePdf(bytes: bytes, filename: fileName);
                         } catch (e) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
