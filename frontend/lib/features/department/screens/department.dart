@@ -239,8 +239,22 @@ class _TeachersViewState extends State<_TeachersView> {
             itemBuilder: (context, index) => TeacherListTile(
               teacher: teachers[index],
               onTap: () {
-                if (!context.mounted) return;
-                context.push('/teacher-profile');
+                final selectedTeacher = teachers[index];
+
+                if (selectedTeacher.id == null ||
+                    selectedTeacher.id!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Teacher ID not found'),
+                    ),
+                  );
+                  return;
+                }
+
+                context.push(
+                  '/teacher-profile',
+                  extra: selectedTeacher,
+                );
               },
             ),
           ),

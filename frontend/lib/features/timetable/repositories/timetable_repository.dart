@@ -212,11 +212,7 @@ class TimetableRepository {
 
     if (slot.teacherId == null || slot.teacherId!.isEmpty) {
       throw ArgumentError('Teacher ID is required');
-    }
-
-    if (slot.roomNo.trim().isEmpty) {
-      throw ArgumentError('Room number is required');
-    }
+    } 
 
     return {
       'batch': slot.batchId,
@@ -224,8 +220,7 @@ class TimetableRepository {
       'teacher': slot.teacherId,
       'day': _dayIntToName(slot.dayOfWeek),
       'startTime': _formatTime(slot.startTime),
-      'endTime': _formatTime(slot.endTime),
-      'roomNo': slot.roomNo.trim(),
+      'endTime': _formatTime(slot.endTime), 
     };
   }
 

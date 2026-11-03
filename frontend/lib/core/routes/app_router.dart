@@ -13,6 +13,7 @@ import '../../features/profile/screens/profile.dart';
 import '../../features/profile/screens/edit_profile.dart';
 import '../../features/attendance/screens/attendance_taking_screen.dart';
 import '../../features/timetable/screens/timetable_screen.dart';
+import '../../features/department/models/department_teacher.dart';
 import '../../features/department/screens/department_class_screen.dart';
 import '../../features/department/screens/archived_batches_screen.dart';
 import '../../features/department/screens/archived_semester_selection_screen.dart';
@@ -161,7 +162,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Teacher Profile Route - Figma node 1651:11914, hides bottom nav
       GoRoute(
         path: '/teacher-profile',
-        builder: (context, state) => const TeacherProfileScreen(),
+        builder: (context, state) {
+          final teacher = state.extra as DepartmentTeacher?;
+          return TeacherProfileScreen(teacher: teacher);
+        },
       ),
       // Condonation Register Route - list of students with condonation
       GoRoute(

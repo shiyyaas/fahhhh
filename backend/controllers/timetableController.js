@@ -25,12 +25,11 @@ const validateTimetableData = (data) => {
         teacher,
         day,
         startTime,
-        endTime,
-        roomNo
+        endTime, 
     } = data;
 
     if (!batch || !subject || !teacher || !day ||
-        !startTime || !endTime || !roomNo?.trim()) {
+        !startTime || !endTime ) {
         return "All timetable fields are required";
     }
 
@@ -66,8 +65,7 @@ const findScheduleConflict = async (data, excludeId = null) => {
         endTime: { $gt: data.startTime },
         $or: [
             { batch: data.batch },
-            { teacher: data.teacher },
-            { roomNo: data.roomNo.trim() }
+            { teacher: data.teacher}
         ]
     };
 
@@ -86,10 +84,7 @@ const findScheduleConflict = async (data, excludeId = null) => {
     if (conflict.teacher.toString() === data.teacher.toString()) {
         return "This teacher is already assigned during this time";
     }
-
-    if (conflict.roomNo.trim() === data.roomNo.trim()) {
-        return "This room is already booked during this time";
-    }
+ 
 
     return "Timetable conflict detected";
 };
@@ -121,8 +116,7 @@ exports.createTimetable = async (req, res) => {
             teacher: req.body.teacher,
             day: req.body.day,
             startTime: req.body.startTime,
-            endTime: req.body.endTime,
-            roomNo: req.body.roomNo.trim()
+            endTime: req.body.endTime, 
         });
 
         await populateTimetable(
@@ -246,8 +240,7 @@ exports.updateTimetable = async (req, res) => {
         existing.teacher = req.body.teacher;
         existing.day = req.body.day;
         existing.startTime = req.body.startTime;
-        existing.endTime = req.body.endTime;
-        existing.roomNo = req.body.roomNo.trim();
+        existing.endTime = req.body.endTime; 
 
         await existing.save();
         await existing.populate(["batch", "subject", "teacher"]);

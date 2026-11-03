@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/theme_data/app_radius.dart';
+import 'package:fahhhh/features/department/models/department_teacher.dart';
 
 // Providers
 import 'package:fahhhh/features/auth/providers/auth_provider.dart';
+import 'package:fahhhh/core/network/api_endpoints.dart';
 
 // Widgets
 import 'package:fahhhh/core/widgets/app_back_header.dart';
@@ -26,36 +28,70 @@ import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 /// underneath, two stacked white info cards, and a prominent white-outlined
 /// "Time Table schedule" action pill that navigates to the teacher timetable.
 class TeacherProfileScreen extends ConsumerWidget {
-  const TeacherProfileScreen({super.key});
+  final DepartmentTeacher? teacher;
+
+  const TeacherProfileScreen({
+    super.key,
+    this.teacher,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
+    final selectedTeacher = teacher;
 
-    if (user == null) {
+    if (selectedTeacher == null && user == null) {
       return const Scaffold(
-        body: Center(child: Text('No authenticated user session found.')),
+        body: Center(
+          child: Text('No teacher information found.'),
+        ),
       );
     }
 
-    final bool isHOD = user.isHOD;
-    final String name = user.name;
-    final String? imageUrl = user.imageUrl;
-    final String designation = user.designation ??
-        (isHOD ? 'Head Of Department' : 'Assistant Professor');
-    final String staffId = user.assignedClassId != null
-        ? 'TCH2024-${user.assignedClassId.hashCode % 1000}'
-        : 'TCH2024-012';
-    final String department =
-        user.departmentId ?? 'Department of Computer Science';
-    final String email = user.email;
-    final String phone = user.phone.isEmpty ? '—' : user.phone;
-    final String classText =
-        user.assignedClassId ?? user.className ?? 'S2 BCA';
-    final String subjectsText =
-        (user.activeSubjects?.isNotEmpty ?? false)
-            ? user.activeSubjects!.join(', ')
-            : 'Python, Software Engineering';
+    final bool isHOD =
+        selectedTeacher == null && (user?.isHOD ?? false);
+
+    final String name =
+        selectedTeacher?.name ?? user!.name;
+
+    final String? imageUrl =
+      selectedTeacher?.imageUrl ?? user?.imageUrl;
+
+    final String resolvedImageUrl =
+        ApiEndpoints.resolveUrl(imageUrl);
+
+    final String designation = selectedTeacher != null
+        ? 'Faculty'
+        : (user!.designation ??
+            (isHOD ? 'Head Of Department' : 'Assistant Professor'));
+
+    final String staffId =
+        selectedTeacher?.employeeId ??
+        (user?.assignedClassId != null
+            ? 'TCH2024-${user!.assignedClassId.hashCode % 1000}'
+            : 'TCH2024-012');
+
+    final String department = selectedTeacher != null
+        ? 'Department of Computer Science'
+        : (user!.departmentId ?? 'Department of Computer Science');
+
+    final String email =
+        selectedTeacher?.email ?? user!.email;
+
+    final String phone = selectedTeacher?.phoneNo ??
+        (user!.phone.isEmpty ? '—' : user.phone);
+
+    final String classText = selectedTeacher != null
+        ? '—'
+        : (user!.assignedClassId ?? user.className ?? 'S2 BCA');
+
+    final String subjectsText = selectedTeacher != null
+    ? (selectedTeacher.subjects.isNotEmpty
+        ? selectedTeacher.subjects.join(', ')
+        : 'No subjects assigned')
+    : ((user!.activeSubjects?.isNotEmpty ?? false)
+        ? user.activeSubjects!.join(', ')
+        : 'No subjects assigned');
 
     return Scaffold(
       body: AppScreenScaffold(
@@ -84,15 +120,23 @@ class TeacherProfileScreen extends ConsumerWidget {
                       height: 99,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.border, width: 1),
-                        image: DecorationImage(
-                          image: imageUrl != null && imageUrl.startsWith('http')
-                              ? NetworkImage(imageUrl)
-                              : const AssetImage('assets/images/teacher.png')
-                                  as ImageProvider,
-                          fit: BoxFit.cover,
+                        border: Border.all(
+                          color: AppColors.border,
+                          width: 1,
                         ),
                       ),
+                      clipBehavior: Clip.antiAlias,
+                      child: resolvedImageUrl.isNotEmpty
+                          ? Image.network(
+                              resolvedImageUrl,
+                              width: 99,
+                              height: 99,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildInitialAvatar(name);
+                              },
+                            )
+                          : _buildInitialAvatar(name),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -177,7 +221,9 @@ class TeacherProfileScreen extends ConsumerWidget {
                         _InfoItem(
                           icon: Icons.calendar_today_outlined,
                           label: 'Semester',
-                          value: user.semester ?? '—',
+                          value: selectedTeacher == null
+                          ? (user!.semester ?? '—')
+                          : '—',
                         ),
                       ],
                     ),
@@ -190,6 +236,45 @@ class TeacherProfileScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Builds a circular avatar with the teacher's initials, used as a fallback
+/// when the image URL is empty or fails to load.
+Widget _buildInitialAvatar(String name) {
+  final parts = name.trim().split(RegExp(r'\s+'));
+
+  final initials = parts.isEmpty || parts.first.isEmpty
+      ? '?'
+      : parts.length > 1
+          ? '${parts.first[0]}${parts[1][0]}'.toUpperCase()
+          : parts.first.substring(
+              0,
+              parts.first.length >= 2 ? 2 : 1,
+            ).toUpperCase();
+
+  final colors = [
+    Color(0xFFE3EAFE),
+    Color(0xFFFCE4EC),
+    Color(0xFFE0F2F1),
+    Color(0xFFFFF3E0),
+    Color(0xFFEDE7F6),
+    Color(0xFFE8F5E9),
+  ];
+
+  final color = colors[name.hashCode.abs() % colors.length];
+
+  return Container(
+    color: color,
+    alignment: Alignment.center,
+    child: Text(
+      initials,
+      style: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.bold,
+        color: Colors.blueGrey.shade800,
+      ),
+    ),
+  );
 }
 
 /// A single info row inside [_InfoCard]: circular icon + label/value pair.
