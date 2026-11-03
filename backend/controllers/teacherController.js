@@ -16,13 +16,19 @@ exports.createTeacher = async (req, res) => {
             departments
         } = req.body;
 
-        const existingTeacher =
-            await Teacher.findOne({
-                $or: [
-                    { email },
-                    { employeeId }
-                ]
-            });
+        const normalizedEmail = email.trim().toLowerCase();
+
+        const existingTeacher = await Teacher.findOne({
+            $or: [
+                {
+                    email: {
+                        $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+                        $options: "i"
+                    }
+                },
+                { employeeId }
+            ]
+        });
 
         if (existingTeacher) {
             return res.status(400).json({
@@ -30,7 +36,6 @@ exports.createTeacher = async (req, res) => {
                 message: "Teacher already exists"
             });
         }
-
         // Verify departments exist
         if (departments && departments.length > 0) {
 
@@ -57,7 +62,7 @@ exports.createTeacher = async (req, res) => {
             await Teacher.create({
                 teacherName,
                 employeeId,
-                email,
+                email: normalizedEmail,
                 password: hashedPassword,
                 phoneNo,
                 departments
@@ -65,10 +70,10 @@ exports.createTeacher = async (req, res) => {
 
         // Also create matching User for login authentication
         await User.findOneAndUpdate(
-            { email: email.toLowerCase().trim() },
+            {   email: normalizedEmail   },
             {
                 name: teacherName,
-                email: email.toLowerCase().trim(),
+                email: normalizedEmail,
                 password: hashedPassword,
                 role: "TEACHER",
                 phone: phoneNo,
@@ -149,20 +154,7 @@ exports.getTeacher = async (req, res) => {
             });
         }
 
-        // Keep User in sync
-        const userUpdate = {};
-        if (req.body.teacherName) userUpdate.name = req.body.teacherName;
-        if (req.body.email) userUpdate.email = req.body.email.toLowerCase().trim();
-        if (req.body.phoneNo) userUpdate.phone = req.body.phoneNo;
-        if (req.body.avatar) userUpdate.avatar = req.body.avatar;
-
-        if (Object.keys(userUpdate).length > 0) {
-            await User.findOneAndUpdate(
-                { email: teacher.email.toLowerCase().trim() },
-                { $set: userUpdate }
-            );
-        }
-
+        
         res.status(200).json({
             success: true,
             teacher
