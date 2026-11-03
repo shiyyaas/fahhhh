@@ -165,23 +165,9 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
                             orElse: () => batches.isNotEmpty ? batches.first : const DepartmentClass(name: 'default', classTeacher: '', attendancePercent: 0),
                           );
                           final batchId = matchingBatch.id ?? classId;
-                          final now = DateTime.now();
-                          final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
-                          final month = monthIdx > 0 ? monthIdx : now.month;
-                          final year = now.year;
-
-                          final bytes = await repo.getBatchMonthlyPreviewBytes(batchId, month, year);
-                          if (bytes.isNotEmpty) {
-                            await Printing.layoutPdf(
-                              onLayout: (_) async => bytes,
-                              name: 'Monthly_Attendance_Preview_${_selectedMonth.replaceAll(' ', '_')}.pdf',
-                            );
-                          } else {
-                            if (!context.mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Failed to load preview PDF'), backgroundColor: AppColors.danger),
-                            );
-                          }
+                          final batchName = matchingBatch.name;
+                          if (!context.mounted) return;
+                          _showCustomPreviewDialog(context, ref, batchId, batchName);
                         } catch (e) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -290,6 +276,228 @@ class _GenerateReportScreenState extends ConsumerState<GenerateReportScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCustomPreviewDialog(BuildContext context, WidgetRef ref, String batchId, String batchName) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppColors.outline, width: 1.5),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.outline.withAlpha(102),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Monthly Attendance Preview',
+                        style: AppTextStyles.heading.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$batchName · $_selectedMonth',
+                        style: AppTextStyles.small.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.headingText),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 24, thickness: 1, color: AppColors.outline),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final user = ref.watch(authProvider).user;
+                  final classId = user?.assignedClassId ?? user?.className ?? 'S2 BCA';
+                  final studentsAsync = ref.watch(departmentStudentsProvider(classId));
+                  return studentsAsync.when(
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return Center(
+                          child: Text('No students found in this batch', style: AppTextStyles.body),
+                        );
+                      }
+                      int totalPercent = 0;
+                      for (int i = 0; i < list.length; i++) {
+                        totalPercent += _percentPattern[i % _percentPattern.length];
+                      }
+                      final avgPercent = (totalPercent / list.length).toStringAsFixed(1);
+
+                      return Column(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withAlpha(76),
+                              borderRadius: BorderRadius.circular(AppRadius.medium),
+                              border: Border.all(color: AppColors.outline, width: 1),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _buildStatItem('Total Students', '${list.length}'),
+                                Container(height: 30, width: 1, color: AppColors.outline),
+                                _buildStatItem('Average Attendance', '$avgPercent%'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(width: 40, child: Text('Sl', style: AppTextStyles.heading.copyWith(color: Colors.white, fontSize: 13))),
+                                Expanded(flex: 3, child: Text('Student Name', style: AppTextStyles.heading.copyWith(color: Colors.white, fontSize: 13))),
+                                SizedBox(width: 80, child: Text('Reg No', style: AppTextStyles.heading.copyWith(color: Colors.white, fontSize: 13))),
+                                SizedBox(width: 60, child: Text('Rate', style: AppTextStyles.heading.copyWith(color: Colors.white, fontSize: 13), textAlign: TextAlign.end)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              itemCount: list.length,
+                              itemBuilder: (context, index) {
+                                final student = list[index];
+                                final percent = _percentPattern[index % _percentPattern.length];
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(AppRadius.small),
+                                    border: Border.all(color: AppColors.outline.withAlpha(128), width: 0.8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 40, child: Text('${index + 1}', style: AppTextStyles.body.copyWith(fontSize: 13))),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          student.name,
+                                          style: AppTextStyles.body.copyWith(fontSize: 13, fontWeight: FontWeight.w600),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      SizedBox(width: 80, child: Text(student.rollNumber, style: AppTextStyles.small.copyWith(fontSize: 12))),
+                                      SizedBox(
+                                        width: 60,
+                                        child: Align(
+                                          alignment: Alignment.centerRight,
+                                          child: AttendancePercentageBadge(percent: percent),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    error: (e, _) => Center(child: Text('Error: $e', style: AppTextStyles.body)),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                      side: const BorderSide(color: AppColors.outline, width: 1),
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    try {
+                      final repo = ref.read(departmentRepositoryProvider);
+                      final now = DateTime.now();
+                      final monthIdx = _monthNames.indexOf(_selectedMonth.split(' ').first) + 1;
+                      final month = monthIdx > 0 ? monthIdx : now.month;
+                      final year = now.year;
+
+                      final bytes = await repo.getBatchMonthlyPdfBytes(batchId, month, year);
+                      final dir = await getApplicationDocumentsDirectory();
+                      final fileName = 'Monthly_Attendance_${_selectedMonth.replaceAll(' ', '_')}.pdf';
+                      final file = File('${dir.path}/$fileName');
+                      await file.writeAsBytes(bytes);
+
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Downloaded to ${file.path}'),
+                        ),
+                      );
+                      await Printing.sharePdf(bytes: bytes, filename: fileName);
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Download error: $e'), backgroundColor: AppColors.danger),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'Export & Download PDF',
+                    style: AppTextStyles.heading.copyWith(color: Colors.white, fontSize: 15),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: AppTextStyles.heading.copyWith(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.primary)),
+        const SizedBox(height: 2),
+        Text(label, style: AppTextStyles.small.copyWith(fontSize: 12, color: AppColors.textSecondary)),
+      ],
     );
   }
 
