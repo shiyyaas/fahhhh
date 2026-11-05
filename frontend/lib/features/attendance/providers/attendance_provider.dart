@@ -16,3 +16,8 @@ final studentAttendanceHistoryProvider = FutureProvider.family<List<dynamic>, St
   final repo = ref.watch(attendanceRepositoryProvider);
   return repo.getStudentAttendance(studentId);
 });
+
+final batchAttendanceHistoryProvider = FutureProvider.family<List<dynamic>, String>((ref, batchId) async {
+  final repo = ref.watch(attendanceRepositoryProvider);
+  return repo.getBatchAttendance(batchId);
+});

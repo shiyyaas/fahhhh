@@ -37,10 +37,14 @@ class TimetableScreen extends ConsumerStatefulWidget {
   /// Specific class ID if viewed from inside a class (no dropdown).
   final String? classId;
 
+  /// Specific teacher name if viewed from teacher profile (no dropdown).
+  final String? teacherName;
+
   const TimetableScreen({
     super.key,
     this.forceTeacherMode = false,
     this.classId,
+    this.teacherName,
   });
 
   @override
@@ -85,7 +89,12 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       final auth = ref.read(authProvider);
       final user = auth.user;
 
-      if (widget.classId != null) {
+      if (widget.teacherName != null) {
+        setState(() {
+          _selectedTeacher = widget.teacherName!;
+          _selectedSegment = "Teachers";
+        });
+      } else if (widget.classId != null) {
         setState(() {
           _selectedSortClass = widget.classId!;
           _selectedSegment = "Classes";
@@ -282,7 +291,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               const SizedBox(height: 12),
 
               // ── HOD controls ────────────────────────────────────────────
-              if (isHOD) ...[
+              if (isHOD && widget.teacherName == null) ...[
                 _HodControls(
                   selectedSegment: _selectedSegment,
                   selectedSortClass: _selectedSortClass,
@@ -308,23 +317,27 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   onUploadTap: _pickAndPreviewTimetable,
                 ),
               ] else if (isTeacherMode) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _OutlinedDropdown(
-                          label: _selectedTeacher,
-                          items: currentTeachers,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedTeacher = val;
-                              _isSwapMode = false;
-                            });
-                          },
-                        ),
-                      ),
-                      if (isOwnTeacher) ...[
+                if (widget.teacherName == null || isOwnTeacher)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        if (widget.teacherName == null)
+                          Expanded(
+                            child: _OutlinedDropdown(
+                              label: _selectedTeacher,
+                              items: currentTeachers,
+                              onSelected: (val) {
+                                setState(() {
+                                  _selectedTeacher = val;
+                                  _isSwapMode = false;
+                                });
+                              },
+                            ),
+                          ),
+                        if (widget.teacherName != null && isOwnTeacher)
+                          const Spacer(),
+                        if (isOwnTeacher) ...[
                         const SizedBox(width: 12),
                         if (_isSwapMode) ...[
                           GestureDetector(

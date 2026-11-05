@@ -26,7 +26,6 @@ class AttendanceHistoryScreen extends ConsumerStatefulWidget {
 class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScreen> {
   late DateTime _currentMonth;
   DateTime? _selectedDay;
-  final Map<DateTime, DayAttendanceStatus> _attendanceData = {};
 
   @override
   void initState() {
@@ -34,36 +33,6 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     _currentMonth = DateTime(DateTime.now().year, DateTime.now().month);
     _selectedDay = DateTime.now();
   }
-
-  // Commented out fallback mock attendance generator:
-  // Map<DateTime, DayAttendanceStatus> _generateMockAttendance() {
-  //   final now = DateTime.now();
-  //   final map = <DateTime, DayAttendanceStatus>{};
-  //   final random = Random(42);
-  //   final daysInMonth = DateUtils.getDaysInMonth(now.year, now.month);
-  //   for (int d = 1; d <= daysInMonth; d++) {
-  //     final date = DateTime(now.year, now.month, d);
-  //     if (date.isAfter(now)) {
-  //       continue;
-  //     }
-  //     if (date.weekday == DateTime.saturday ||
-  //         date.weekday == DateTime.sunday) {
-  //       map[date] = DayAttendanceStatus.noClass;
-  //       continue;
-  //     }
-  //     final r = random.nextDouble();
-  //     if (r < 0.15) {
-  //       map[date] = DayAttendanceStatus.noClass;
-  //     } else if (r < 0.5) {
-  //       map[date] = DayAttendanceStatus.present;
-  //     } else if (r < 0.75) {
-  //       map[date] = DayAttendanceStatus.partial;
-  //     } else {
-  //       map[date] = DayAttendanceStatus.absent;
-  //     }
-  //   }
-  //   return map;
-  // }
 
   void _prevMonth() {
     setState(() {
@@ -101,7 +70,10 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     final user = ref.watch(authProvider).user;
     final studentId = user?.id ?? '';
     final historyAsync = ref.watch(studentAttendanceHistoryProvider(studentId));
-    historyAsync.whenData((records) {
+
+    final Map<DateTime, DayAttendanceStatus> attendanceData = {};
+    if (historyAsync is AsyncData) {
+      final records = historyAsync.value!;
       for (final r in records) {
         if (r is Map && r['date'] != null) {
           final dt = DateTime.tryParse(r['date'].toString());
@@ -109,14 +81,14 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
             final key = DateTime(dt.year, dt.month, dt.day);
             final statusStr = r['status']?.toString();
             if (statusStr == 'Present') {
-              _attendanceData[key] = DayAttendanceStatus.present;
+              attendanceData[key] = DayAttendanceStatus.present;
             } else if (statusStr == 'Absent') {
-              _attendanceData[key] = DayAttendanceStatus.absent;
+              attendanceData[key] = DayAttendanceStatus.absent;
             }
           }
         }
       }
-    });
+    }
 
     return Scaffold(
       body: Container(
@@ -146,11 +118,11 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _buildCalendarCard(),
+                      _buildCalendarCard(attendanceData),
                       const SizedBox(height: 16),
                       _buildTodayLabel(),
                       const SizedBox(height: 4),
-                      _buildSubjectList(),
+                      _buildSubjectList(attendanceData),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -163,7 +135,7 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     );
   }
 
-  Widget _buildCalendarCard() {
+  Widget _buildCalendarCard(Map<DateTime, DayAttendanceStatus> attendanceData) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 14),
       padding: const EdgeInsets.all(1),
@@ -188,7 +160,7 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
         children: [
           _buildMonthNav(),
           _buildWeekdayHeaders(),
-          _buildCalendarGrid(),
+          _buildCalendarGrid(attendanceData),
           _buildLegend(),
         ],
       ),
@@ -248,7 +220,7 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     );
   }
 
-  Widget _buildCalendarGrid() {
+  Widget _buildCalendarGrid(Map<DateTime, DayAttendanceStatus> attendanceData) {
     final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
     final daysInMonth =
         DateUtils.getDaysInMonth(_currentMonth.year, _currentMonth.month);
@@ -280,7 +252,7 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
                     date.year == _selectedDay!.year &&
                     date.month == _selectedDay!.month &&
                     date.day == _selectedDay!.day;
-                final status = _attendanceData[date];
+                final status = attendanceData[date];
                 final isWeekend = date.weekday == DateTime.saturday ||
                     date.weekday == DateTime.sunday;
 
@@ -321,13 +293,16 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
                                   )
                                 : isSelected
                                     ? BoxDecoration(
-                                        color: AppColors.surface,
+                                        color: AppColors.primary,
                                         borderRadius:
                                             BorderRadius.circular(13),
-                                        border: Border.all(
-                                          color: const Color(0xFF615FFF),
-                                          width: 1,
-                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Color(0x331D71B8),
+                                            blurRadius: 8,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
                                       )
                                     : null,
                             alignment: Alignment.center,
@@ -336,8 +311,8 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
                               style: AppTextStyles.body.copyWith(
                                 fontSize: 12,
                                 fontWeight:
-                                    isToday ? FontWeight.bold : FontWeight.w500,
-                                color: isToday
+                                    isToday || isSelected ? FontWeight.bold : FontWeight.w500,
+                                color: isToday || isSelected
                                     ? AppColors.surface
                                     : AppColors.headingText,
                               ),
@@ -435,8 +410,8 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     );
   }
 
-  Widget _buildSubjectList() {
-    final slots = _getSlotsForDay(_selectedDay);
+  Widget _buildSubjectList(Map<DateTime, DayAttendanceStatus> attendanceData) {
+    final slots = _getSlotsForDay(_selectedDay, attendanceData);
 
     if (slots.isEmpty) {
       return Padding(
@@ -470,21 +445,16 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
     );
   }
 
-  /// Returns the timetable slots for [date].
-  /// When [date] has no classes (weekend/holiday/clear schedule),
-  /// returns an empty list so the UI can display "No Class".
   List<(String, String, TimeOfDay, TimeOfDay, AttendanceStatus)>
-      _getSlotsForDay(DateTime? date) {
+      _getSlotsForDay(DateTime? date, Map<DateTime, DayAttendanceStatus> attendanceData) {
     if (date == null) return [];
 
-    // Weekend → no class
     if (date.weekday == DateTime.saturday ||
         date.weekday == DateTime.sunday) {
       return [];
     }
 
-    // Look up attendance status for the day to detect "No Class" days.
-    final dayStatus = _attendanceData[DateTime(date.year, date.month, date.day)];
+    final dayStatus = attendanceData[DateTime(date.year, date.month, date.day)];
     if (dayStatus == DayAttendanceStatus.noClass) return [];
 
     final allSlots = ref.watch(allTimetableProvider).value ?? [];
@@ -499,22 +469,6 @@ class _AttendanceHistoryScreenState extends ConsumerState<AttendanceHistoryScree
       )).toList();
     }
     return [];
-
-    // Commented out fallback mock schedule:
-    // return [
-    //   ('Software Engineering', 'Sheethal', const TimeOfDay(hour: 9, minute: 30),
-    //       const TimeOfDay(hour: 10, minute: 15), AttendanceStatus.present),
-    //   ('Data Structures', 'Rahul', const TimeOfDay(hour: 10, minute: 30),
-    //       const TimeOfDay(hour: 11, minute: 30), AttendanceStatus.absent),
-    //   ('Operating Systems', 'Meena', const TimeOfDay(hour: 12, minute: 0),
-    //       const TimeOfDay(hour: 13, minute: 0), AttendanceStatus.present),
-    //   ('Computer Networks', 'Arjun', const TimeOfDay(hour: 14, minute: 0),
-    //       const TimeOfDay(hour: 15, minute: 0), AttendanceStatus.present),
-    //   ('Database Management', 'Priya', const TimeOfDay(hour: 15, minute: 0),
-    //       const TimeOfDay(hour: 16, minute: 0), AttendanceStatus.present),
-    //   ('Mathematics', 'Suresh', const TimeOfDay(hour: 16, minute: 30),
-    //       const TimeOfDay(hour: 17, minute: 30), AttendanceStatus.absent),
-    // ];
   }
 }
 
