@@ -8,7 +8,7 @@ class AppDropdownField extends StatelessWidget {
   final String label;
   final String? value;
   final List<String> items;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<String?>? onChanged;
   final String? hintText;
   final bool isExpanded;
 
@@ -17,7 +17,7 @@ class AppDropdownField extends StatelessWidget {
     required this.label,
     required this.value,
     required this.items,
-    required this.onChanged,
+    this.onChanged,
     this.hintText,
     this.isExpanded = true,
   });

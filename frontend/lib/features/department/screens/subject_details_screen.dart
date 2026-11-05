@@ -5,6 +5,7 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
+import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
 /// Subject settings details screen: delete, save, and detail display.
@@ -50,137 +51,80 @@ class _SubjectSettingsDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: AppScreenScaffold(
         child: Column(
           children: [
-            _HeaderSection(onBack: () => context.pop()),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  InputField(
-                    controller: _nameController,
-                    label: 'Subject Name',
-                    hintText: 'Enter subject name',
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _teacherController,
-                    label: 'Teacher Name',
-                    hintText: 'Enter teacher name',
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _rollController,
-                    label: 'Roll Number',
-                    hintText: 'Enter roll number',
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DetailActionButton.danger(
-                          text: 'Delete',
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Subject deleted'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+            const SizedBox(height: 18),
+            AppBackHeader(
+              title: 'Subject details',
+              subtitle: 'Manage subject details here',
+              onBack: () => context.pop(),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    InputField(
+                      controller: _nameController,
+                      label: 'Subject Name',
+                      hintText: 'Enter subject name',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _teacherController,
+                      label: 'Teacher Name',
+                      hintText: 'Enter teacher name',
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _rollController,
+                      label: 'Roll Number',
+                      hintText: 'Enter roll number',
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DetailActionButton.danger(
+                            text: 'Delete',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Subject deleted'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DetailActionButton.primary(
-                          text: 'Save',
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Subject details saved'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: DetailActionButton.primary(
+                            text: 'Save',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Subject details saved'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Blue header with back arrow, title, and subtitle — matches the Figma
-/// "Subject details" / "Manage subject details here" block.
-class _HeaderSection extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const _HeaderSection({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 143,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(25),
-          bottomRight: Radius.circular(25),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 15,
-            top: 61,
-            child: IconButton(
-              onPressed: onBack,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(
-                width: 26,
-                height: 41,
-              ),
-              icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            left: 47,
-            top: 61,
-            right: 15,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Subject details',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Manage subject details here',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(
-                    fontSize: 15,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
