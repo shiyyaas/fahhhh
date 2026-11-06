@@ -4,6 +4,7 @@ const Department = require("../models/Department");
 const Subject = require("../models/Subject");
 const Batch = require("../models/Batch");
 const Attendance = require("../models/Attendance");
+const User = require("../models/User");
 const Timetable = require("../models/Timetable");
 const {
     attendancePercentage,
@@ -49,7 +50,7 @@ exports.getDashboardStats = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -61,20 +62,31 @@ exports.getHodDashboard = async (req, res) => {
 
     try {
 
+        const user = await User.findById(req.user.userId)
+            .select("role department");
+        const department = user && user.role === "HOD" && user.department
+            ? await Department.findOne({ departmentName: user.department }).select("_id")
+            : null;
+        if (!department) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
         const totalStudents =
-            await Student.countDocuments();
+            await Student.countDocuments({ department: user.department });
 
         const totalTeachers =
-            await Teacher.countDocuments();
+            await Teacher.countDocuments({ departments: department._id });
 
         const totalSubjects =
-            await Subject.countDocuments();
+            await Subject.countDocuments({ departments: department._id });
 
         const totalBatches =
-            await Batch.countDocuments();
+            await Batch.countDocuments({ department: user.department });
 
         const students =
-            await Student.find();
+            await Student.find({ department: user.department });
 
         let totalDefaulters = 0;
 
@@ -130,7 +142,7 @@ exports.getHodDashboard = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -160,7 +172,7 @@ exports.getTeacherDashboard = async (req, res) => {
 
         const subjectsAssigned =
             await Subject.countDocuments({
-                teachers: teacherId
+                teachers: teacher._id
             });
 
         const timetableEntries =
@@ -168,8 +180,15 @@ exports.getTeacherDashboard = async (req, res) => {
                 teacher: teacherId
             });
 
-        const totalStudents =
-            await Student.countDocuments();
+        const departments = await Department.find({
+            _id: { $in: teacher.departments }
+        }).select("departmentName");
+        const departmentNames = departments.map((department) => department.departmentName);
+        const totalStudents = departmentNames.length
+            ? await Student.countDocuments({
+                department: { $in: departmentNames }
+            })
+            : 0;
 
         res.status(200).json({
             success: true,
@@ -186,7 +205,7 @@ exports.getTeacherDashboard = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -266,7 +285,7 @@ exports.getStudentDashboard = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }

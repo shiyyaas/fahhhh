@@ -1,4 +1,5 @@
 const Department = require("../models/Department");
+const User = require("../models/User");
 
 // Create Department
 exports.createDepartment = async (req, res) => {
@@ -9,6 +10,15 @@ exports.createDepartment = async (req, res) => {
             departmentCode,
             hodName
         } = req.body;
+        const creator = await User.findById(req.user.userId)
+            .select("role department");
+        if (!creator || creator.role !== "HOD" ||
+            creator.department !== departmentName) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
 
         const existingDepartment =
             await Department.findOne({
@@ -42,7 +52,7 @@ exports.createDepartment = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -65,7 +75,7 @@ exports.getDepartments = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -96,7 +106,7 @@ exports.getDepartment = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -106,11 +116,28 @@ exports.getDepartment = async (req, res) => {
 exports.updateDepartment = async (req, res) => {
     try {
 
+        const user = await User.findById(req.user.userId)
+            .select("role department");
+        if (!user || user.role !== "HOD" ||
+            (req.body.departmentName &&
+                req.body.departmentName !== user.department)) {
+            return res.status(403).json({
+                success: false,
+                message: "Department name cannot be changed by this account"
+            });
+        }
+
         const department =
             await Department.findByIdAndUpdate(
                 req.params.id,
-                req.body,
-                { new: true }
+                {
+                    $set: Object.fromEntries(
+                        ["departmentName", "departmentCode", "hodName"]
+                            .filter((field) => Object.hasOwn(req.body, field))
+                            .map((field) => [field, req.body[field]])
+                    )
+                },
+                { new: true, runValidators: true }
             );
 
         if (!department) {
@@ -130,7 +157,7 @@ exports.updateDepartment = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -161,7 +188,7 @@ exports.deleteDepartment = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }

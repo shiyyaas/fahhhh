@@ -3,6 +3,7 @@ const Department = require("../models/Department");
 const User = require("../models/User");
 const Subject = require("../models/Subject");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 // Create Teacher
 exports.createTeacher = async (req, res) => {
@@ -15,6 +16,11 @@ exports.createTeacher = async (req, res) => {
             phoneNo,
             departments
         } = req.body;
+        const creator = await User.findById(req.user.userId)
+            .select("role department");
+        const ownDepartment = creator && creator.role === "HOD" && creator.department
+            ? await Department.findOne({ departmentName: creator.department }).select("_id")
+            : null;
       if (!email || typeof email !== "string" || !email.trim()) {
     return res.status(400).json({
         success: false,
@@ -42,24 +48,39 @@ exports.createTeacher = async (req, res) => {
                 message: "Teacher already exists"
             });
         }
-        // Verify departments exist
-        if (departments && departments.length > 0) {
-
-            const departmentCount =
-                await Department.countDocuments({
-                    _id: { $in: departments }
-                });
-
-            if (departmentCount !== departments.length) {
-                return res.status(404).json({
-                    success: false,
-                    message: "One or more departments not found"
-                });
-            }
+        if (await User.findOne({ email: normalizedEmail })) {
+            return res.status(409).json({
+                success: false,
+                message: "An account with this email already exists"
+            });
+        }
+        if (!Array.isArray(departments) || departments.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "At least one department is required"
+            });
+        }
+        if (!ownDepartment ||
+            departments.some((id) => String(id) !== String(ownDepartment._id))) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
         }
 
-        const tempPassword =
-            `${employeeId}@123`;
+        const departmentCount =
+            await Department.countDocuments({
+                _id: { $in: departments }
+            });
+
+        if (departmentCount !== departments.length) {
+            return res.status(404).json({
+                success: false,
+                message: "One or more departments not found"
+            });
+        }
+
+        const tempPassword = crypto.randomBytes(18).toString("base64url");
 
         const hashedPassword =
             await bcrypt.hash(tempPassword, 10);
@@ -75,31 +96,31 @@ exports.createTeacher = async (req, res) => {
             });
 
         // Also create matching User for login authentication
-        await User.findOneAndUpdate(
-            {   email: normalizedEmail   },
+        await User.create(
             {
                 name: teacherName,
                 email: normalizedEmail,
                 password: hashedPassword,
                 role: "TEACHER",
                 phone: phoneNo,
-                department: "Computer Science",
-            },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
+                department: creator.department,
+            }
         );
 
+        const safeTeacher = teacher.toObject();
+        delete safeTeacher.password;
         res.status(201).json({
             success: true,
             message: "Teacher created successfully",
             tempPassword,
-            teacher
+            teacher: safeTeacher
         });
 
     } catch (error) {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to create teacher"
         });
 
     }
@@ -108,7 +129,18 @@ exports.createTeacher = async (req, res) => {
 // Get All Teachers
 exports.getTeachers = async (req, res) => {
     try {
-        const teachers = await Teacher.find()
+        const user = await User.findById(req.user.userId)
+            .select("role department");
+        const department = user && user.role === "HOD" && user.department
+            ? await Department.findOne({ departmentName: user.department }).select("_id")
+            : null;
+        if (!department) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        const teachers = await Teacher.find({ departments: department._id })
             .populate("departments")
             .select("-password")
             .sort({ createdAt: -1 })
@@ -139,7 +171,7 @@ exports.getTeachers = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -170,7 +202,7 @@ exports.getTeacher = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -179,12 +211,38 @@ exports.getTeacher = async (req, res) => {
 // Update Teacher
 exports.updateTeacher = async (req, res) => {
     try {
+        if (Array.isArray(req.body.departments)) {
+            if (req.body.departments.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "At least one department is required"
+                });
+            }
+            const user = await User.findById(req.user.userId)
+                .select("role department");
+            const department = user && user.role === "HOD" && user.department
+                ? await Department.findOne({ departmentName: user.department }).select("_id")
+                : null;
+            if (!department ||
+                req.body.departments.some((id) => String(id) !== String(department._id))) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden"
+                });
+            }
+        }
 
         const teacher =
             await Teacher.findByIdAndUpdate(
                 req.params.id,
-                req.body,
-                { new: true }
+                {
+                    $set: Object.fromEntries(
+                        ["teacherName", "employeeId", "email", "phoneNo", "departments"]
+                            .filter((field) => Object.hasOwn(req.body, field))
+                            .map((field) => [field, req.body[field]])
+                    )
+                },
+                { new: true, runValidators: true }
             )
                 .populate("departments")
                 .select("-password");
@@ -206,7 +264,7 @@ exports.updateTeacher = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -241,7 +299,7 @@ exports.deleteTeacher = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }

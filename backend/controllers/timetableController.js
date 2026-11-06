@@ -1,6 +1,11 @@
 
 const mongoose = require("mongoose");
 const Timetable = require("../models/Timetable");
+const User = require("../models/User");
+const Department = require("../models/Department");
+const Batch = require("../models/Batch");
+const Subject = require("../models/Subject");
+const Teacher = require("../models/Teacher");
 
 const DAYS = [
     "Monday",
@@ -11,11 +16,14 @@ const DAYS = [
     "Saturday"
 ];
 
+const timetablePopulation = [
+    { path: "batch", select: "batchName department program currentSemester" },
+    { path: "subject", select: "subjectName subjectCode semester" },
+    { path: "teacher", select: "teacherName employeeId avatar" }
+];
+
 const populateTimetable = (query) =>
-    query
-        .populate("batch")
-        .populate("subject")
-        .populate("teacher");
+    query.populate(timetablePopulation);
 
 // Validate required fields and time range.
 const validateTimetableData = (data) => {
@@ -89,6 +97,29 @@ const findScheduleConflict = async (data, excludeId = null) => {
     return "Timetable conflict detected";
 };
 
+const isHodTimetableAssignmentAuthorized = async (req, data) => {
+    const user = await User.findById(req.user.userId)
+        .select("role department");
+    const department = user && user.role === "HOD" && user.department
+        ? await Department.findOne({ departmentName: user.department }).select("_id")
+        : null;
+    if (!department) return false;
+
+    const [batch, subject, teacher] = await Promise.all([
+        Batch.findOne({ _id: data.batch, department: user.department }).select("_id"),
+        Subject.findOne({
+            _id: data.subject,
+            departments: department._id,
+            teachers: data.teacher
+        }).select("_id"),
+        Teacher.findOne({
+            _id: data.teacher,
+            departments: department._id
+        }).select("_id")
+    ]);
+    return Boolean(batch && subject && teacher);
+};
+
 // CREATE timetable entry
 exports.createTimetable = async (req, res) => {
     try {
@@ -98,6 +129,12 @@ exports.createTimetable = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: validationError
+            });
+        }
+        if (!await isHodTimetableAssignmentAuthorized(req, req.body)) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
             });
         }
 
@@ -129,11 +166,11 @@ exports.createTimetable = async (req, res) => {
             timetable
         });
     } catch (error) {
-        console.error("Create timetable error:", error);
+        console.error("Create timetable request failed");
 
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -141,8 +178,20 @@ exports.createTimetable = async (req, res) => {
 // GET all timetable entries
 exports.getTimetable = async (req, res) => {
     try {
+        const user = await User.findById(req.user.userId)
+            .select("role department");
+        const department = user && user.role === "HOD" && user.department
+            ? await Department.findOne({ departmentName: user.department }).select("_id")
+            : null;
+        if (!department) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        const batchIds = await Batch.find({ department: user.department }).distinct("_id");
         const timetable = await populateTimetable(
-            Timetable.find().sort({ day: 1, startTime: 1 })
+            Timetable.find({ batch: { $in: batchIds } }).sort({ day: 1, startTime: 1 })
         );
 
         return res.status(200).json({
@@ -152,7 +201,7 @@ exports.getTimetable = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -171,7 +220,7 @@ exports.getBatchTimetable = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -190,7 +239,7 @@ exports.getTeacherTimetable = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -213,6 +262,12 @@ exports.updateTimetable = async (req, res) => {
                 message: validationError
             });
         }
+        if (!await isHodTimetableAssignmentAuthorized(req, req.body)) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
 
         const existing = await Timetable.findById(req.params.id);
 
@@ -220,6 +275,12 @@ exports.updateTimetable = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Timetable not found"
+            });
+        }
+        if (!await isHodTimetableAssignmentAuthorized(req, existing)) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
             });
         }
 
@@ -243,7 +304,7 @@ exports.updateTimetable = async (req, res) => {
         existing.endTime = req.body.endTime; 
 
         await existing.save();
-        await existing.populate(["batch", "subject", "teacher"]);
+        await existing.populate(timetablePopulation);
 
         return res.status(200).json({
             success: true,
@@ -251,11 +312,11 @@ exports.updateTimetable = async (req, res) => {
             timetable: existing
         });
     } catch (error) {
-        console.error("Update timetable error:", error);
+        console.error("Update timetable request failed");
 
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };
@@ -270,16 +331,21 @@ exports.deleteTimetable = async (req, res) => {
             });
         }
 
-        const timetable = await Timetable.findByIdAndDelete(
-            req.params.id
-        );
+        const existing = await Timetable.findById(req.params.id);
 
-        if (!timetable) {
+        if (!existing) {
             return res.status(404).json({
                 success: false,
                 message: "Timetable not found"
             });
         }
+        if (!await isHodTimetableAssignmentAuthorized(req, existing)) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        await existing.deleteOne();
 
         return res.status(200).json({
             success: true,
@@ -288,7 +354,7 @@ exports.deleteTimetable = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };

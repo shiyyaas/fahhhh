@@ -11,7 +11,7 @@ const {
 } = require("../utils/attendanceCalculations");
 
 const respondWithError = (res, error) => {
-  console.error("Attendance API error:", error);
+  console.error("Attendance API request failed");
   if (error.code === 11000) {
     return res.status(409).json({ success: false, message: "Duplicate attendance record" });
   }
@@ -397,10 +397,13 @@ exports.getStudentAttendance = async (req, res) => {
 exports.getDefaulters = async (req, res) => {
     try {
 
-        const Student = require("../models/Student");
         const latePolicy = process.env.LATE_AS || "present";
 
-        const students = await Student.find();
+        const user = await User.findById(req.user.userId).select("role department");
+        if (!user || user.role !== "HOD" || !user.department) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+        const students = await Student.find({ department: user.department });
 
         const defaulters = [];
 

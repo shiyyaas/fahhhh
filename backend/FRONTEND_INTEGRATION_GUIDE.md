@@ -8,9 +8,10 @@ dependency or client implementation is present.
 
 From `backend/`, install the dependencies from the existing package lockfile,
 then run `npm run dev` for nodemon or `npm start` for the production script.
-The server loads dotenv, connects to MongoDB, and listens on `PORT` or `5000`.
-Set deployment configuration on the backend; do not copy server secrets into a
-mobile application.
+The server loads dotenv, requires a `JWT_SECRET` of at least 32 bytes, connects
+to MongoDB, and listens on `PORT` or `5000`. Configure browser origins in
+`CORS_ORIGINS` as a comma-separated exact-origin allowlist. Do not copy server
+secrets into a mobile application.
 
 Use the deployment's HTTPS base URL in a release build. Local emulator/device
 network routing differs by platform; set the host in client configuration.
@@ -42,11 +43,11 @@ Authorization: Bearer <JWT>
 Content-Type: application/json
 ```
 
-The route middleware responds with HTTP 401 for a missing/invalid token and
-HTTP 403 for a role disallowed by that route. Route-level authorization is
-uneven; consult [ROLE_PERMISSION_MATRIX.md](./ROLE_PERMISSION_MATRIX.md).
-Do not treat public endpoints as secure just because they return user-specific
-data.
+The route middleware responds with HTTP 401 for a missing, invalid, or expired
+token and HTTP 403 for a role/resource disallowed by the route. Login and
+password reset endpoints allow up to 10 requests per client IP per 15-minute
+window. Consult [ROLE_PERMISSION_MATRIX.md](./ROLE_PERMISSION_MATRIX.md) for
+role and department scopes.
 
 Illustrative Dart request using `package:http`:
 
@@ -102,6 +103,9 @@ Other useful endpoints:
 
 There is no bulk-mark endpoint and no pagination/date-filter query on these
 attendance endpoints.
+Administrative writes require HOD authorization and are department-scoped.
+Student and teacher profiles are resolved from authenticated User email; do not
+assume User and profile IDs are interchangeable.
 
 ## Interpreting percentages and dates
 
@@ -136,32 +140,32 @@ Most JSON errors have `{success:false,message}`. Common attendance statuses:
 - 409: same-day update collision or duplicate-key conflict.
 - 500: unexpected server error.
 
-Other controllers may return raw error messages or different fields/status
-codes. Handle errors by HTTP status and parse the body defensively; do not
-assume one universal error schema. Monthly reports and PDF endpoints return
+Other controllers may use different fields/status codes. Handle errors by HTTP
+status and parse the body defensively; do not assume one universal error
+schema. Unexpected errors use generic messages. Monthly reports and PDF endpoints return
 `application/pdf` when a PDF is generated; save/read response bytes instead of
 decoding as JSON. Empty monthly batches return JSON.
 
 ## Uploads
 
 - `PUT /api/auth/avatar`: JWT-protected multipart field `avatar`; Cloudinary
-  upload. Accepts JPEG/PNG/WebP up to 5 MiB.
-- `POST /api/upload/avatar`: separate unauthenticated multipart endpoint; writes
-  to local `/uploads/avatars/` and accepts optional caller-supplied `userId`
-  and/or `email`. Its identity fields are not verified; avoid using it as a
-  trusted profile update endpoint.
+  upload. Accepts JPEG/PNG/WebP up to 5 MiB and validates the file signature.
+  The target account is always the authenticated user.
+- `POST /api/upload/avatar`: authenticated alias to the same handler and
+  contract; it does not accept caller-selected `userId` or email.
+- `GET /uploads/*`: public static files; treat these URLs as public.
 
 ## Known integration limitations
 
-- Several modules (Teacher, Batch, Department, Subject, Dashboard, Reports,
-  Timetable, Leave, Notifications, and `/api/upload/avatar`) have no route
-  authentication. Avoid sending sensitive data until access is secured by the
-  backend deployment/application.
-- `GET /api/students/:id` accepts any valid JWT without an owner check. Dedicated
-  attendance history/percentage/report routes enforce student ownership via
-  User/profile email resolution.
-- `ADMIN` appears in some attendance route role lists but is not a User schema
-  or login role.
+- Department scoping relies on the current text `User.department` and
+  Department name; profile association is email-based. If the relationship
+  cannot be resolved, access fails closed.
+- A HOD cannot rename the department name through the department update API;
+  that name is currently used as the cross-model scope key.
+- No direct Teacher-to-Batch or teacher-to-leave-advisor relationship exists.
+  Teacher authorization is derived from assigned subjects/departments.
+- Existing static uploads are public by design. Authenticated avatar updates
+  affect only the account in the JWT.
 - There is no Class Teacher role, direct Teacher-to-Batch mapping, refresh
   token, pagination, general attendance date filter, or bulk attendance API.
 - Response population and error field shapes vary by endpoint. Attendance

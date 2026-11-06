@@ -1,13 +1,45 @@
 const Leave = require("../models/Leave");
 const Notification = require("../models/Notification");
+const Department = require("../models/Department");
+const User = require("../models/User");
+const Student = require("../models/Student");
+const Teacher = require("../models/Teacher");
 // Apply Leave
 
 exports.applyLeave = async (req, res) => {
 
     try {
 
+        const { reason, fromDate, toDate } = req.body;
+        const start = new Date(fromDate);
+        const end = new Date(toDate);
+        if (!reason || !Number.isFinite(start.getTime()) ||
+            !Number.isFinite(end.getTime()) || start > end) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid reason, fromDate, and toDate are required"
+            });
+        }
+
+        const user = await User.findById(req.user.userId).select("email role");
+        const Profile = req.user.role === "STUDENT" ? Student : Teacher;
+        const profile = user && user.role === req.user.role
+            ? await Profile.findOne({ email: user.email }).select("_id")
+            : null;
+        if (!profile) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
         const leave =
-            await Leave.create(req.body);
+            await Leave.create({
+                applicantId: profile._id,
+                applicantType: req.user.role,
+                reason,
+                fromDate: start,
+                toDate: end
+            });
 
         res.status(201).json({
             success: true,
@@ -19,7 +51,7 @@ exports.applyLeave = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to apply for leave"
         });
 
     }
@@ -32,8 +64,50 @@ exports.getLeaves = async (req, res) => {
 
     try {
 
+        let filter = {};
+        const user = await User.findById(req.user.userId)
+            .select("email role department");
+        if (!user || user.role !== req.user.role) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        if (req.user.role === "HOD") {
+            const department = await Department.findOne({
+                departmentName: user.department
+            }).select("_id");
+            if (!department) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden"
+                });
+            }
+            const [studentIds, teacherIds] = await Promise.all([
+                Student.find({ department: user.department }).distinct("_id"),
+                Teacher.find({ departments: department._id }).distinct("_id")
+            ]);
+            filter = {
+                $or: [
+                    { applicantType: "STUDENT", applicantId: { $in: studentIds } },
+                    { applicantType: "TEACHER", applicantId: { $in: teacherIds } }
+                ]
+            };
+        } else {
+            const Profile = req.user.role === "STUDENT" ? Student : Teacher;
+            const profile = user
+                ? await Profile.findOne({ email: user.email }).select("_id")
+                : null;
+            if (!profile) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden"
+                });
+            }
+            filter = { applicantId: profile._id };
+        }
         const leaves =
-            await Leave.find()
+            await Leave.find(filter)
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -45,7 +119,7 @@ exports.getLeaves = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to retrieve leave requests"
         });
 
     }
@@ -88,7 +162,7 @@ exports.recommendLeave = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -149,7 +223,7 @@ exports.approveLeave = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -190,7 +264,7 @@ exports.rejectLeave = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }

@@ -9,16 +9,17 @@ const path = require("node:path");
 process.env.JWT_SECRET = "attendance-security-test-secret";
 
 const ids = {
-  studentUser: "student-user-id",
-  teacherUser: "teacher-user-id",
-  student: "student-id",
-  otherStudent: "other-student-id",
-  teacher: "teacher-id",
-  otherTeacher: "other-teacher-id",
-  subject: "subject-id",
-  batch: "batch-id",
-  department: "department-id",
-  attendance: "attendance-id"
+  studentUser: "111111111111111111111111",
+  teacherUser: "222222222222222222222222",
+  student: "333333333333333333333333",
+  otherStudent: "444444444444444444444444",
+  teacher: "555555555555555555555555",
+  otherTeacher: "666666666666666666666666",
+  subject: "777777777777777777777777",
+  batch: "888888888888888888888888",
+  department: "999999999999999999999999",
+  attendance: "aaaaaaaaaaaaaaaaaaaaaaaa",
+  hodUser: "bbbbbbbbbbbbbbbbbbbbbbbb"
 };
 
 const profileEmail = {
@@ -99,6 +100,7 @@ const mocks = {
     aggregate: async () => []
   },
   "../models/Student": {
+    modelName: "Student",
     find: (filter) => {
       const emailPattern = filter.email;
       if (!emailPattern) return query([]);
@@ -107,17 +109,28 @@ const mocks = {
     },
     findById: (id) => query(
       id === ids.student
-        ? { _id: ids.student, batchId: ids.batch }
+        ? { _id: ids.student, batchId: ids.batch, department: "Test Department" }
         : id === ids.otherStudent
-          ? { _id: ids.otherStudent, batchId: ids.batch }
+          ? { _id: ids.otherStudent, batchId: ids.batch, department: "Other Department" }
           : null
     ),
+    findOne: (filter) => query(
+      filter.email === "student@example.test"
+        ? { _id: ids.student, batchId: ids.batch, department: "Test Department" }
+        : null
+    )
   },
   "../models/Teacher": {
+    modelName: "Teacher",
     find: (filter) => query(
       filter.email.test(profileEmail[ids.teacher])
         ? [{ _id: ids.teacher, departments: [ids.department] }]
         : []
+    ),
+    findOne: (filter) => query(
+      filter.email === "teacher@example.test"
+        ? { _id: ids.teacher, departments: [ids.department] }
+        : null
     )
   },
   "../models/User": {
@@ -125,22 +138,34 @@ const mocks = {
       _id: filter._id,
       role: filter.role,
       email: filter.role === "STUDENT" ? profileEmail[ids.student] : profileEmail[ids.teacher]
-    })
+    }),
+    findById: (id) => query(
+      id === ids.studentUser
+        ? { _id: ids.studentUser, role: "STUDENT", email: profileEmail[ids.student], isActive: true }
+        : id === ids.teacherUser
+          ? { _id: ids.teacherUser, role: "TEACHER", email: profileEmail[ids.teacher], isActive: true }
+          : { _id: ids.hodUser, role: "HOD", department: "Test Department", isActive: true }
+    )
   },
   "../models/Subject": {
+    modelName: "Subject",
     findOne: (filter) => query(
       filter._id === ids.subject && filter.teachers === ids.teacher
         ? { _id: ids.subject, departments: [ids.department] }
         : null
-    )
+    ),
+    findById: () => query({ _id: ids.subject, departments: [ids.department] })
   },
   "../models/Batch": {
+    modelName: "Batch",
     findById: () => query({ _id: ids.batch, department: "Test Department" }),
     find: () => query([{ _id: ids.batch }])
   },
   "../models/Department": {
+    modelName: "Department",
     exists: async () => true,
-    find: () => query([{ departmentName: "Test Department" }])
+    find: () => query([{ departmentName: "Test Department" }]),
+    findOne: () => query({ _id: ids.department, departmentName: "Test Department" })
   }
 };
 
@@ -148,7 +173,10 @@ const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
   if (
     parent &&
-    parent.filename.endsWith(`${path.sep}controllers${path.sep}attendanceController.js`) &&
+    (parent.filename.endsWith(`${path.sep}controllers${path.sep}attendanceController.js`) ||
+      parent.filename.endsWith(`${path.sep}middleware${path.sep}ownership.js`) ||
+    parent.filename.endsWith(`${path.sep}middleware${path.sep}authMiddleware.js`) ||
+    parent.filename.endsWith(`${path.sep}routes${path.sep}attendanceRoutes.js`)) &&
     mocks[request]
   ) {
     return mocks[request];
@@ -304,7 +332,7 @@ test("attendance population excludes authentication and sensitive identity field
     `/batch/${ids.batch}`,
     `/subject/${ids.subject}`
   ]) {
-    const result = await request(endpoint, "HOD", "hod-user-id");
+    const result = await request(endpoint, "HOD", ids.hodUser);
     assert.equal(result.status, 200);
     const body = await result.json();
     const record = body.attendance[0];

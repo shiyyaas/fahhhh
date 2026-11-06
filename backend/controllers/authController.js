@@ -7,10 +7,15 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (typeof email !== "string" ||
+        typeof password !== "string" ||
+        !email.trim() ||
+        !password ||
+        email.length > 254 ||
+        password.length > 128) {
       return res.status(400).json({
         success: false,
-        message: "Email and Password required",
+        message: "Valid email and password are required",
       });
     }
 
@@ -18,10 +23,10 @@ exports.login = async (req, res) => {
       email: email.toLowerCase().trim(),
     });
 
-    if (!user) {
+    if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: "Invalid email or password",
       });
     }
 
@@ -33,7 +38,7 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid password",
+        message: "Invalid email or password",
       });
     }
 
@@ -63,7 +68,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("LOGIN ERROR:", error.message);
+    console.error("Login request failed");
 
     return res.status(500).json({
       success: false,

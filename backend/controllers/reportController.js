@@ -70,7 +70,7 @@ exports.getStudentReport = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -131,7 +131,7 @@ exports.getBatchReport = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -382,7 +382,7 @@ exports.previewMonthlyBatchReport = async (req, res) => {
         doc.end();
 
     } catch (error) {
-        console.error("Error generating PDF preview:", error);
+        console.error("PDF preview generation failed");
         res.status(500).json({
             success: false,
             message: "Failed to generate report preview",
@@ -638,7 +638,7 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
         doc.end();
 
     } catch (error) {
-        console.error("Error generating PDF report:", error);
+        console.error("PDF report generation failed");
         res.status(500).json({
             success: false,
             message: "Failed to generate report",
@@ -757,7 +757,7 @@ exports.downloadStudentReport = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -818,7 +818,7 @@ exports.getSubjectReport = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }

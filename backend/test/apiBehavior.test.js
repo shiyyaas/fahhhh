@@ -110,10 +110,10 @@ const matches = (record, filter) => Object.entries(filter).every(([key, value]) 
 const castError = () => Object.assign(new Error("Cast failed"), { name: "CastError" });
 const userById = (id) => {
   if (id === ids.user) {
-    return { _id: ids.user, email: student.email, name: "Test Student", role: "STUDENT", password: passwordHash };
+    return { _id: ids.user, email: student.email, name: "Test Student", role: "STUDENT", password: passwordHash, isActive: true };
   }
   if (id === ids.teacherUser) {
-    return { _id: ids.teacherUser, email: teacher.email, name: teacher.teacherName, role: "TEACHER", password: passwordHash };
+    return { _id: ids.teacherUser, email: teacher.email, name: teacher.teacherName, role: "TEACHER", password: passwordHash, isActive: true };
   }
   return null;
 };
@@ -231,6 +231,15 @@ const mocks = {
     }
   },
   "../models/User": {
+    findById(id) {
+      if (id === ids.user) return query(userById(ids.user));
+      if (id === ids.teacherUser) return query(userById(ids.teacherUser));
+      return query({
+        _id: id,
+        role: "HOD",
+        department: "Test Department"
+      });
+    },
     findOne(filter) {
       if (filter._id && filter.role) {
         return query(userById(filter._id));
@@ -271,7 +280,8 @@ const mocks = {
   "../models/Department": {
     async countDocuments() { return 1; },
     async exists() { return true; },
-    find() { return query([{ _id: ids.department, departmentName: batch.department }]); }
+    find() { return query([{ _id: ids.department, departmentName: batch.department }]); },
+    findOne() { return query({ _id: ids.department, departmentName: batch.department }); }
   }
 };
 
@@ -361,7 +371,7 @@ test("student profile retrieval excludes password and Aadhaar fields", async () 
   const res = response();
   await studentController.getStudent(req({ id: ids.student }), res);
   assert.equal(res.statusCode, 200);
-  assert.equal(selectedStudentFields, "-password -aadhaarEncrypted");
+  assert.equal(selectedStudentFields, "-password -aadhaarEncrypted -apaarId");
 });
 
 test("mark attendance validates required fields, resources, and same-day upsert", async () => {
@@ -473,7 +483,7 @@ test("attendance update/delete work, while invalid and missing records return 40
     console.error = originalConsoleError;
   }
   assert.equal(invalidId.statusCode, 404);
-  assert.equal(loggedError[0], "Attendance API error:");
+  assert.equal(loggedError[0], "Attendance API request failed");
 
   const deleted = response();
   await attendanceController.deleteAttendance(req({ id: ids.attendance }), deleted);
@@ -521,13 +531,17 @@ test("percentage and defaulter calculations handle policies, empty and absent-on
   studentCountResults[ids.student] = { Present: 0, Late: 0, Absent: 4 };
   process.env.LATE_AS = "present";
   const defaulters = response();
-  await attendanceController.getDefaulters(req(), defaulters);
+  await attendanceController.getDefaulters(req({}, {}, {
+    user: { userId: "000000000000000000000099", role: "HOD" }
+  }), defaulters);
   assert.equal(defaulters.body.totalDefaulters, 1);
   assert.equal(defaulters.body.defaulters[0].attendancePercentage, "0.00");
 
   studentCountResults[ids.student] = { Present: 3, Late: 0, Absent: 1 };
   const atThreshold = response();
-  await attendanceController.getDefaulters(req(), atThreshold);
+  await attendanceController.getDefaulters(req({}, {}, {
+    user: { userId: "000000000000000000000099", role: "HOD" }
+  }), atThreshold);
   assert.equal(atThreshold.body.totalDefaulters, 0);
 });
 
@@ -549,12 +563,16 @@ test("dashboards apply the configured late policy to percentages and defaulters"
   assert.equal(studentDashboard.body.dashboard.lateClasses, 1);
 
   const hodDashboard = response();
-  await dashboardController.getHodDashboard(req(), hodDashboard);
+  await dashboardController.getHodDashboard(req({}, {}, {
+    user: { userId: "000000000000000000000099", role: "HOD" }
+  }), hodDashboard);
   assert.equal(hodDashboard.body.dashboard.totalDefaulters, 0);
 
   process.env.LATE_AS = "absent";
   const absentPolicyDashboard = response();
-  await dashboardController.getHodDashboard(req(), absentPolicyDashboard);
+  await dashboardController.getHodDashboard(req({}, {}, {
+    user: { userId: "000000000000000000000099", role: "HOD" }
+  }), absentPolicyDashboard);
   assert.equal(absentPolicyDashboard.body.dashboard.totalDefaulters, 1);
 });
 

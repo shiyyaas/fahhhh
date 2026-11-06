@@ -1,62 +1,57 @@
 # Backend role/permission matrix
 
-This matrix reflects route middleware and controller checks, not intended
-institutional policy. “Allowed” means an implemented route permits the role
-or is public; public routes are also usable without a role or token.
-“Restricted” means only specified routes/actions are available or a resource
-check is applied. “Not implemented” means no corresponding route/role feature
-exists. “Not verified” means code does not establish a safe role-specific
-permission.
+This matrix reflects the Phase 9 routes and controller ownership checks.
+Resource permissions are limited to the caller's own profile, assignments, or
+department where those relationships are available in the database.
 
 | Permission area | Student | Teacher | Class Teacher | HOD | Admin |
 |---|---|---|---|---|---|
 | Login/authentication | Allowed | Allowed | Not implemented | Allowed | Not implemented |
-| Student profile access | Restricted | Allowed | Not implemented | Allowed | Not verified |
-| Attendance viewing | Restricted | Restricted | Not implemented | Allowed | Restricted |
-| Attendance marking | Not implemented | Restricted | Not implemented | Not implemented | Not implemented |
-| Attendance updating | Not implemented | Restricted | Not implemented | Not implemented | Not implemented |
-| Attendance deletion | Not implemented | Restricted | Not implemented | Not implemented | Not implemented |
-| Subject access | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Batch access | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Dashboard access | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Reports | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Timetable | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Leave | Allowed | Allowed | Not implemented | Allowed | Allowed |
-| Notifications | Allowed | Allowed | Not implemented | Allowed | Allowed |
+| Student profile access | Restricted to self | Not implemented | Not implemented | Restricted to own department | Not implemented |
+| Attendance viewing | Restricted to self | Restricted to assigned subject | Not implemented | Restricted to own department | Not implemented |
+| Attendance marking | Not implemented | Restricted to assigned subject and matching department/batch | Not implemented | Not implemented | Not implemented |
+| Attendance updating | Not implemented | Restricted to records created/managed by self and current assignment | Not implemented | Not implemented | Not implemented |
+| Attendance deletion | Not implemented | Restricted to records created/managed by self and current assignment | Not implemented | Not implemented | Not implemented |
+| Subject access | Restricted to own department | Restricted to assigned departments | Not implemented | Restricted to own department | Not implemented |
+| Batch access | Restricted to own batch | Restricted to assigned departments | Not implemented | Restricted to own department | Not implemented |
+| Dashboard access | Restricted to self | Restricted to self | Not implemented | Restricted to own department | Not implemented |
+| Reports | Restricted to self | Not implemented | Not implemented | Restricted to own department | Not implemented |
+| Timetable | Restricted to own batch | Restricted to own schedule | Not implemented | Restricted to own department | Not implemented |
+| Leave | Apply/read own requests | Apply/read own requests | Not implemented | Read/approve/reject own department | Not implemented |
+| Notifications | Read/mark own | Read/mark own | Not implemented | Create for own department; read/mark own | Not implemented |
 | Attendance issue management | Not implemented | Not implemented | Not implemented | Not implemented | Not implemented |
+| Avatar update | Allowed for own account | Allowed for own account | Not implemented | Allowed for own account | Not implemented |
 
-## Route-level interpretation and limitations
+## Route behavior and limitations
 
-- The only roles defined by the User schema and accepted by login are `STUDENT`,
-  `TEACHER`, and `HOD`. There is no `CLASS_TEACHER` or `ADMIN` schema role.
-  Attendance route middleware nevertheless names `ADMIN` for selected reads;
-  that role requires a token issued outside the current login implementation.
-- Student attendance history, percentage, and detailed attendance report are
-  role-restricted and the controller resolves Student by authenticated User
-  email, then limits student users to their own profile. The separate
-  `GET /api/students/:id` profile route accepts any valid JWT and does not
-  check ownership.
-- Teachers can mark/update/delete attendance only after controller-level
-  profile, subject, and student/batch/department checks. Teacher profile
-  association is email-based. No direct Teacher-to-Batch assignment exists.
-- Teacher attendance viewing is limited to subjects assigned through
-  `Subject.teachers` plus department/batch matching. Teacher batch-attendance
-  route is not permitted.
-- The displayed `Allowed` entries for Subjects, Batches, Dashboards, Reports,
-  Timetable, Leave and Notifications reflect routes that have no authentication
-  or role middleware. They do **not** mean secure role-scoped access; those
-  endpoints are publicly reachable.
-- Teacher CRUD routes are likewise public. HOD is the only role check on
-  Student create/update/delete, and list access is HOD/Teacher.
-- Leave stage names and controller operations suggest an approval flow, but
-  its routes do not authenticate or enforce Student/Teacher/HOD roles.
-- Notification retrieval accepts a caller-provided recipient ID and does not
-  verify ownership.
-- `POST /api/upload/avatar` is public and accepts caller-supplied profile IDs
-  and/or email. By contrast, `PUT /api/auth/avatar` requires JWT.
-- “Not implemented” is not a statement that a role is forbidden by a business
-  policy; it means no corresponding dedicated permission implementation was
-  found.
+- The User schema and login support only `STUDENT`, `TEACHER`, and `HOD`.
+  There is no `CLASS_TEACHER` or `ADMIN` role. ADMIN access previously listed
+  on attendance routes was removed.
+- All administrative mutations require JWT and HOD role. HOD operations that
+  target an existing resource additionally verify department ownership.
+- HOD department scoping uses `User.department` and Department name matching.
+  Students are associated by email with Student profiles; teachers are
+  associated by email with Teacher profiles. A missing or ambiguous profile
+  or department mapping fails closed.
+- Students can access only their own student profile, attendance, percentage,
+  report, dashboard, timetable batch, leave requests, notifications, and
+  avatar. They cannot list the entire student directory or mutate
+  administrative resources.
+- Teachers can mark, update, and delete attendance only after profile
+  resolution and subject/department/batch checks. They cannot access batch
+  attendance or administrative CRUD. No direct Teacher-to-Batch assignment
+  exists; teacher batch scope is derived from assigned subject/department.
+- The leave schema has no teacher-to-student advising relationship. Therefore,
+  approval/recommendation mutations are restricted to same-department HOD
+  rather than inferring a teacher's authority over a leave applicant.
+- Subject and batch reads are department-scoped. Teacher data populated by
+  subject endpoints is limited to `teacherName` and `avatar`.
+- Avatar APIs require JWT and update the authenticated account only.
+  `GET /uploads/*` remains public static content to support existing image
+  URLs; files there should be considered public.
+- Public API endpoints are limited to login, forgot-password, reset-password,
+  the plain-text root health endpoint, and static uploaded-file reads. The
+  server accepts requests without an `Origin` header; browser CORS origins
+  must be listed in `CORS_ORIGINS`.
 
-See [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) for all actual paths and
-per-route middleware.
+For exact routes and response shapes, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).

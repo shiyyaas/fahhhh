@@ -2,6 +2,7 @@ const Student = require("../models/Student");
 const bcrypt = require("bcryptjs");
 const Batch = require("../models/Batch");
 const User = require("../models/User");
+const crypto = require("crypto");
 
 exports.createStudent = async (req, res) => {
 
@@ -13,14 +14,20 @@ exports.createStudent = async (req, res) => {
             email,
             phoneNo,
             apaarId,
-            aadhaarNo,
             batchId
         } = req.body;
-        
+        if (!email || typeof email !== "string" ||
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid email is required"
+            });
+        }
+        const normalizedEmail = email.trim().toLowerCase();
         const existingStudent =
             await Student.findOne({
                 $or: [
-                    { email },
+                    { email: normalizedEmail },
                     { registerNo }
                 ]
             });
@@ -31,6 +38,12 @@ exports.createStudent = async (req, res) => {
                 message: "Student already exists"
             });
         }
+        if (await User.findOne({ email: normalizedEmail })) {
+            return res.status(409).json({
+                success: false,
+                message: "An account with this email already exists"
+            });
+        }
         const batch = await Batch.findById(batchId);
 
         if (!batch) {
@@ -39,10 +52,15 @@ exports.createStudent = async (req, res) => {
                 message: "Batch not found"
             });
         }
-        //  password = last 5 digits of Aadhaar
-
-        const tempPassword =
-            aadhaarNo.slice(-5);
+        const creator = await User.findById(req.user.userId).select("role department");
+        if (!creator || creator.role !== "HOD" ||
+            !creator.department || batch.department !== creator.department) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        const tempPassword = crypto.randomBytes(18).toString("base64url");
 
         const hashedPassword =
             await bcrypt.hash(tempPassword, 10);
@@ -51,40 +69,40 @@ exports.createStudent = async (req, res) => {
             await Student.create({
                 studentName,
                 registerNo,
-                email,
+                email: normalizedEmail,
                 password: hashedPassword,
                 phoneNo,
                 apaarId,
-                aadhaarEncrypted: aadhaarNo,
-                batchId
+                batchId,
+                department: batch.department
             });
 
         // Also create matching User for login authentication
-        await User.findOneAndUpdate(
-            { email: email.toLowerCase().trim() },
-            {
+        await User.create({
                 name: studentName,
                 email: email.toLowerCase().trim(),
                 password: hashedPassword,
                 role: "STUDENT",
                 phone: phoneNo,
                 department: batch.department || "Computer Science",
-            },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
+            });
 
+        const safeStudent = student.toObject();
+        delete safeStudent.password;
+        delete safeStudent.aadhaarEncrypted;
+        delete safeStudent.apaarId;
         res.status(201).json({
             success: true,
             message: "Student created successfully",
             tempPassword,
-            student
+            student: safeStudent
         });
 
     } catch (error) {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -94,9 +112,16 @@ exports.createStudent = async (req, res) => {
 exports.getStudents = async (req, res) => {
     try {
 
-        const students = await Student.find()
+        const user = await User.findById(req.user.userId).select("role department");
+        if (!user || user.role !== "HOD" || !user.department) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        const students = await Student.find({ department: user.department })
             .populate("batchId")
-            .select("-password -aadhaarEncrypted")
+            .select("-password -aadhaarEncrypted -apaarId")
             .sort({ createdAt: -1 }   
         );
 
@@ -109,7 +134,7 @@ exports.getStudents = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -120,7 +145,7 @@ exports.getStudent = async (req, res) => {
 
         const student = await Student.findById(req.params.id)
             .populate("batchId")
-            .select("-password -aadhaarEncrypted");
+            .select("-password -aadhaarEncrypted -apaarId");
 
         if (!student) {
             return res.status(404).json({
@@ -138,7 +163,7 @@ exports.getStudent = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -149,11 +174,59 @@ exports.updateStudent = async (req, res) => {
 
     try {
 
+        const allowedFields = [
+            "studentName",
+            "registerNo",
+            "email",
+            "phoneNo",
+            "batchId"
+        ];
+        const updates = Object.fromEntries(
+            allowedFields
+                .filter((field) => Object.hasOwn(req.body, field))
+                .map((field) => [field, req.body[field]])
+        );
+        if (Object.hasOwn(updates, "email")) {
+            if (typeof updates.email !== "string" ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.email.trim())) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Valid email is required"
+                });
+            }
+            updates.email = updates.email.trim().toLowerCase();
+        }
+        const currentStudent = await Student.findById(req.params.id);
+        if (!currentStudent) {
+            return res.status(404).json({
+                success: false,
+                message: "Student not found"
+            });
+        }
+        const previousEmail = currentStudent.email;
+        if (updates.batchId) {
+            const user = await User.findById(req.user.userId).select("role department");
+            const newBatch = await Batch.findById(updates.batchId).select("department");
+            if (!newBatch) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Batch not found"
+                });
+            }
+            if (!user || user.role !== "HOD" ||
+                newBatch.department !== user.department) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Forbidden"
+                });
+            }
+            updates.department = newBatch.department;
+        }
         const student =
             await Student.findByIdAndUpdate(
                 req.params.id,
-                req.body,
-                { new: true }
+                { $set: updates },
+                { new: true, runValidators: true }
             );
 
         if (!student) {
@@ -166,27 +239,30 @@ exports.updateStudent = async (req, res) => {
         // Keep User in sync
         const userUpdate = {};
         if (req.body.studentName) userUpdate.name = req.body.studentName;
-        if (req.body.email) userUpdate.email = req.body.email.toLowerCase().trim();
-        if (req.body.phoneNo) userUpdate.phone = req.body.phoneNo;
-        if (req.body.avatar) userUpdate.avatar = req.body.avatar;
+        if (updates.email) userUpdate.email = updates.email.toLowerCase().trim();
+        if (updates.phoneNo) userUpdate.phone = updates.phoneNo;
 
         if (Object.keys(userUpdate).length > 0) {
             await User.findOneAndUpdate(
-                { email: student.email.toLowerCase().trim() },
+                { email: previousEmail.toLowerCase().trim() },
                 { $set: userUpdate }
             );
         }
 
+        const safeStudent = student.toObject();
+        delete safeStudent.password;
+        delete safeStudent.aadhaarEncrypted;
+        delete safeStudent.apaarId;
         res.status(200).json({
             success: true,
-            student
+            student: safeStudent
         });
 
     } catch (error) {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
@@ -214,7 +290,7 @@ exports.deleteStudent = async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
 
     }
