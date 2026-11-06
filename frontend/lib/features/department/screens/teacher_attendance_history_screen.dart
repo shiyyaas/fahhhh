@@ -8,6 +8,7 @@ import 'package:fahhhh/core/theme_data/app_radius.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/department_provider.dart';
+import '../../attendance/providers/attendance_provider.dart';
 import '../models/department_student.dart';
 import '../models/department_subject.dart';
 
