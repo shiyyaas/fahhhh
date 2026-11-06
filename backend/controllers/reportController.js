@@ -3,6 +3,10 @@ const Attendance = require("../models/Attendance");
 const Student = require("../models/Student");
 const Batch = require("../models/Batch");
 const Subject = require("../models/Subject");
+const {
+    effectivePresent,
+    formatAttendancePercentage
+} = require("../utils/attendanceCalculations");
 
 // Student Report
 exports.getStudentReport = async (req, res) => {
@@ -30,16 +34,24 @@ exports.getStudentReport = async (req, res) => {
                 status: "Present"
             });
 
+        const lateClasses =
+            await Attendance.countDocuments({
+                student: studentId,
+                status: "Late"
+            });
+
         const absentClasses =
             await Attendance.countDocuments({
                 student: studentId,
                 status: "Absent"
             });
 
-        const attendancePercentage =
-            totalClasses === 0
-                ? 0
-                : ((presentClasses / totalClasses) * 100).toFixed(2);
+        const attendancePercentage = formatAttendancePercentage(
+            presentClasses,
+            lateClasses,
+            totalClasses,
+            process.env.LATE_AS || "present"
+        );
 
         res.status(200).json({
             success: true,
@@ -48,6 +60,7 @@ exports.getStudentReport = async (req, res) => {
                 registerNo: student.registerNo,
                 totalClasses,
                 presentClasses,
+                lateClasses,
                 absentClasses,
                 attendancePercentage
             }
@@ -89,10 +102,18 @@ exports.getBatchReport = async (req, res) => {
                 status: "Present"
             });
 
-        const attendancePercentage =
-            totalAttendance === 0
-                ? 0
-                : ((presentAttendance / totalAttendance) * 100).toFixed(2);
+        const lateAttendance =
+            await Attendance.countDocuments({
+            batch: batchId,
+            status: "Late"
+            });
+
+        const attendancePercentage = formatAttendancePercentage(
+            presentAttendance,
+            lateAttendance,
+            totalAttendance,
+            process.env.LATE_AS || "present"
+        );
 
         res.status(200).json({
             success: true,
@@ -101,6 +122,7 @@ exports.getBatchReport = async (req, res) => {
                 currentSemester: batch.currentSemester,
                 totalAttendance,
                 presentAttendance,
+                lateAttendance,
                 attendancePercentage
             }
         });
@@ -128,13 +150,14 @@ exports.previewMonthlyBatchReport = async (req, res) => {
         }
 
         // Declare month, year, and monthNames BEFORE using them
-        const month = parseInt(req.query.month);
-        const year = parseInt(req.query.year);
+        const month = Number(req.query.month);
+        const year = Number(req.query.year);
 
-        if (month < 1 || month > 12) {
+        if (!Number.isInteger(month) || month < 1 || month > 12 ||
+            !Number.isInteger(year) || year < 1) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid month. Must be between 1-12"
+                message: "Invalid month or year"
             });
         }
 
@@ -169,7 +192,8 @@ exports.previewMonthlyBatchReport = async (req, res) => {
 
         // Create date range for the specified month
         const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59); // Last day of month
+        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+        const latePolicy = process.env.LATE_AS || "present";
 
         const doc = new PDFDocument({
             margin: 40,
@@ -222,13 +246,13 @@ exports.previewMonthlyBatchReport = async (req, res) => {
         doc.text("Sl No", 45, y + 8);
         doc.text("Reg No", 90, y + 8);
         doc.text("Student Name", 180, y + 8);
-        doc.text("Present", 350, y + 8);
+        doc.text("Effective", 350, y + 8);
         doc.text("Total", 430, y + 8);
         doc.text("%", 500, y + 8);
 
         // Table Rows - Optimized with bulk query
         let rowY = y + 25;
-        let totalPresent = 0;
+        let totalEffectivePresent = 0;
         let totalAttendance = 0;
 
         // Get all student IDs
@@ -248,6 +272,9 @@ exports.previewMonthlyBatchReport = async (req, res) => {
                     totalClasses: { $sum: 1 },
                     presentClasses: {
                         $sum: { $cond: [{ $eq: ["$status", "Present"] }, 1, 0] }
+                    },
+                    lateClasses: {
+                        $sum: { $cond: [{ $eq: ["$status", "Late"] }, 1, 0] }
                     }
                 }
             }
@@ -266,18 +293,24 @@ exports.previewMonthlyBatchReport = async (req, res) => {
             // Get attendance from map or default to 0
             const stats = attendanceMap[studentIdStr] || { 
                 totalClasses: 0, 
-                presentClasses: 0 
+                presentClasses: 0,
+                lateClasses: 0
             };
 
             const totalClasses = stats.totalClasses;
             const presentClasses = stats.presentClasses;
+            const lateClasses = stats.lateClasses;
+            const effectiveClasses = effectivePresent(presentClasses, lateClasses, latePolicy);
 
-            totalPresent += presentClasses;
+            totalEffectivePresent += effectiveClasses;
             totalAttendance += totalClasses;
 
-            const percentage = totalClasses === 0 
-                ? 0 
-                : ((presentClasses / totalClasses) * 100).toFixed(2);
+            const percentage = formatAttendancePercentage(
+                presentClasses,
+                lateClasses,
+                totalClasses,
+                latePolicy
+            );
 
             // Row border
             doc.rect(40, rowY, 520, 25).stroke();
@@ -286,7 +319,7 @@ exports.previewMonthlyBatchReport = async (req, res) => {
             doc.text(String(i + 1), 45, rowY + 8);
             doc.text(student.registerNo, 90, rowY + 8);
             doc.text(student.studentName, 180, rowY + 8, { width: 150 });
-            doc.text(String(presentClasses), 350, rowY + 8);
+            doc.text(String(effectiveClasses), 350, rowY + 8);
             doc.text(String(totalClasses), 430, rowY + 8);
             doc.text(`${percentage}%`, 500, rowY + 8);
 
@@ -302,7 +335,7 @@ exports.previewMonthlyBatchReport = async (req, res) => {
                 doc.text("Sl No", 45, rowY + 8);
                 doc.text("Reg No", 90, rowY + 8);
                 doc.text("Student Name", 180, rowY + 8);
-                doc.text("Present", 350, rowY + 8);
+                doc.text("Effective", 350, rowY + 8);
                 doc.text("Total", 430, rowY + 8);
                 doc.text("%", 500, rowY + 8);
 
@@ -311,9 +344,9 @@ exports.previewMonthlyBatchReport = async (req, res) => {
         }
 
         // Summary Statistics
-        const averageAttendance = totalAttendance === 0 
-            ? 0 
-            : ((totalPresent / totalAttendance) * 100).toFixed(2);
+        const averageAttendance = totalAttendance === 0
+            ? "0.00"
+            : ((totalEffectivePresent / totalAttendance) * 100).toFixed(2);
 
         rowY += 20;
         doc.fontSize(10);
@@ -371,13 +404,14 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
         }
 
         // Fix 1: Declare month, year, and monthNames BEFORE using them
-        const month = parseInt(req.query.month);
-        const year = parseInt(req.query.year);
+        const month = Number(req.query.month);
+        const year = Number(req.query.year);
 
-        if (month < 1 || month > 12) {
+        if (!Number.isInteger(month) || month < 1 || month > 12 ||
+            !Number.isInteger(year) || year < 1) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid month. Must be between 1-12"
+                message: "Invalid month or year"
             });
         }
 
@@ -412,7 +446,8 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
 
         // Create date range for the specified month
         const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 0, 23, 59, 59); // Last day of month
+        const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+        const latePolicy = process.env.LATE_AS || "present";
 
         const doc = new PDFDocument({
             margin: 40,
@@ -465,13 +500,13 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
         doc.text("Sl No", 45, y + 8);
         doc.text("Reg No", 90, y + 8);
         doc.text("Student Name", 180, y + 8);
-        doc.text("Present", 350, y + 8);
+        doc.text("Effective", 350, y + 8);
         doc.text("Total", 430, y + 8);
         doc.text("%", 500, y + 8);
 
         // Table Rows - Optimized with bulk query
         let rowY = y + 25;
-        let totalPresent = 0;
+        let totalEffectivePresent = 0;
         let totalAttendance = 0;
 
         // Get all student IDs
@@ -491,6 +526,9 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
                     totalClasses: { $sum: 1 },
                     presentClasses: {
                         $sum: { $cond: [{ $eq: ["$status", "Present"] }, 1, 0] }
+                    },
+                    lateClasses: {
+                        $sum: { $cond: [{ $eq: ["$status", "Late"] }, 1, 0] }
                     }
                 }
             }
@@ -509,18 +547,24 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
             // Get attendance from map or default to 0
             const stats = attendanceMap[studentIdStr] || { 
                 totalClasses: 0, 
-                presentClasses: 0 
+                presentClasses: 0,
+                lateClasses: 0
             };
 
             const totalClasses = stats.totalClasses;
             const presentClasses = stats.presentClasses;
+            const lateClasses = stats.lateClasses;
+            const effectiveClasses = effectivePresent(presentClasses, lateClasses, latePolicy);
 
-            totalPresent += presentClasses;
+            totalEffectivePresent += effectiveClasses;
             totalAttendance += totalClasses;
 
-            const percentage = totalClasses === 0 
-                ? 0 
-                : ((presentClasses / totalClasses) * 100).toFixed(2);
+            const percentage = formatAttendancePercentage(
+                presentClasses,
+                lateClasses,
+                totalClasses,
+                latePolicy
+            );
 
             // Row border
             doc.rect(40, rowY, 520, 25).stroke();
@@ -529,7 +573,7 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
             doc.text(String(i + 1), 45, rowY + 8);
             doc.text(student.registerNo, 90, rowY + 8);
             doc.text(student.studentName, 180, rowY + 8, { width: 150 });
-            doc.text(String(presentClasses), 350, rowY + 8);
+            doc.text(String(effectiveClasses), 350, rowY + 8);
             doc.text(String(totalClasses), 430, rowY + 8);
             doc.text(`${percentage}%`, 500, rowY + 8);
 
@@ -545,7 +589,7 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
                 doc.text("Sl No", 45, rowY + 8);
                 doc.text("Reg No", 90, rowY + 8);
                 doc.text("Student Name", 180, rowY + 8);
-                doc.text("Present", 350, rowY + 8);
+                doc.text("Effective", 350, rowY + 8);
                 doc.text("Total", 430, rowY + 8);
                 doc.text("%", 500, rowY + 8);
 
@@ -554,9 +598,9 @@ exports.downloadMonthlyBatchReport = async (req, res) => {
         }
 
         // Summary Statistics
-        const averageAttendance = totalAttendance === 0 
-            ? 0 
-            : ((totalPresent / totalAttendance) * 100).toFixed(2);
+        const averageAttendance = totalAttendance === 0
+            ? "0.00"
+            : ((totalEffectivePresent / totalAttendance) * 100).toFixed(2);
 
         rowY += 20;
         doc.fontSize(10);
@@ -635,19 +679,24 @@ exports.downloadStudentReport = async (req, res) => {
                 status: "Present"
             });
 
+        const lateClasses =
+            await Attendance.countDocuments({
+                student: studentId,
+                status: "Late"
+            });
+
         const absentClasses =
             await Attendance.countDocuments({
                 student: studentId,
                 status: "Absent"
             });
 
-        const attendancePercentage =
-            totalClasses === 0
-                ? 0
-                : (
-                    (presentClasses /
-                        totalClasses) * 100
-                ).toFixed(2);
+        const attendancePercentage = formatAttendancePercentage(
+            presentClasses,
+            lateClasses,
+            totalClasses,
+            process.env.LATE_AS || "present"
+        );
 
         const doc =
             new PDFDocument();
@@ -688,6 +737,10 @@ exports.downloadStudentReport = async (req, res) => {
 
         doc.text(
             `Present Classes: ${presentClasses}`
+        );
+
+        doc.text(
+            `Late Classes: ${lateClasses}`
         );
 
         doc.text(
@@ -736,10 +789,18 @@ exports.getSubjectReport = async (req, res) => {
                 status: "Present"
             });
 
-        const attendancePercentage =
-            totalAttendance === 0
-                ? 0
-                : ((presentAttendance / totalAttendance) * 100).toFixed(2);
+        const lateAttendance =
+            await Attendance.countDocuments({
+            subject: subjectId,
+            status: "Late"
+            });
+
+        const attendancePercentage = formatAttendancePercentage(
+            presentAttendance,
+            lateAttendance,
+            totalAttendance,
+            process.env.LATE_AS || "present"
+        );
 
         res.status(200).json({
             success: true,
@@ -748,6 +809,7 @@ exports.getSubjectReport = async (req, res) => {
                 subjectCode: subject.subjectCode,
                 totalAttendance,
                 presentAttendance,
+                lateAttendance,
                 attendancePercentage
             }
         });

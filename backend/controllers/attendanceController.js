@@ -5,14 +5,45 @@ const User = require("../models/User");
 const Subject = require("../models/Subject");
 const Batch = require("../models/Batch");
 const Department = require("../models/Department");
+const {
+  attendancePercentage,
+  formatAttendancePercentage
+} = require("../utils/attendanceCalculations");
 
 const respondWithError = (res, error) => {
   console.error("Attendance API error:", error);
+  if (error.code === 11000) {
+    return res.status(409).json({ success: false, message: "Duplicate attendance record" });
+  }
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ success: false, message: "Invalid attendance data" });
+  }
   const notFound = error.name === "CastError";
   return res.status(notFound ? 404 : 500).json({
     success: false,
     message: notFound ? "Resource not found" : "Internal server error"
   });
+};
+
+const hasAttendanceOnDate = async ({ student, subject, batch, date, excludeId }) => {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  const filter = {
+    student,
+    subject,
+    batch,
+    date: { $gte: startOfDay, $lte: endOfDay }
+  };
+  if (excludeId) filter._id = { $ne: excludeId };
+  return Boolean(await Attendance.exists(filter));
+};
+
+const normalizeAttendanceDate = (date) => {
+  const attendanceDate = new Date(date);
+  attendanceDate.setHours(0, 0, 0, 0);
+  return attendanceDate;
 };
 
 const findLinkedProfile = async (req, role, Model, select) => {
@@ -84,6 +115,11 @@ exports.updateAttendance = async (req, res) => {
     const student = req.body.student || attendance.student;
     const subject = req.body.subject || attendance.subject;
     const batch = req.body.batch || attendance.batch;
+    const requestedDate = req.body.date ? new Date(req.body.date) : attendance.date;
+    if (Number.isNaN(requestedDate.getTime())) {
+      return res.status(400).json({ success: false, message: "Invalid attendance date" });
+    }
+    const date = normalizeAttendanceDate(requestedDate);
     const authorization = await authorizeTeacherTarget(teacher, student, subject, batch);
     if (authorization.notFound) {
       return res.status(404).json({ success: false, message: "Attendance resource not found" });
@@ -91,9 +127,15 @@ exports.updateAttendance = async (req, res) => {
     if (authorization.forbidden) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
+    if (req.body.status && !["Present", "Absent", "Late"].includes(req.body.status)) {
+      return res.status(400).json({ success: false, message: "Invalid attendance status" });
+    }
+    if (await hasAttendanceOnDate({ student, subject, batch, date, excludeId: attendance._id })) {
+      return res.status(409).json({ success: false, message: "Attendance already exists for this date" });
+    }
 
     attendance.status = req.body.status || attendance.status;
-    attendance.date = req.body.date || attendance.date;
+    attendance.date = date;
     attendance.student = student;
     attendance.subject = subject;
     attendance.batch = batch;
@@ -142,14 +184,6 @@ exports.deleteAttendance = async (req, res) => {
   } catch (error) {
     return respondWithError(res, error);
   }
-};
-
-// Helper to calculate effective present count based on Late policy
-const effectivePresent = (present, late, policy) => {
-  if (policy === "present") return present + late; // Late counted as present
-  if (policy === "partial") return present + late * 0.5; // Late counts half
-  if (policy === "absent") return present; // Late ignored (treated as absent)
-  return present + late;
 };
 
 // Get Student Report (aggregated)
@@ -211,13 +245,15 @@ exports.getStudentReport = async (req, res) => {
       }
     ]);
     const overall = overallAgg[0] || { totalClasses: 0, present: 0, late: 0, absent: 0 };
-    const effective = effectivePresent(overall.present, overall.late, latePolicy);
-    const overallPercentage = overall.totalClasses === 0 ? 0 : (effective / overall.totalClasses) * 100;
+    const overallPercentage = formatAttendancePercentage(
+      overall.present,
+      overall.late,
+      overall.totalClasses,
+      latePolicy
+    );
 
     // Build response
     const subjects = subjectAgg.map((s) => {
-      const eff = effectivePresent(s.present, s.late, latePolicy);
-      const perc = s.totalClasses === 0 ? 0 : (eff / s.totalClasses) * 100;
       return {
         subjectId: s.subjectId,
         subjectName: s.subjectName,
@@ -225,7 +261,7 @@ exports.getStudentReport = async (req, res) => {
         present: s.present,
         late: s.late,
         absent: s.absent,
-        attendancePercentage: perc.toFixed(2)
+        attendancePercentage: formatAttendancePercentage(s.present, s.late, s.totalClasses, latePolicy)
       };
     });
 
@@ -245,7 +281,7 @@ exports.getStudentReport = async (req, res) => {
         present: overall.present,
         late: overall.late,
         absent: overall.absent,
-        attendancePercentage: overallPercentage.toFixed(2)
+        attendancePercentage: overallPercentage
       },
       subjects
     });
@@ -269,6 +305,9 @@ exports.markAttendance = async (req, res) => {
         if (!student || !subject || !batch || !status) {
             return res.status(400).json({ success: false, message: "Student, subject, batch and status are required" });
         }
+        if (!["Present", "Absent", "Late"].includes(status)) {
+            return res.status(400).json({ success: false, message: "Invalid attendance status" });
+        }
 
         const teacherProfile = await findTeacherProfile(req);
         if (!teacherProfile) {
@@ -286,6 +325,7 @@ exports.markAttendance = async (req, res) => {
         if (Number.isNaN(targetDate.getTime())) {
             return res.status(400).json({ success: false, message: "Invalid attendance date" });
         }
+        const attendanceDate = normalizeAttendanceDate(targetDate);
         const startOfDay = new Date(targetDate);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(targetDate);
@@ -304,9 +344,9 @@ exports.markAttendance = async (req, res) => {
                 teacher: teacherProfile._id,
                 batch,
                 status,
-                date: targetDate
+                date: attendanceDate
             },
-            { new: true, upsert: true, setDefaultsOnInsert: true }
+            { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
         );
 
         res.status(200).json({
@@ -388,7 +428,7 @@ exports.getDefaulters = async (req, res) => {
             const percentage =
                 totalClasses === 0
                     ? 0
-                    : (effectivePresent(presentClasses, lateClasses, latePolicy) / totalClasses) * 100;
+                    : attendancePercentage(presentClasses, lateClasses, totalClasses, latePolicy);
 
             if (percentage < 75) {
                 defaulters.push({
@@ -441,7 +481,7 @@ exports.getAttendancePercentage = async (req, res) => {
         const attendancePercentage =
             totalClasses === 0
                 ? 0
-                : ((effectivePresent(presentClasses, lateClasses, latePolicy) / totalClasses) * 100).toFixed(2);
+                : formatAttendancePercentage(presentClasses, lateClasses, totalClasses, latePolicy);
 
         res.status(200).json({
             success: true,

@@ -5,6 +5,10 @@ const Subject = require("../models/Subject");
 const Batch = require("../models/Batch");
 const Attendance = require("../models/Attendance");
 const Timetable = require("../models/Timetable");
+const {
+    attendancePercentage,
+    formatAttendancePercentage
+} = require("../utils/attendanceCalculations");
 
 // General Dashboard
 
@@ -76,21 +80,31 @@ exports.getHodDashboard = async (req, res) => {
 
         for (const student of students) {
 
-            const totalClasses =
-                await Attendance.countDocuments({
-                    student: student._id
-                });
-
             const presentClasses =
                 await Attendance.countDocuments({
                     student: student._id,
                     status: "Present"
                 });
 
-            const percentage =
-                totalClasses === 0
-                    ? 0
-                    : (presentClasses / totalClasses) * 100;
+            const lateClasses =
+                await Attendance.countDocuments({
+                    student: student._id,
+                    status: "Late"
+                });
+
+            const absentClasses =
+                await Attendance.countDocuments({
+                    student: student._id,
+                    status: "Absent"
+                });
+
+            const totalClasses = presentClasses + lateClasses + absentClasses;
+            const percentage = attendancePercentage(
+                presentClasses,
+                lateClasses,
+                totalClasses,
+                process.env.LATE_AS || "present"
+            );
 
             if (
                 totalClasses > 0 &&
@@ -211,19 +225,24 @@ exports.getStudentDashboard = async (req, res) => {
                 status: "Present"
             });
 
+        const lateClasses =
+            await Attendance.countDocuments({
+            student: studentId,
+            status: "Late"
+            });
+
         const absentClasses =
             await Attendance.countDocuments({
                 student: studentId,
                 status: "Absent"
             });
 
-        const attendancePercentage =
-            totalClasses === 0
-                ? 0
-                : (
-                    (presentClasses /
-                        totalClasses) * 100
-                ).toFixed(2);
+        const attendancePercentage = formatAttendancePercentage(
+            presentClasses,
+            lateClasses,
+            totalClasses,
+            process.env.LATE_AS || "present"
+        );
 
         res.status(200).json({
             success: true,
@@ -237,6 +256,7 @@ exports.getStudentDashboard = async (req, res) => {
                 currentSemester:
                     student.batchId.currentSemester,
                 presentClasses,
+                lateClasses,
                 absentClasses,
                 attendancePercentage
             }
