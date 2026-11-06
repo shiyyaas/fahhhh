@@ -15,7 +15,13 @@ exports.createTeacher = async (req, res) => {
             phoneNo,
             departments
         } = req.body;
-
+      if (!email || typeof email !== "string" || !email.trim()) {
+    return res.status(400).json({
+        success: false,
+        message: "Valid email is required"
+    });
+}
+ 
         const normalizedEmail = email.trim().toLowerCase();
 
         const existingTeacher = await Teacher.findOne({
