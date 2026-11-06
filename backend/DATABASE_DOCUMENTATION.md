@@ -1,130 +1,196 @@
-# Database Documentation
+# MongoDB / Mongoose data model
 
-This document outlines the MongoDB schema definitions used by the College ERP backend.
-
----
+This reference reflects the model definitions in `models/`. Unless a schema
+sets a collection option (none of these do), Mongoose derives a lowercase,
+pluralized collection name from the model name. Collection names below are
+therefore Mongoose's conventional names, not an explicit schema setting.
+Every schema uses Mongoose's default `_id` and `__v`; all ten schemas enable
+`createdAt` and `updatedAt` timestamps. The schemas define no pre/post hooks or
+custom instance/static methods.
 
 ## Models
 
-### 1. `User`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `name` | String | Yes | No | – | – |
-| `email` | String | Yes | Yes | – | lower‑cased, trimmed |
-| `password` | String | Yes | No | – | – |
-| `role` | String (enum) | Yes | No | – | One of `HOD`, `TEACHER`, `STUDENT` |
-| `department` | String | No | No | – | – |
-| `phone` | String | No | No | – | – |
-| `avatar` | String | No | No | `""` | – |
-| `avatarPublicId` | String | No | No | `""` | – |
-| `isActive` | Boolean | No | No | `true` | – |
-| `resetPasswordToken` | String | No | No | `null` | – |
-| `resetPasswordExpires` | Date | No | No | `null` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+### User (`users`)
 
-### 2. `Student`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `studentName` | String | Yes | No | – | – |
-| `registerNo` | String | Yes | Yes | – | – |
-| `email` | String | Yes | Yes | – | – |
-| `password` | String | Yes | No | – | – |
-| `phoneNo` | String | No | No | – | – |
-| `apaarId` | String | No | No | – | – |
-| `aadhaarEncrypted` | String | No | No | – | – |
-| `avatar` | String | No | No | `""` | – |
-| `batchId` | ObjectId → **Batch** | Yes | No | – | – |
-| `department` | String | No | No | `"Computer Science"` | – |
-| `role` | String | No | No | `"STUDENT"` | – |
-| `isFirstLogin` | Boolean | No | No | `true` | – |
-| `isActive` | Boolean | No | No | `true` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `name` | String | Yes | — |
+| `email` | String | Yes | Unique; lowercase and trimmed |
+| `password` | String | Yes | — |
+| `role` | String | Yes | Enum: `HOD`, `TEACHER`, `STUDENT` |
+| `department` | String | No | — |
+| `phone` | String | No | — |
+| `avatar` | String | No | `""` |
+| `avatarPublicId` | String | No | `""` |
+| `isActive` | Boolean | No | `true` |
+| `resetPasswordToken` | String | No | `null` |
+| `resetPasswordExpires` | Date | No | `null` |
 
-### 3. `Teacher`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `teacherName` | String | Yes | No | – | – |
-| `employeeId` | String | Yes | Yes | – | – |
-| `email` | String | Yes | Yes | – | lowercase, trimmed |
-| `password` | String | Yes | No | – | – |
-| `phoneNo` | String | No | No | – | – |
-| `avatar` | String | No | No | `""` | – |
-| `departments` | [ObjectId → **Department**] | No | – | – | – |
-| `role` | String | No | No | `"TEACHER"` | – |
-| `isActive` | Boolean | No | No | `true` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+No Student or Teacher ObjectId reference is defined on User. Application
+controllers create/synchronize profiles by email. Password hashing occurs in
+controllers, not a model hook. No model hooks or custom indexes are defined
+here beyond the unique email constraint.
 
-### 4. `Batch`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `batchName` | String | Yes | Yes | – | trimmed |
-| `program` | String | No | No | `"BCA"` | trimmed |
-| `department` | String | Yes | No | – | trimmed |
-| `admissionYear` | Number | No | No | `2024` | – |
-| `currentSemester` | Number | No | No | `1` | min 1, max 8 |
-| `startYear` | Number | Yes | No | – | – |
-| `endYear` | Number | Yes | No | – | – |
-| `isActive` | Boolean | No | No | `true` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+### Student (`students`)
 
-### 5. `Department`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `departmentName` | String | Yes | Yes | – | trimmed |
-| `departmentCode` | String | Yes | Yes | – | uppercase, trimmed |
-| `hodName` | String | Yes | No | – | trimmed |
-| `isActive` | Boolean | No | No | `true` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `studentName` | String | Yes | — |
+| `registerNo` | String | Yes | Unique |
+| `email` | String | Yes | Unique |
+| `password` | String | Yes | — |
+| `phoneNo` | String | No | — |
+| `apaarId` | String | No | — |
+| `aadhaarEncrypted` | String | No | — |
+| `avatar` | String | No | `""` |
+| `batchId` | ObjectId, ref `Batch` | Yes | — |
+| `department` | String | No | `"Computer Science"` |
+| `role` | String | No | `"STUDENT"` |
+| `isFirstLogin` | Boolean | No | `true` |
+| `isActive` | Boolean | No | `true` |
 
-### 6. `Subject`
-| Field | Type | Required | Unique | Default | Validation |
-|-------|------|----------|--------|---------|------------|
-| `subjectName` | String | Yes | No | – | trimmed |
-| `subjectCode` | String | Yes | Yes | – | uppercase, trimmed |
-| `departments` | [ObjectId → **Department**] | No | – | – | – |
-| `teachers` | [ObjectId → **Teacher**] | No | – | – | – |
-| `semester` | Number | Yes | No | – | min 1, max 6 |
-| `credits` | Number | No | No | `4` | – |
-| `isActive` | Boolean | No | No | `true` | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – | – | – |
+`email` and `registerNo` have unique constraints. No direct reference to a User
+is defined. Account-to-student resolution in attendance controllers uses
+matching email as application logic.
 
-### 7. `Attendance`
-| Field | Type | Required | Unique Index |
-|-------|------|----------|--------------|
-| `student` | ObjectId → **Student** | Yes | Part of compound unique index |
-| `subject` | ObjectId → **Subject** | Yes | Part of compound unique index |
-| `teacher` | ObjectId → **Teacher** | Yes | – |
-| `batch` | ObjectId → **Batch** | Yes | Part of compound unique index |
-| `date` | Date | No (defaults to `Date.now`) | Part of compound unique index |
-| `status` | String (enum: `Present`, `Absent`, `Late`) | Yes | – |
-| Timestamps | `createdAt`, `updatedAt` | – | – |
+### Teacher (`teachers`)
 
-**Compound unique index** on `{ student, subject, batch, date }` prevents duplicate attendance records for the same student/subject/batch on a given day.
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `teacherName` | String | Yes | Trimmed |
+| `employeeId` | String | Yes | Unique, trimmed |
+| `email` | String | Yes | Unique, lowercase, trimmed |
+| `password` | String | Yes | — |
+| `phoneNo` | String | No | — |
+| `avatar` | String | No | `""` |
+| `departments` | Array of ObjectId, ref `Department` | No | Mongoose array default |
+| `role` | String | No | `"TEACHER"` |
+| `isActive` | Boolean | No | `true` |
 
----
+There is no direct User reference or Teacher-to-Batch field. Subject stores the
+teacher assignment; attendance authorization resolves User to Teacher by
+email, then uses subject and department/batch data.
 
-## Relationships Overview
+### Department (`departments`)
 
-```mermaid
-graph LR
-    User -->|has role| Student
-    User -->|has role| Teacher
-    Student -->|belongs to| Batch
-    Batch -->|belongs to| Department
-    Teacher -->|belongs to many| Department
-    Subject -->|belongs to| Department
-    Subject -->|taught by| Teacher
-    Attendance -->|references| Student
-    Attendance -->|references| Subject
-    Attendance -->|references| Teacher
-    Attendance -->|references| Batch
-    Timetable -->|references| Batch
-    Timetable -->|references| Subject
-    Timetable -->|references| Teacher
-    Notification -->|sent to| User
-    Leave -->|requested by| User
-```
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `departmentName` | String | Yes | Unique, trimmed |
+| `departmentCode` | String | Yes | Unique, uppercase, trimmed |
+| `hodName` | String | Yes | Trimmed |
+| `isActive` | Boolean | No | `true` |
 
----
+There is no HOD User reference. Teacher and Subject may refer to Department;
+Batch stores the department name as a string, not an ObjectId reference.
 
-*All schemas are defined in `backend/models/*.js`. Indexes are created via Mongoose definitions (see `Attendance.js`).*
+### Batch (`batches`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `batchName` | String | Yes | Unique, trimmed |
+| `program` | String | No | `"BCA"`, trimmed |
+| `department` | String | Yes | Trimmed; no `ref` |
+| `admissionYear` | Number | No | `2024` |
+| `currentSemester` | Number | No | `1`, min 1, max 8 |
+| `startYear` | Number | Yes | — |
+| `endYear` | Number | Yes | — |
+| `isActive` | Boolean | No | `true` |
+
+Student, Attendance, and Timetable reference Batch. No relationship to Teacher
+is declared.
+
+### Subject (`subjects`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `subjectName` | String | Yes | Trimmed |
+| `subjectCode` | String | Yes | Unique, uppercase, trimmed |
+| `departments` | Array of ObjectId, ref `Department` | No | Mongoose array default |
+| `teachers` | Array of ObjectId, ref `Teacher` | No | Mongoose array default |
+| `semester` | Number | Yes | Min 1, max 6 |
+| `credits` | Number | No | `4` |
+| `isActive` | Boolean | No | `true` |
+
+### Attendance (`attendances`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `student` | ObjectId, ref `Student` | Yes | — |
+| `subject` | ObjectId, ref `Subject` | Yes | — |
+| `teacher` | ObjectId, ref `Teacher` | Yes | — |
+| `batch` | ObjectId, ref `Batch` | Yes | — |
+| `date` | Date | No | `Date.now` |
+| `status` | String | Yes | Enum: `Present`, `Absent`, `Late` |
+
+Explicit unique compound index: `{ student: 1, subject: 1, batch: 1, date: 1 }`.
+This is exact Date equality at the database index level; it does not intrinsically
+express a calendar day. API writes normalize dates to local midnight, but
+existing or direct writes with non-midnight times can still represent the same
+calendar day as different indexed values.
+
+No audit-history fields, correction reason, actor reference, or schema hooks are
+defined.
+
+### Timetable (`timetables`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `batch` | ObjectId, ref `Batch` | Yes | — |
+| `subject` | ObjectId, ref `Subject` | Yes | — |
+| `teacher` | ObjectId, ref `Teacher` | Yes | — |
+| `day` | String | Yes | Monday through Saturday |
+| `startTime` | String | Yes | Controller validates 24-hour `HH:mm` |
+| `endTime` | String | Yes | Controller validates `HH:mm` and later than start |
+| `isActive` | Boolean | No | `true` |
+
+Overlap checks are implemented in the controller for active entries sharing a
+batch or teacher; there is no corresponding database unique/index constraint.
+
+### Leave (`leaves`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `applicantId` | ObjectId | Yes | No `ref` |
+| `applicantType` | String | Yes | Enum `STUDENT`, `TEACHER` |
+| `reason` | String | Yes | — |
+| `fromDate` | Date | Yes | — |
+| `toDate` | Date | Yes | — |
+| `status` | String | No | Enum `PENDING_TEACHER`, `PENDING_HOD`, `APPROVED`, `REJECTED`; default `PENDING_TEACHER` |
+| `teacherApproval` | Boolean | No | `false` |
+| `hodApproval` | Boolean | No | `false` |
+| `approvedBy` | ObjectId | No | `null`; no `ref` |
+
+The schema does not declare Applicant/Approver references or date-order
+validation. Approval stages are controller behavior and routes have no
+authentication middleware.
+
+### Notification (`notifications`)
+
+| Field | Type | Required | Default / constraints |
+|---|---|---:|---|
+| `recipientId` | ObjectId | Yes | No `ref` |
+| `recipientRole` | String | Yes | Enum `STUDENT`, `TEACHER`, `HOD` |
+| `title` | String | Yes | — |
+| `message` | String | Yes | — |
+| `isRead` | Boolean | No | `false` |
+
+No User reference or recipient ownership enforcement is defined by the schema.
+
+## Relationships: declared references versus application logic
+
+| Relationship | Implementation |
+|---|---|
+| Student → Batch | `Student.batchId` ObjectId ref |
+| Teacher → Department | `Teacher.departments[]` ObjectId refs |
+| Subject → Department | `Subject.departments[]` ObjectId refs |
+| Subject → Teacher | `Subject.teachers[]` ObjectId refs |
+| Attendance → Student / Subject / Teacher / Batch | ObjectId refs on each Attendance record |
+| Timetable → Batch / Subject / Teacher | ObjectId refs |
+| User ↔ Student / Teacher | No ObjectId references; profile controllers match email |
+| Batch → Department | String name only, not a ref |
+| Teacher → Batch | No direct ref/assignment field |
+| Leave applicant/approver → User/profile | ObjectIds without `ref` |
+| Notification recipient → User/profile | ObjectId without `ref` |
+
+Mongoose `ref` enables population but does not itself enforce that referenced
+documents exist. No cross-document foreign-key validation is configured.

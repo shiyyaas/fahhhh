@@ -1,164 +1,138 @@
-# Attendance Documentation
+# Attendance behavior and calculation rules
 
-## Overview
-The Attendance module enables teachers to record attendance for students and provides comprehensive reporting for students, batches, and subjects. It supports three status values: **Present**, **Absent**, and **Late**.
+This document describes the current implementation in
+`controllers/attendanceController.js`, `controllers/reportController.js`,
+`controllers/dashboardController.js`, the Attendance schema, and
+`utils/attendanceCalculations.js`.
 
----
+## Status values and policies
 
-## Endpoints
+Attendance status is case-sensitive and limited by the Mongoose enum to
+`Present`, `Absent`, or `Late`.
 
-| Method | URL | Controller | Auth Middleware | Allowed Roles | Description |
-|--------|-----|------------|----------------|---------------|-------------|
-| `POST` | `/api/attendance/mark` | `markAttendance` | `verifyToken` | `TEACHER` | Record a new attendance entry (creates or updates to avoid duplicates). |
-| `PUT`  | `/api/attendance/update/:id` | `updateAttendance` | `verifyToken` | `TEACHER` | Update an existing attendance record by its MongoDB `_id`. |
-| `DELETE`| `/api/attendance/delete/:id` | `deleteAttendance` | `verifyToken` | `TEACHER` | Delete an attendance record. |
-| `GET`  | `/api/attendance/student/:id` | `getStudentAttendance` | `verifyToken` | `ADMIN`, `HOD`, `STUDENT` | Retrieve all raw attendance entries for a specific student. |
-| `GET`  | `/api/attendance/batch/:id` | `getBatchAttendance` | `verifyToken` | `ADMIN`, `HOD` | Retrieve attendance for all students in a batch. |
-| `GET`  | `/api/attendance/subject/:id` | `getSubjectAttendance` | `verifyToken` | `ADMIN`, `HOD`, `TEACHER` | Retrieve attendance for a specific subject across all batches. |
-| `GET`  | `/api/attendance/percentage/:studentId` | `getAttendancePercentage` | `verifyToken` | `ADMIN`, `HOD`, `STUDENT` | Compute overall attendance percentage for a student (Present only, Late ignored). |
-| `GET`  | `/api/attendance/defaulters` | `getDefaulters` | `verifyToken` | `ADMIN`, `HOD` | List students whose overall attendance is below **75 %** (hard‑coded warning threshold). |
-| `GET`  | `/api/attendance/report/student/:id` | `getStudentReport` | `verifyToken` | `ADMIN`, `HOD`, `STUDENT` | Detailed aggregated report (overall + subject‑wise percentages, Late handling). |
+The shared calculator uses `process.env.LATE_AS`, defaulting to `present`.
 
----
+| `LATE_AS` | Effective present count |
+|---|---|
+| `present` (default) | `Present + Late` |
+| `partial` | `Present + (Late × 0.5)` |
+| `absent` | `Present` |
 
-## Request Payloads
+Unknown non-empty policy strings follow the helper's default branch and count
+Late as fully present; deployments should use one of the three named values.
 
-### `markAttendance` (POST `/mark`)
-```json
-{
-  "student": "<ObjectId>",
-  "subject": "<ObjectId>",
-  "teacher": "<ObjectId>",
-  "batch": "<ObjectId>",
-  "date": "2026-11-06",   // optional, defaults to today
-  "status": "Present"   // or "Absent" or "Late"
-}
-```
-- **Duplicate prevention**: The controller uses a compound unique index (student, subject, batch, date). If an entry already exists for the same day, it is **upserted** (updated) rather than creating a duplicate.
+## Formula, rounding, and examples
 
-### `updateAttendance` (PUT `/update/:id`)
-```json
-{
-  "student": "<ObjectId>",
-  "subject": "<ObjectId>",
-  "teacher": "<ObjectId>",
-  "batch": "<ObjectId>",
-  "date": "2026-11-06",
-  "status": "Late"
-}
-```
-- All fields are optional; only provided fields will be overwritten.
-
-### `deleteAttendance` (DELETE `/delete/:id`)
-- No request body; the `id` path parameter is the attendance document `_id`.
-
----
-
-## Response Structures
-
-All successful responses share the common shape `{ "success": true, ... }`. Errors follow `{ "success": false, "message": "..." }` with appropriate HTTP status codes (400, 401, 403, 404, 500).
-
-### Successful `markAttendance`
-```json
-{
-  "success": true,
-  "message": "Attendance marked successfully",
-  "attendance": { /* attendance document */ }
-}
+```text
+effectivePresent = helper(Present count, Late count, LATE_AS)
+attendance percentage = effectivePresent / all attendance records × 100
 ```
 
-### Successful `getStudentReport`
-```json
-{
-  "success": true,
-  "student": {
-    "_id": "...",
-    "studentName": "John Doe",
-    "registerNo": "2021001",
-    "department": "Computer Science",
-    "batch": "...",
-    "email": "john@example.com",
-    "phoneNo": "1234567890"
-  },
-  "overall": {
-    "totalClasses": 40,
-    "present": 30,
-    "late": 5,
-    "absent": 5,
-    "attendancePercentage": "87.50"
-  },
-  "subjects": [
-    {
-      "subjectId": "...",
-      "subjectName": "Data Structures",
-      "totalClasses": 20,
-      "present": 18,
-      "late": 1,
-      "absent": 1,
-      "attendancePercentage": "95.00"
-    }
-  ]
-}
-```
-- The **late policy** is controlled by the environment variable `LATE_AS` (`present`, `partial`, `absent`). The default treats Late as Present.
+`Absent` records are included in the denominator and contribute zero.
+Percentage response fields formatted as strings use two decimal places. The
+dashboard defaulter comparison uses the unrounded calculation. Zero records
+return numeric `0` in the Attendance percentage endpoint; other formatted
+report fields can return `"0.00"`.
 
-### `getDefaulters`
-```json
-{
-  "success": true,
-  "totalDefaulters": 3,
-  "defaulters": [
-    {
-      "studentId": "...",
-      "studentName": "Alice",
-      "registerNo": "2021003",
-      "attendancePercentage": "68.75"
-    }
-  ]
-}
-```
-- The threshold is hard‑coded to **75 %**. To change it, modify the controller logic or introduce a configurable env variable.
+For 2 Present, 1 Late, 0 Absent (3 records):
 
----
+| Policy | Effective present | Percentage |
+|---|---:|---:|
+| `present` | 3 | 100.00% |
+| `partial` | 2.5 | 83.33% |
+| `absent` | 2 | 66.67% |
 
-## Attendance Calculations
+For 0 records, the percentage is 0. For only 4 Absent records, all policies
+produce 0%. For 3 Late-only records, policies produce 100%, 50%, or 0%,
+respectively.
 
-1. **Effective Present** – calculated by `effectivePresent(present, late, policy)`:
-   - `present` + `late`                                                                                                                                                                                                                                                                                   **(policy values)**
-   - `present` + `late` × 0.5                                                                                                                                                                                                                                                                                                                                                 **expressed**
-   - `present`                                                                                                                                                                                                                                                                                                                          **(policy values)**
-   - The policy is read from `process.env.LATE_AS` (defaults to `present`).
-2. **Overall Percentage** – `effectivePresent / totalClasses * 100` (rounded to two decimals).
-3. **Subject‑wise Percentage** – same calculation per subject.
-4. **Defaulters** – students with `(present / total) * 100 < 75` (hard‑coded). The controller currently counts only **Present** status; Late is ignored unless the `LATE_AS` policy is `present`.
+## How reports apply calculations
 
----
+- **Student detailed report** (`GET /api/attendance/report/student/:id`):
+  one overall aggregation and subject aggregation; each uses the same helper
+  and total record count.
+- **Student percentage** (`GET /api/attendance/percentage/:studentId`) and
+  **defaulters** (`GET /api/attendance/defaulters`): count each status and use
+  the shared policy. Defaulter criterion is strictly `< 75%`.
+- **Student, batch and subject JSON reports** (`/api/reports/...`): use shared
+  helper; add Late counts to response. Percentages include all attendance
+  records in the total.
+- **Student PDF report**: prints counts for Present/Late/Absent and uses shared
+  helper for attendance percentage.
+- **Monthly batch preview and download PDFs**: aggregate counts for Present,
+  Late and total records in the selected month; each student row and the
+  overall weighted average use the shared policy. The effective count column
+  is labeled `Effective`.
+- **Student dashboard** uses the shared calculation. **HOD dashboard** uses
+  the same calculation and counts only students with at least one record as
+  defaulters.
 
-## Configuration (Environment Variables)
+These are record-count percentages, not percentages of scheduled class
+sessions. No holiday, excused absence, or per-subject credit weighting exists.
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `LATE_AS` | Determines how Late records affect the present count. Accepts `present`, `partial`, or `absent`. | `present` |
-| `JWT_SECRET` | Secret for JWT verification (used by auth middleware). | – |
+## Marking, date identity, and duplicate behavior
 
----
+`POST /api/attendance/mark` requires `student`, `subject`, `batch`, and a
+valid status. `date` is optional and defaults to the current time. The
+authenticated teacher profile (resolved by User email) supplies the stored
+teacher ID; a client-supplied teacher ID is not trusted.
 
-## Pagination & Filtering
-*The current implementation does not include pagination on attendance list endpoints. If needed, add `limit` & `page` query parameters and modify controller queries accordingly.*
+The target student must belong to the supplied batch, the teacher must be
+assigned to the subject, and the subject/teacher departments must match the
+batch department through current model relationships.
 
----
+The submitted date is normalized to **local server midnight** for storage.
+The upsert filter spans local `00:00:00.000` through `23:59:59.999`, for the
+same student + subject + batch. Re-marking that combination on the same local
+calendar day updates its existing record. This local-time interpretation can
+differ from a client using UTC dates near midnight.
 
-## CSV Export
-*There is no dedicated CSV export endpoint for attendance in the current codebase. The generic `utils/csvExport.js` utility exists but is not wired to a route.*
+The Attendance schema's unique index is
+`{ student, subject, batch, date }`. It indexes the precise Date value, not a
+calendar-day expression. Normalized API writes align with same-day behavior;
+legacy records and direct database writes with varying times can still evade
+day-level equivalence. Concurrent same-day upserts can race: a duplicate-key
+error is returned as HTTP 409, rather than automatically retried.
 
----
+`PUT /api/attendance/update/:id` validates status/date and reauthorizes the
+teacher and target. It normalizes the date and checks for another record with
+the same student/subject/batch/date day; collision returns HTTP 409. It saves
+the existing record and does not create an upsert. `DELETE` removes the record;
+reports then reflect the remaining records.
 
-## Summary of Missing / Unimplemented Features
-- Configurable shortage/warning thresholds (currently hard‑coded to 75 %).
-- Pagination on list endpoints.
-- CSV export for attendance reports.
-- Role‑based constraints for teachers updating only their own subjects/batches (mentioned in comments but not enforced).
+Malformed attendance IDs are mapped to 404 by the attendance error handler.
+Missing required fields, invalid status, or invalid date return 400. Missing
+student or batch references return 404; an unassigned subject/department is
+denied. Mongoose references do not provide database-level foreign-key checks.
 
----
+## Authorization
 
-*All documentation reflects the actual code; any future changes should be mirrored here.*
+- JWT middleware protects all Attendance routes.
+- Student callers on attendance history, percentage, and detailed report are
+  resolved to a unique Student profile by matching authenticated User email;
+  they may access only that profile's ID.
+- Teachers marking/updating/deleting are resolved to Teacher by email.
+  Subject assignment and department/student-batch relationships are checked.
+- Teachers reading a subject are restricted to assigned subjects and matching
+  department batches.
+- Admin/HOD role allowances are defined per route in
+  [API_DOCUMENTATION.md](./API_DOCUMENTATION.md). `ADMIN` is permitted in some
+  route middleware, but is not an allowed User schema/login role.
+
+No direct User-to-profile or Teacher-to-Batch reference exists. Email matching
+is application-level; there is no direct class-teacher assignment.
+
+## Known limitations and auditability
+
+- The HOD dashboard excludes zero-record students from its defaulter count;
+  the attendance defaulter list includes them with 0% and therefore lists
+  them. Both use the same 75% threshold but differ on this edge case.
+- Attendance update/delete history is not persisted. The schema has no
+  original status, correction reason, updated-by actor, or immutable history.
+  `updatedAt` is overwritten on update and deletion removes the record.
+- A smallest future audit implementation should append an immutable correction
+  event (attendance ID, before/after status and date, actor, timestamp, reason,
+  action) in a separately approved schema/transaction design. This phase does
+  not add it.
+- No attendance bulk endpoint, calendar-day database constraint, or historical
+  record normalization/migration is implemented.
