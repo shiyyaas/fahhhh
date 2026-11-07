@@ -1,15 +1,19 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
+const User = require("../models/User");
 
 // Verify JWT Token
 
-exports.verifyToken = (req, res, next) => {
+exports.verifyToken = async (req, res, next) => {
 
     try {
 
-        const token =
-            req.headers.authorization?.split(" ")[1];
+        const authorization = req.headers.authorization;
+        const [scheme, token, ...extra] = authorization
+            ? authorization.split(" ")
+            : [];
 
-        if (!token) {
+        if (scheme !== "Bearer" || !token || extra.length > 0) {
 
             return res.status(401).json({
                 success: false,
@@ -22,16 +26,40 @@ exports.verifyToken = (req, res, next) => {
             token,
             process.env.JWT_SECRET
         );
+        if (!decoded.userId ||
+            !decoded.role ||
+            !mongoose.Types.ObjectId.isValid(decoded.userId)) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid token"
+            });
+        }
+
+        const user = await User.findById(decoded.userId).select("role isActive");
+        if (!user || user.isActive === false || user.role !== decoded.role) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid token"
+            });
+        }
 
         req.user = decoded;
 
-        next();
+        return next();
 
     } catch (error) {
 
-        return res.status(401).json({
+        return res.status(error.name === "JsonWebTokenError" ||
+            error.name === "TokenExpiredError" ||
+            error.name === "NotBeforeError" ||
+            error.name === "CastError" ? 401 : 500).json({
             success: false,
-            message: "Invalid token"
+            message: error.name === "JsonWebTokenError" ||
+                error.name === "TokenExpiredError" ||
+                error.name === "NotBeforeError" ||
+                error.name === "CastError"
+                ? "Invalid token"
+                : "Unable to verify token"
         });
 
     }

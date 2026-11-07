@@ -15,6 +15,17 @@ const {
 } = require("../controllers/attendanceController");
 
 const { verifyToken, authorizeRoles } = require("../middleware/authMiddleware");
+const {
+  requireHodDepartmentResource,
+  requireStudentOrHod
+} = require("../middleware/ownership");
+const Batch = require("../models/Batch");
+const Subject = require("../models/Subject");
+
+const requireHodSubjectScope = (req, res, next) => {
+  if (req.user.role !== "HOD") return next();
+  return requireHodDepartmentResource(Subject, "id", "subject")(req, res, next);
+};
 
 // Teacher routes for managing attendance
 router.post("/mark", verifyToken, authorizeRoles("TEACHER"), markAttendance);
@@ -22,11 +33,11 @@ router.put("/update/:id", verifyToken, authorizeRoles("TEACHER"), updateAttendan
 router.delete("/delete/:id", verifyToken, authorizeRoles("TEACHER"), deleteAttendance);
 
 // Reporting routes (admin/HOD/teacher/student where appropriate)
-router.get("/student/:id", verifyToken, authorizeRoles("ADMIN", "HOD", "STUDENT"), getStudentAttendance);
-router.get("/batch/:id", verifyToken, authorizeRoles("ADMIN", "HOD"), getBatchAttendance);
-router.get("/subject/:id", verifyToken, authorizeRoles("ADMIN", "HOD", "TEACHER"), getSubjectAttendance);
-router.get("/percentage/:studentId", verifyToken, authorizeRoles("ADMIN", "HOD", "STUDENT"), getAttendancePercentage);
-router.get("/defaulters", verifyToken, authorizeRoles("ADMIN", "HOD"), getDefaulters);
-router.get("/report/student/:id", verifyToken, authorizeRoles("ADMIN", "HOD", "STUDENT"), getStudentReport);
+router.get("/student/:id", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("id"), getStudentAttendance);
+router.get("/batch/:id", verifyToken, authorizeRoles("HOD"), requireHodDepartmentResource(Batch, "id", "batch"), getBatchAttendance);
+router.get("/subject/:id", verifyToken, authorizeRoles("HOD", "TEACHER"), requireHodSubjectScope, getSubjectAttendance);
+router.get("/percentage/:studentId", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("studentId"), getAttendancePercentage);
+router.get("/defaulters", verifyToken, authorizeRoles("HOD"), getDefaulters);
+router.get("/report/student/:id", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("id"), getStudentReport);
 
 module.exports = router;

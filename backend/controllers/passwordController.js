@@ -16,7 +16,8 @@ exports.forgotPassword = async (req, res) => {
         ? req.body.email.toLowerCase().trim()
         : "";
 
-    if (!email) {
+    if (!email || email.length > 254 ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({
         success: false,
         message: "Email is required.",
@@ -71,7 +72,7 @@ exports.forgotPassword = async (req, res) => {
       user.resetPasswordExpires = null;
       await user.save();
 
-      console.error("Password reset email failed:", mailError.message);
+      console.error("Password reset email delivery failed");
 
       // Keep the public response generic to reduce account enumeration.
       return res.status(200).json(genericResponse);
@@ -79,7 +80,7 @@ exports.forgotPassword = async (req, res) => {
 
     return res.status(200).json(genericResponse);
   } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error.message);
+    console.error("Forgot-password request failed");
 
     return res.status(500).json({
       success: false,
@@ -96,7 +97,8 @@ exports.resetPassword = async (req, res) => {
       typeof token !== "string" ||
       typeof newPassword !== "string" ||
       !token ||
-      !newPassword
+      !newPassword ||
+      !/^[a-f0-9]{64}$/i.test(token)
     ) {
       return res.status(400).json({
         success: false,
@@ -104,7 +106,7 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
-    if (newPassword.length < 8) {
+    if (newPassword.length < 8 || newPassword.length > 128) {
       return res.status(400).json({
         success: false,
         message: "Password must be at least 8 characters long.",
@@ -140,7 +142,7 @@ exports.resetPassword = async (req, res) => {
       message: "Password reset successful. Please log in.",
     });
   } catch (error) {
-    console.error("RESET PASSWORD ERROR:", error.message);
+    console.error("Password-reset request failed");
 
     return res.status(500).json({
       success: false,

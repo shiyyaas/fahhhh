@@ -1,6 +1,8 @@
 const express = require("express");
 
 const router = express.Router();
+const { verifyToken, authorizeRoles } = require("../middleware/authMiddleware");
+const { requireTeacherOrHod } = require("../middleware/ownership");
 
 const {
     createTeacher,
@@ -10,14 +12,14 @@ const {
     deleteTeacher
 } = require("../controllers/teacherController");
 
-router.post("/", createTeacher);
+router.post("/", verifyToken, authorizeRoles("HOD"), createTeacher);
 
-router.get("/", getTeachers);
+router.get("/", verifyToken, authorizeRoles("HOD"), getTeachers);
 
-router.get("/:id", getTeacher);
+router.get("/:id", verifyToken, authorizeRoles("HOD"), requireTeacherOrHod("id"), getTeacher);
 
-router.put("/:id", updateTeacher);
+router.put("/:id", verifyToken, authorizeRoles("HOD"), requireTeacherOrHod("id"), updateTeacher);
 
-router.delete("/:id", deleteTeacher);
+router.delete("/:id", verifyToken, authorizeRoles("HOD"), requireTeacherOrHod("id"), deleteTeacher);
 
 module.exports = router;

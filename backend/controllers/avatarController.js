@@ -3,6 +3,32 @@ const User = require("../models/User");
 const Teacher = require("../models/Teacher");
 const cloudinary = require("../config/cloudinary");
 
+const hasValidImageSignature = (file) => {
+  if (!file || !Buffer.isBuffer(file.buffer)) return false;
+
+  if (file.mimetype === "image/png") {
+    return file.buffer.length >= 8 &&
+      file.buffer.subarray(0, 8).equals(
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+      );
+  }
+
+  if (file.mimetype === "image/jpeg") {
+    return file.buffer.length >= 3 &&
+      file.buffer[0] === 0xff &&
+      file.buffer[1] === 0xd8 &&
+      file.buffer[2] === 0xff;
+  }
+
+  if (file.mimetype === "image/webp") {
+    return file.buffer.length >= 12 &&
+      file.buffer.toString("ascii", 0, 4) === "RIFF" &&
+      file.buffer.toString("ascii", 8, 12) === "WEBP";
+  }
+
+  return false;
+};
+
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -29,6 +55,13 @@ exports.updateAvatar = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Please select an image",
+      });
+    }
+
+    if (!hasValidImageSignature(req.file)) {
+      return res.status(400).json({
+        success: false,
+        message: "Uploaded file is not a valid JPG, PNG, or WEBP image",
       });
     }
 
@@ -73,9 +106,7 @@ exports.updateAvatar = async (req, res) => {
         { new: true }
       );
 
-      if (!teacher) {
-        console.warn("Teacher record not found:", user.email);
-      }
+      if (!teacher) console.warn("Teacher record not found");
     }
 
     // Delete old Cloudinary image after successful updates
@@ -83,7 +114,7 @@ exports.updateAvatar = async (req, res) => {
       try {
         await cloudinary.uploader.destroy(oldPublicId);
       } catch (error) {
-        console.error("Old avatar deletion failed:", error.message);
+        console.error("Old avatar deletion failed");
       }
     }
 
@@ -101,12 +132,13 @@ exports.updateAvatar = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Avatar upload error:", error);
+    console.error("Avatar upload failed");
 
     return res.status(500).json({
       success: false,
       message: "Failed to update avatar",
-      error: error.message,
     });
   }
 };
+
+exports.hasValidImageSignature = hasValidImageSignature;

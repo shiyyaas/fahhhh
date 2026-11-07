@@ -1,6 +1,9 @@
 const express = require("express");
 
 const router = express.Router();
+const { verifyToken, authorizeRoles } = require("../middleware/authMiddleware");
+const { requireHodDepartmentResource } = require("../middleware/ownership");
+const Subject = require("../models/Subject");
 
 const {
     createSubject,
@@ -10,14 +13,14 @@ const {
     deleteSubject
 } = require("../controllers/subjectController");
 
-router.post("/", createSubject);
+router.post("/", verifyToken, authorizeRoles("HOD"), createSubject);
 
-router.get("/", getSubjects);
+router.get("/", verifyToken, authorizeRoles("HOD", "TEACHER", "STUDENT"), getSubjects);
 
-router.get("/:id", getSubject);
+router.get("/:id", verifyToken, authorizeRoles("HOD", "TEACHER", "STUDENT"), getSubject);
 
-router.put("/:id", updateSubject);
+router.put("/:id", verifyToken, authorizeRoles("HOD"), requireHodDepartmentResource(Subject, "id", "subject"), updateSubject);
 
-router.delete("/:id", deleteSubject);
+router.delete("/:id", verifyToken, authorizeRoles("HOD"), requireHodDepartmentResource(Subject, "id", "subject"), deleteSubject);
 
 module.exports = router;

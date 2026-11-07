@@ -23,13 +23,40 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
+if (typeof process.env.JWT_SECRET !== "string" ||
+    Buffer.byteLength(process.env.JWT_SECRET) < 32) {
+    throw new Error("JWT_SECRET must be configured with at least 32 bytes");
+}
+
 connectDB();
 
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(null, false);
+    },
+}));
+app.use((req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    next();
+});
+app.use(express.json({ limit: "1mb" }));
 
 // Serve static uploaded files (avatars, documents, etc.)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
+    dotfiles: "deny",
+    index: false,
+    redirect: false,
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
@@ -47,6 +74,26 @@ app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
     res.send("Attendance ERP API Running");
+});
+
+app.use((error, req, res, next) => {
+    if (res.headersSent) return next(error);
+    const status = error.code === "LIMIT_FILE_SIZE" ||
+        error.type === "entity.too.large"
+        ? 413
+        : error.name === "MulterError" ||
+            error.message === "Only JPG, PNG and WEBP images are allowed" ||
+            error.type === "entity.parse.failed"
+            ? 400
+            : 500;
+    return res.status(status).json({
+        success: false,
+        message: status === 413
+            ? "Request payload exceeds the allowed size"
+            : status === 400
+                ? "Invalid request"
+                : "Internal server error",
+    });
 });
 
 const PORT = process.env.PORT || 5000;

@@ -74,10 +74,10 @@ exports.uploadAvatar = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Avatar upload error:", error);
+        console.error("Avatar upload request failed");
         return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Internal server error"
         });
     }
 };

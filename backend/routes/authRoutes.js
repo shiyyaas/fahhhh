@@ -12,10 +12,11 @@ const {
 const { updateAvatar } = require("../controllers/avatarController");
 const { verifyToken } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
+const { authRateLimit } = require("../middleware/rateLimit");
 
-router.post("/login", login);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/login", authRateLimit, login);
+router.post("/forgot-password", authRateLimit, forgotPassword);
+router.post("/reset-password", authRateLimit, resetPassword);
 
 // Avatar update
 router.put("/avatar",verifyToken,upload.single("avatar"),updateAvatar);
