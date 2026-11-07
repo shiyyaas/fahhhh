@@ -35,7 +35,7 @@ class HeaderMenuConfig {
         return '/student-settings';
       case 'Subject Settings':
         return '/subject-settings';
-      case 'Check Condonation':
+      case 'Condonation Report':
         return '/condonation';
       default:
         return null;
