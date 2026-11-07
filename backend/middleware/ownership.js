@@ -6,6 +6,7 @@ const Department = require("../models/Department");
 const Batch = require("../models/Batch");
 const Subject = require("../models/Subject");
 const Leave = require("../models/Leave");
+const { getDepartmentScope } = require("../utils/departmentScope");
 
 const respondForbidden = (res) =>
     res.status(403).json({ success: false, message: "Forbidden" });
@@ -283,11 +284,9 @@ exports.requireOwnStudentBatchOrHod = (paramName) =>
         }
 
         try {
-            const user = await User.findById(req.user.userId).select("email role");
-            const student = user && user.role === "STUDENT"
-                ? await Student.findOne({ email: user.email }).select("batchId")
-                : null;
-            if (!student || String(student.batchId) !== String(req.params[paramName])) {
+            const scope = await getDepartmentScope(req);
+            if (!scope || !scope.batchIds ||
+                !scope.batchIds.some((id) => String(id) === String(req.params[paramName]))) {
                 return respondForbidden(res);
             }
             return next();

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Department = require("../models/Department");
 const Student = require("../models/Student");
 const Teacher = require("../models/Teacher");
+const Batch = require("../models/Batch");
 
 exports.getDepartmentScope = async (req) => {
     const user = await User.findById(req.user.userId).select("email role department");
@@ -23,7 +24,8 @@ exports.getDepartmentScope = async (req) => {
 
     if (user.role === "TEACHER") {
         const teacher = await Teacher.findOne({ email: user.email }).select("departments");
-        if (!teacher || teacher.departments.length === 0) return null;
+        if (!teacher || !Array.isArray(teacher.departments) ||
+            teacher.departments.length === 0) return null;
         const departments = await Department.find({
             _id: { $in: teacher.departments }
         }).select("_id departmentName");
@@ -31,22 +33,29 @@ exports.getDepartmentScope = async (req) => {
         return {
             departmentIds: departments.map((department) => department._id),
             departmentNames: departments.map((department) => department.departmentName),
-            batchIds: null
+            batchIds: null,
+            teacherId: teacher._id
         };
     }
 
     if (user.role === "STUDENT") {
         const student = await Student.findOne({ email: user.email })
             .select("department batchId");
-        if (!student || !student.department || !student.batchId) return null;
+        if (!student || typeof student.department !== "string" ||
+            !student.department.trim() || !student.batchId) return null;
         const department = await Department.findOne({
             departmentName: student.department
         }).select("_id departmentName");
         if (!department) return null;
+        const batch = await Batch.findOne({
+            _id: student.batchId,
+            department: student.department
+        }).select("_id");
+        if (!batch) return null;
         return {
             departmentIds: [department._id],
             departmentNames: [department.departmentName],
-            batchIds: [student.batchId]
+            batchIds: [batch._id]
         };
     }
 

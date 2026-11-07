@@ -94,8 +94,9 @@ exports.getSubjects = async (req, res) => {
                 message: "Forbidden"
             });
         }
-        const subjects =
-            await Subject.find({ departments: { $in: scope.departmentIds } })
+        const filter = { departments: { $in: scope.departmentIds } };
+        if (scope.teacherId) filter.teachers = scope.teacherId;
+        const subjects = await Subject.find(filter)
                 .populate("departments")
                 .populate({
                     path: "teachers",
@@ -135,11 +136,12 @@ exports.getSubject = async (req, res) => {
                 message: "Forbidden"
             });
         }
-        const subject =
-            await Subject.findOne({
-                _id: req.params.id,
-                departments: { $in: scope.departmentIds }
-            })
+        const filter = {
+            _id: req.params.id,
+            departments: { $in: scope.departmentIds }
+        };
+        if (scope.teacherId) filter.teachers = scope.teacherId;
+        const subject = await Subject.findOne(filter)
                 .populate("departments")
                 .populate({
                     path: "teachers",

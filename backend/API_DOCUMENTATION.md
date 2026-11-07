@@ -75,34 +75,40 @@ department.
 | Method and path | Auth / roles | Inputs and behavior | Success / errors |
 |---|---|---|---|
 | `POST /` | JWT; HOD; own department | Body: `batchName`, `department`, `startYear`, `endYear`. Department must equal HOD department. | 201 `{success:true,batch}`; 403 out of scope; 400 duplicate/validation; 500 generic failure. |
-| `GET /` | JWT; HOD, TEACHER, STUDENT; department-scoped | No query parameters. Descending `startYear`; student sees own batch only. | 200 `{success:true,batches}`; 403 if profile/department association cannot be resolved; 500 generic failure. |
+| `GET /` | JWT; HOD, TEACHER, STUDENT; department-scoped | No query parameters. Descending `startYear`; student sees own batch only, and the batch must exist in the student's profile department. | 200 `{success:true,batches}`; 403 if profile/department/batch association cannot be resolved; 500 generic failure. |
 | `PUT /:id/promote` | JWT; HOD; same department | Increments `currentSemester`; promotion is refused when it is at least 6. | 200 `{success:true,message,batch}`; 400 completed; 403/404/500 as applicable. |
 
 ## Departments
 
-All routes require JWT. Reads are available to HOD, TEACHER, STUDENT. Mutations
-are HOD-only; HOD may not operate on a different department. Department names
-cannot be renamed by HOD because they are the current cross-model scope key.
+All routes require JWT. Reads are limited to the caller's resolved scope: HOD
+gets their department, teachers get departments linked to their Teacher
+profile, and students get the department on their linked Student profile.
+Unresolved associations fail closed. Mutations are HOD-only; HOD may not
+operate on a different department. Department names cannot be renamed by HOD
+because they are the current cross-model scope key.
 
 | Method and path | Auth / roles | Inputs and behavior | Success / errors |
 |---|---|---|---|
 | `POST /` | JWT; HOD; department name must match caller's configured department | Body: `departmentName`, `departmentCode`, `hodName`; duplicate name/code rejected. A new department generally requires provisioning outside this route because a HOD is already bound to an existing department name. | Controller returns `{success:true,message,department}` with 201; 403 if name is out of scope, 400 duplicate, 500 generic failure. |
-| `GET /` | JWT; HOD, TEACHER, STUDENT | No query parameters; sorted newest first. 200 `{success:true,departments}`. |
-| `GET /:id` | JWT; HOD, TEACHER, STUDENT | Department ObjectId. 200 `{success:true,department}`; 404 missing; 500 generic failure. |
+| `GET /` | JWT; HOD, TEACHER, STUDENT | No query parameters; returns only departments in the caller's resolved scope, sorted newest first. 200 `{success:true,departments}`; 403 unresolved association. |
+| `GET /:id` | JWT; HOD, TEACHER, STUDENT | Department ObjectId in caller's resolved scope. 200 `{success:true,department}`; 400 malformed ID; 403 unresolved association; 404 missing or out of scope. |
 | `PUT /:id` | JWT; HOD; same department | May update code/name metadata except changing `departmentName`. 200 `{success:true,message,department}`; 400/403/404/500 as applicable. |
 | `DELETE /:id` | JWT; HOD; same department | No cascading cleanup. 200 `{success:true,message}`; 400/403/404/500 as applicable. |
 
 ## Subjects
 
-All routes require JWT. Reads are limited to the caller's department(s), and
-teachers are populated using the safe `teacherName` and `avatar` projection.
-Mutations are HOD-only and assignments are restricted to the HOD department.
+All routes require JWT. HOD reads are limited to the HOD department; teacher
+reads additionally require the teacher's profile ID in the subject's
+`teachers` assignment; student reads are limited to the student profile's
+department. Teachers are populated using the safe `teacherName` and `avatar`
+projection. Mutations are HOD-only and assignments are restricted to the HOD
+department.
 
 | Method and path | Auth / roles | Inputs and behavior | Success / errors |
 |---|---|---|---|
 | `POST /` | JWT; HOD; own department | Body: `subjectName`, `subjectCode`, `departments`, `teachers`, `semester`, `credits`. Department and teacher assignments must be within caller department. 201 `{success:true,message,subject}`; 400/403/500 as applicable. |
-| `GET /` | JWT; HOD, TEACHER, STUDENT; department-scoped | No query parameters; sorted newest first. Teacher population contains only `teacherName`, `avatar`. 200 `{success:true,subjects}`; 403/500 as applicable. |
-| `GET /:id` | JWT; HOD, TEACHER, STUDENT; department-scoped | Subject ObjectId; safe teacher population. 200 `{success:true,subject}`; 400 invalid ID; 403 out of scope; 404/500 as applicable. |
+| `GET /` | JWT; HOD, TEACHER, STUDENT; scoped | No query parameters; sorted newest first. Teachers receive only assigned subjects within their departments. Teacher population contains only `teacherName`, `avatar`. 200 `{success:true,subjects}`; 403 unresolved association; 500 generic failure. |
+| `GET /:id` | JWT; HOD, TEACHER, STUDENT; scoped | Subject ObjectId; teachers must be assigned that subject and its department. Safe teacher population. 200 `{success:true,subject}`; 400 invalid ID; 403 unresolved association; 404 missing or out of scope; 500 generic failure. |
 | `PUT /:id` | JWT; HOD; same department | Only `subjectName`, `subjectCode`, `departments`, `teachers`, `semester`, and `credits` can be updated; assignments remain within caller department. 200 `{success:true,message,subject}`; 400/403/404/500 as applicable. |
 | `DELETE /:id` | JWT; HOD; same department | No attendance/timetable cleanup is implemented. 200 `{success:true,message}`; 400/403/404/500 as applicable. |
 
@@ -224,6 +230,10 @@ Both upload paths use the same authenticated Cloudinary avatar handler and
 update only the account in the JWT. Neither accepts a target user ID or email.
 Uploads are limited to JPEG/PNG/WebP, 5 MiB, and must have a matching file
 signature. Local static files under `/uploads/*` remain publicly served.
+The legacy `controllers/uploadController.js` is not mounted. It trusts
+caller-supplied user IDs/emails and does not validate image signatures; do not
+mount or reuse it without authentication, ownership checks, and file-signature
+validation.
 
 | Method and path | Request and behavior | Success / errors |
 |---|---|---|

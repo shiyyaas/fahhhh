@@ -161,8 +161,10 @@ batch or teacher; there is no corresponding database unique/index constraint.
 | `approvedBy` | ObjectId | No | `null`; no `ref` |
 
 The schema does not declare Applicant/Approver references or date-order
-validation. Approval stages are controller behavior and routes have no
-authentication middleware.
+validation. Approval stages and authorization are controller/route behavior,
+not schema constraints. Mounted leave routes require JWT authentication;
+HOD review routes additionally verify the applicant belongs to the HOD's
+department.
 
 ### Notification (`notifications`)
 
@@ -194,3 +196,8 @@ No User reference or recipient ownership enforcement is defined by the schema.
 
 Mongoose `ref` enables population but does not itself enforce that referenced
 documents exist. No cross-document foreign-key validation is configured.
+Student batch authorization therefore performs an application-level check:
+the authenticated User must resolve by email to a Student profile, the
+referenced Batch must exist, and `Batch.department` must match
+`Student.department`. Mismatches fail closed; this check does not migrate or
+rewrite existing records.

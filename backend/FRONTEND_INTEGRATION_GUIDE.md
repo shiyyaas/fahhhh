@@ -160,12 +160,21 @@ decoding as JSON. Empty monthly batches return JSON.
 - Department scoping relies on the current text `User.department` and
   Department name; profile association is email-based. If the relationship
   cannot be resolved, access fails closed.
+- Department reads return only the HOD department, departments linked to the
+  teacher profile, or the student's profile department. Subject reads for
+  teachers additionally require the subject to list their Teacher profile ID
+  in `teachers`; students and HODs remain department-scoped.
+- Student batch and timetable access requires a valid linked Student profile
+  and a batch whose department matches that profile. Inconsistent mappings are
+  denied; clients must not infer batch access from a submitted ID.
 - A HOD cannot rename the department name through the department update API;
   that name is currently used as the cross-model scope key.
 - No direct Teacher-to-Batch or teacher-to-leave-advisor relationship exists.
   Teacher authorization is derived from assigned subjects/departments.
 - Existing static uploads are public by design. Authenticated avatar updates
   affect only the account in the JWT.
+- The legacy `controllers/uploadController.js` is not mounted and must not be
+  reused without authentication, ownership, and image-signature checks.
 - There is no Class Teacher role, direct Teacher-to-Batch mapping, refresh
   token, pagination, general attendance date filter, or bulk attendance API.
 - Response population and error field shapes vary by endpoint. Attendance

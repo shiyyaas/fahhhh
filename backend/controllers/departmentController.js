@@ -1,5 +1,7 @@
 const Department = require("../models/Department");
 const User = require("../models/User");
+const mongoose = require("mongoose");
+const { getDepartmentScope } = require("../utils/departmentScope");
 
 // Create Department
 exports.createDepartment = async (req, res) => {
@@ -61,9 +63,16 @@ exports.createDepartment = async (req, res) => {
 // Get All Departments
 exports.getDepartments = async (req, res) => {
     try {
-
-        const departments =
-            await Department.find()
+        const scope = await getDepartmentScope(req);
+        if (!scope) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        const departments = await Department.find({
+            _id: { $in: scope.departmentIds }
+        })
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -84,11 +93,26 @@ exports.getDepartments = async (req, res) => {
 // Get Single Department
 exports.getDepartment = async (req, res) => {
     try {
-
-        const department =
-            await Department.findById(
-                req.params.id
-            );
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid department ID"
+            });
+        }
+        const scope = await getDepartmentScope(req);
+        if (!scope) {
+            return res.status(403).json({
+                success: false,
+                message: "Forbidden"
+            });
+        }
+        if (!scope.departmentIds.some((id) => String(id) === req.params.id)) {
+            return res.status(404).json({
+                success: false,
+                message: "Department not found"
+            });
+        }
+        const department = await Department.findById(req.params.id);
 
         if (!department) {
             return res.status(404).json({

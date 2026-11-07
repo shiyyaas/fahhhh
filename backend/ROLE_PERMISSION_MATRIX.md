@@ -12,7 +12,8 @@ department where those relationships are available in the database.
 | Attendance marking | Not implemented | Restricted to assigned subject and matching department/batch | Not implemented | Not implemented | Not implemented |
 | Attendance updating | Not implemented | Restricted to records created/managed by self and current assignment | Not implemented | Not implemented | Not implemented |
 | Attendance deletion | Not implemented | Restricted to records created/managed by self and current assignment | Not implemented | Not implemented | Not implemented |
-| Subject access | Restricted to own department | Restricted to assigned departments | Not implemented | Restricted to own department | Not implemented |
+| Department reads | Own department only | Assigned departments only | Not implemented | Own department only | Not implemented |
+| Subject access | Own department | Assigned subjects within assigned departments | Not implemented | Own department | Not implemented |
 | Batch access | Restricted to own batch | Restricted to assigned departments | Not implemented | Restricted to own department | Not implemented |
 | Dashboard access | Restricted to self | Restricted to self | Not implemented | Restricted to own department | Not implemented |
 | Reports | Restricted to self | Not implemented | Not implemented | Restricted to own department | Not implemented |
@@ -35,8 +36,9 @@ department where those relationships are available in the database.
   or department mapping fails closed.
 - Students can access only their own student profile, attendance, percentage,
   report, dashboard, timetable batch, leave requests, notifications, and
-  avatar. They cannot list the entire student directory or mutate
-  administrative resources.
+  avatar. Department reads are limited to the department on their linked
+  Student profile, and the profile's batch must exist in that same department.
+  They cannot list the student directory or mutate administrative resources.
 - Teachers can mark, update, and delete attendance only after profile
   resolution and subject/department/batch checks. They cannot access batch
   attendance or administrative CRUD. No direct Teacher-to-Batch assignment
@@ -44,8 +46,21 @@ department where those relationships are available in the database.
 - The leave schema has no teacher-to-student advising relationship. Therefore,
   approval/recommendation mutations are restricted to same-department HOD
   rather than inferring a teacher's authority over a leave applicant.
-- Subject and batch reads are department-scoped. Teacher data populated by
-  subject endpoints is limited to `teacherName` and `avatar`.
+- HOD subject reads are limited to their department. Teacher subject reads
+  require both an assigned department and the teacher's ID in the subject's
+  `teachers` list. Student subject reads are limited to their profile
+  department. Teacher data populated by subject endpoints is limited to
+  `teacherName` and `avatar`.
+- Department list/detail reads are limited to the HOD's department, a teacher's
+  assigned departments, or the student's linked profile department. Missing or
+  inconsistent associations fail closed.
+- Student batch and timetable reads require the authenticated User email to
+  resolve to a Student profile and require that profile's batch to exist with
+  a department matching the profile department.
+- `controllers/uploadController.js` is legacy and is not mounted. It trusts
+  caller-supplied identity fields and does not validate image signatures; do
+  not mount or reuse it without equivalent authentication, ownership, and
+  file validation. The mounted upload routes use the JWT-bound avatar handler.
 - Avatar APIs require JWT and update the authenticated account only.
   `GET /uploads/*` remains public static content to support existing image
   URLs; files there should be considered public.
