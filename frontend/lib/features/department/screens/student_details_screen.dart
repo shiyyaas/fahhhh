@@ -5,12 +5,10 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
+import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
-/// Student details screen (Figma node 1562:7810).
-///
-/// Blue header with back arrow, Delete/Edit pill buttons, and five floating
-/// labelled input fields: Student Name, Apaar ID, Aadhar No, Phone No, Email.
+/// Student details screen.
 class StudentDetailsScreen extends StatefulWidget {
   final String rollNumber;
   final String name;
@@ -56,182 +54,125 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: AppScreenScaffold(
         child: Column(
           children: [
-            _HeaderSection(onBack: () => context.pop()),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  InputField(
-                    controller: _nameController,
-                    label: 'Student Name',
-                    hintText: 'Enter student name',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter student name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _appaarController,
-                    label: 'Apaar ID',
-                    hintText: 'Enter apaar id',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter apaar ID';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _aadharController,
-                    label: 'Aadhar No',
-                    hintText: 'Enter aadhar no',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter aadhar number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _phoneController,
-                    label: 'Phone No',
-                    hintText: 'Enter phone no',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-                  InputField(
-                    controller: _emailController,
-                    label: 'Email',
-                    hintText: 'Enter email',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DetailActionButton.danger(
-                          text: 'Delete',
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Student deleted'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+            const SizedBox(height: 18),
+            AppBackHeader(
+              title: 'Student Details',
+              subtitle: 'Manage student details here',
+              onBack: () => context.pop(),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    InputField(
+                      controller: _nameController,
+                      label: 'Student Name',
+                      hintText: 'Enter student name',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter student name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _appaarController,
+                      label: 'Apaar ID',
+                      hintText: 'Enter apaar id',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter apaar ID';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _aadharController,
+                      label: 'Aadhar No',
+                      hintText: 'Enter aadhar no',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter aadhar number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _phoneController,
+                      label: 'Phone No',
+                      hintText: 'Enter phone no',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter phone number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    InputField(
+                      controller: _emailController,
+                      label: 'Email',
+                      hintText: 'Enter email',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Please enter a valid email';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DetailActionButton.danger(
+                            text: 'Delete',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Student deleted'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: DetailActionButton.primary(
-                          text: 'Edit',
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Student details updated'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: DetailActionButton.primary(
+                            text: 'Save',
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Student details updated'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Blue header with back arrow, title, and subtitle — matches the Figma
-/// "Student details" / "Manage student details here" block.
-class _HeaderSection extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const _HeaderSection({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 143,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(25),
-          bottomRight: Radius.circular(25),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 15,
-            top: 61,
-            child: IconButton(
-              onPressed: onBack,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(
-                width: 26,
-                height: 41,
-              ),
-              icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            left: 47,
-            top: 61,
-            right: 15,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Student details',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Manage student details here',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(
-                    fontSize: 15,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

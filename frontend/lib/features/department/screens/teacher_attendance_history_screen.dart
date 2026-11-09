@@ -8,6 +8,7 @@ import 'package:fahhhh/core/theme_data/app_radius.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/department_provider.dart';
+import '../../attendance/providers/attendance_provider.dart';
 import '../models/department_student.dart';
 import '../models/department_subject.dart';
 
@@ -21,7 +22,8 @@ class StudentAttendance {
 }
 
 class TeacherAttendanceHistoryScreen extends ConsumerStatefulWidget {
-  const TeacherAttendanceHistoryScreen({super.key});
+  final String? classId;
+  const TeacherAttendanceHistoryScreen({super.key, this.classId});
 
   @override
   ConsumerState<TeacherAttendanceHistoryScreen> createState() =>
@@ -43,8 +45,6 @@ class _TeacherAttendanceHistoryScreenState
   static const List<String> _statusCycle = ['a', 'p', 'l'];
 
   late DateTime _selectedDate;
-  List<StudentAttendance> _attendanceData = [];
-  bool _dataInitialized = false;
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
   String _sort = 'sort_default';
@@ -62,46 +62,8 @@ class _TeacherAttendanceHistoryScreenState
     super.dispose();
   }
 
-  void _populateFromLive(List<DepartmentStudent> students, List<DepartmentSubject> subjects) {
-    if (_dataInitialized || students.isEmpty) return;
-    final subjectList = subjects.isNotEmpty
-        ? subjects.map((s) => s.name).toList()
-        : _subjectNames;
-    _attendanceData = students.map((s) {
-      return StudentAttendance(
-        s.name,
-        s.rollNumber,
-        {
-          for (final sub in subjectList)
-            sub: 'p',
-        },
-      );
-    }).toList();
-    _dataInitialized = true;
-  }
-
-  // Commented out fallback mock data generator:
-  // List<StudentAttendance> _generateMockData() {
-  //   const names = [
-  //     'Shiyas', 'Anjali', 'Rahul', 'Meera', 'Kiran', 'Priya',
-  //     'Vishnu', 'Sneha', 'Arjun', 'Kavya', 'Ravi', 'Sara',
-  //     'John', 'Alice', 'Bob',
-  //   ];
-  //   final random = Random(DateTime.now().day);
-  //   return List.generate(15, (i) {
-  //     return StudentAttendance(
-  //       names[i % names.length],
-  //       '${i + 1}',
-  //       {
-  //         for (final s in _subjectNames)
-  //           s: _statusCycle[random.nextInt(_statusCycle.length)],
-  //       },
-  //     );
-  //   });
-  // }
-
-  void _toggleStatus(int studentIndex, String subject) {
-    final student = _attendanceData[studentIndex];
+  void _toggleStatus(int studentIndex, List<StudentAttendance> attendanceData, String subject) {
+    final student = attendanceData[studentIndex];
     final current = student.subjects[subject]!;
     student.subjects[subject] =
         _statusCycle[(_statusCycle.indexOf(current) + 1) % _statusCycle.length];
@@ -138,22 +100,45 @@ class _TeacherAttendanceHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
-    final students = ref.watch(departmentStudentsProvider(null)).value ?? [];
-    final subjects = ref.watch(departmentSubjectsProvider).value ?? [];
-    _populateFromLive(students, subjects);
+    final attendanceAsync = ref.watch(batchAttendanceHistoryProvider(widget.classId ?? 'default'));
+    final List<StudentAttendance> attendanceData = [];
+
+    attendanceAsync.whenData((records) {
+      // Map records to StudentAttendance
+      // Assuming records is List<dynamic>
+      for (final r in records) {
+        if (r is Map) {
+          final studentName = r['student']?['studentName']?.toString() ?? 'Unknown';
+          final rollNumber = r['student']?['registerNo']?.toString() ?? '';
+          final subject = r['subject']?['subjectName']?.toString() ?? 'Unknown';
+          final status = r['status']?.toString() ?? 'p'; // Simplified mapping
+
+          // Find or create student
+          var student = attendanceData.firstWhere(
+            (s) => s.rollNumber == rollNumber,
+            orElse: () {
+              final newStudent = StudentAttendance(studentName, rollNumber, {});
+              attendanceData.add(newStudent);
+              return newStudent;
+            },
+          );
+          student.subjects[subject] = status == 'Present' ? 'p' : 'a';
+        }
+      }
+    });
 
     final query = _query.trim().toLowerCase();
     final indexes = [
-      for (var i = 0; i < _attendanceData.length; i++)
+      for (var i = 0; i < attendanceData.length; i++)
         if (query.isEmpty ||
-            _attendanceData[i].name.toLowerCase().contains(query))
+            attendanceData[i].name.toLowerCase().contains(query))
           i,
     ];
 
     if (_sort == 'sort_name_asc') {
-      indexes.sort((a, b) => _attendanceData[a].name.compareTo(_attendanceData[b].name));
+      indexes.sort((a, b) => attendanceData[a].name.compareTo(attendanceData[b].name));
     } else if (_sort == 'sort_name_desc') {
-      indexes.sort((a, b) => _attendanceData[b].name.compareTo(_attendanceData[a].name));
+      indexes.sort((a, b) => attendanceData[b].name.compareTo(attendanceData[a].name));
     }
 
     return Scaffold(
@@ -271,37 +256,24 @@ class _TeacherAttendanceHistoryScreenState
                 ],
               ),
             ),
-            Expanded(
-              child: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppRadius.card),
-                  border: Border.all(color: AppColors.outline, width: 1),
-                ),
-                child: SingleChildScrollView(
+            attendanceAsync.when(
+              loading: () => const Expanded(child: Center(child: CircularProgressIndicator())),
+              error: (err, stack) => Expanded(child: Center(child: Text('Error: $err'))),
+              data: (_) => Expanded(
+                child: Container(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    border: Border.all(color: AppColors.outline, width: 1),
+                  ),
                   child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          children: [
-                            _headerCell('NO', 44),
-                            _headerCell('NAME', 80),
-                            for (final s in _subjectNames)
-                              _headerCell(s, 68),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1, color: AppColors.outline),
-                      for (final idx in indexes)
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -309,43 +281,60 @@ class _TeacherAttendanceHistoryScreenState
                           ),
                           child: Row(
                             children: [
-                              SizedBox(
-                                width: 44,
-                                child: Text(
-                                  _attendanceData[idx].rollNumber,
-                                  style: AppTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 80,
-                                child: Text(
-                                  _attendanceData[idx].name,
-                                  style: AppTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
+                              _headerCell('NO', 44),
+                              _headerCell('NAME', 80),
                               for (final s in _subjectNames)
-                                SizedBox(
-                                  width: 68,
-                                  child: Center(
-                                    child: _StatusCell(
-                                      status:
-                                          _attendanceData[idx].subjects[s]!,
-                                      onTap: _isEditing
-                                          ? () => _toggleStatus(idx, s)
-                                          : null,
-                                    ),
-                                  ),
-                                ),
+                                _headerCell(s, 68),
                             ],
                           ),
                         ),
-                    ],
+                        const Divider(height: 1, color: AppColors.outline),
+                        for (final idx in indexes)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 44,
+                                  child: Text(
+                                    attendanceData[idx].rollNumber,
+                                    style: AppTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: Text(
+                                    attendanceData[idx].name,
+                                    style: AppTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                for (final s in _subjectNames)
+                                  SizedBox(
+                                    width: 68,
+                                    child: Center(
+                                      child: _StatusCell(
+                                        status:
+                                            attendanceData[idx].subjects[s] ?? 'p',
+                                        onTap: _isEditing
+                                            ? () => _toggleStatus(idx, attendanceData, s)
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),

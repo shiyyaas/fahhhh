@@ -53,9 +53,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final mode = state.uri.queryParameters['mode'];
           final classId = state.uri.queryParameters['classId'];
+          final teacherName = state.uri.queryParameters['teacherName'];
           return TimetableScreen(
             forceTeacherMode: mode == 'teacher',
             classId: classId != null ? Uri.decodeComponent(classId) : null,
+            teacherName: teacherName != null ? Uri.decodeComponent(teacherName) : null,
           );
         },
       ),
@@ -147,7 +149,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Attendance History Route - teacher attendance calendar
       GoRoute(
         path: '/teacher-attendance-history',
-        builder: (context, state) => const TeacherAttendanceHistoryScreen(),
+        builder: (context, state) {
+          final classId = state.uri.queryParameters['classId'];
+          return TeacherAttendanceHistoryScreen(
+            classId: classId != null ? Uri.decodeComponent(classId) : null,
+          );
+        },
       ),
       // Student Attendance History Route - student attendance calendar
       GoRoute(

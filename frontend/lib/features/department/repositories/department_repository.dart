@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../models/department_class.dart';
@@ -238,12 +239,56 @@ class DepartmentRepository {
     return {};
   }
 
+  Future<Map<String, dynamic>> getStudentReport(String studentId) async {
+    final response = await _apiClient.get(ApiEndpoints.studentReport(studentId));
+    if (response.data is Map && response.data['success'] == true) {
+      return (response.data['report'] as Map<String, dynamic>?) ?? {};
+    }
+    return {};
+  }
+
+  Future<Map<String, dynamic>> getSubjectReport(String subjectId) async {
+    final response = await _apiClient.get(ApiEndpoints.subjectReport(subjectId));
+    if (response.data is Map && response.data['success'] == true) {
+      return (response.data['report'] as Map<String, dynamic>?) ?? {};
+    }
+    return {};
+  }
+
+  Future<String> getStudentReportPdfUrl(String studentId) async {
+    return ApiEndpoints.resolveUrl(ApiEndpoints.studentReportPdf(studentId));
+  }
+
   Future<String> getBatchMonthlyPreviewUrl(String batchId, int month, int year) async {
     return '${ApiEndpoints.serverBaseUrl}${ApiEndpoints.batchMonthlyPreview(batchId)}?month=$month&year=$year';
   }
 
   Future<String> getBatchMonthlyPdfUrl(String batchId, int month, int year) async {
     return '${ApiEndpoints.serverBaseUrl}${ApiEndpoints.batchMonthlyPdf(batchId)}?month=$month&year=$year';
+  }
+
+  Future<Uint8List> getBatchMonthlyPreviewBytes(String batchId, int month, int year) async {
+    final response = await _apiClient.get(
+      '${ApiEndpoints.batchMonthlyPreview(batchId)}?month=$month&year=$year',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
+  }
+
+  Future<Uint8List> getBatchMonthlyPdfBytes(String batchId, int month, int year) async {
+    final response = await _apiClient.get(
+      '${ApiEndpoints.batchMonthlyPdf(batchId)}?month=$month&year=$year',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
+  }
+
+  Future<Uint8List> getSubjectReportPdfBytes(String subjectId) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.subjectReportPdf(subjectId),
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
   }
 
   Future<Map<String, dynamic>> getBatchMonthlyPreview(String batchId, int month, int year) async {

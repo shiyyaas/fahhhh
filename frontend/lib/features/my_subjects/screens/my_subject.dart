@@ -3,14 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
+import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 
 //Widgets
-import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/my_subjects/widgets/my_subject_list_tile.dart';
+import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 
 //Models
 import 'package:fahhhh/features/my_subjects/models/my_subject_item.dart';
@@ -63,6 +64,7 @@ class _MySubjectState extends ConsumerState<MySubject> {
             return List.generate(listToUse.length, (index) {
               final sub = listToUse[index];
               return MySubjectItem(
+                id: sub.id,
                 name: sub.name,
                 classes: sub.teacher.isNotEmpty ? sub.teacher : 'Faculty',
                 attendancePercent: sub.attendancePercent > 0
@@ -81,6 +83,7 @@ class _MySubjectState extends ConsumerState<MySubject> {
             return List.generate(listToUse.length, (index) {
               final sub = listToUse[index];
               return MySubjectItem(
+                id: sub.id,
                 name: sub.name,
                 classes: sub.rollNumber.isNotEmpty ? 'S2 BCA (${sub.rollNumber})' : 'S2 BCA',
                 attendancePercent: sub.attendancePercent > 0
@@ -120,18 +123,7 @@ class _MySubjectState extends ConsumerState<MySubject> {
               _MySubjectHeader(subjectCount: subjects.length),
               const SizedBox(height: 14),
               const AttendanceChart(),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 34),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Based on week , month & Overall',
-                    style: AppTextStyles.small.copyWith(fontSize: 15.7),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -163,7 +155,7 @@ class _MySubjectState extends ConsumerState<MySubject> {
                         onTap: () {
                           if (!context.mounted) return;
                           context.push(
-                            '/student-subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(item.classes)}',
+                            '/student-subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(item.classes)}?id=${Uri.encodeComponent(item.id ?? "")}',
                           );
                         },
                       );
@@ -185,11 +177,11 @@ class _MySubjectState extends ConsumerState<MySubject> {
                         if (!context.mounted) return;
                         if (hasMultipleClasses) {
                           context.push(
-                            '/subject-classes/${Uri.encodeComponent(item.name)}',
+                            '/subject-classes/${Uri.encodeComponent(item.name)}?id=${Uri.encodeComponent(item.id ?? "")}',
                           );
                         } else {
                           context.push(
-                            '/subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(primaryClass)}',
+                            '/subject-details/${Uri.encodeComponent(item.name)}/${Uri.encodeComponent(primaryClass)}?id=${Uri.encodeComponent(item.id ?? "")}',
                           );
                         }
                       },

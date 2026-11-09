@@ -5,6 +5,7 @@ import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/core/widgets/input_fields.dart';
+import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/features/department/widgets/detail_action_button.dart';
 
 class TeacherDetailsSettingsScreen extends StatefulWidget {
@@ -56,14 +57,17 @@ class _TeacherDetailsSettingsScreenState extends State<TeacherDetailsSettingsScr
     return Scaffold(
       body: AppScreenScaffold(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 32),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _HeaderSection(onBack: () => context.pop()),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+              AppBackHeader(
+                title: 'Teacher Details',
+                subtitle: 'Manage teacher details here',
+                onBack: () => context.pop(),
+              ),
+              const SizedBox(height: 24),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
                     InputField(
@@ -135,70 +139,6 @@ class _TeacherDetailsSettingsScreenState extends State<TeacherDetailsSettingsScr
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HeaderSection extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const _HeaderSection({required this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 143,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(25),
-          bottomRight: Radius.circular(25),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 15,
-            top: 61,
-            child: IconButton(
-              onPressed: onBack,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(
-                width: 26,
-                height: 41,
-              ),
-              icon: const Icon(Icons.arrow_back, size: 26, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            left: 47,
-            top: 61,
-            right: 15,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Teacher details',
-                  style: AppTextStyles.heading.copyWith(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Manage teacher details here',
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.small.copyWith(
-                    fontSize: 15,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

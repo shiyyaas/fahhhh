@@ -6,8 +6,12 @@ import 'package:file_picker/file_picker.dart' as picker;
 
 import '../../../core/theme_data/app_colors.dart';
 import '../../../core/theme_data/app_radius.dart';
+import '../../../core/theme_data/app_text_styles.dart';
 import '../../../core/widgets/blue_btn.dart';
 import '../../../core/widgets/app_back_header.dart';
+import '../../../core/widgets/app_form_dialog.dart';
+import '../../../core/widgets/app_dropdown_field.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/models/user_role.dart';
 import '../models/timetable_slot.dart';
@@ -33,10 +37,14 @@ class TimetableScreen extends ConsumerStatefulWidget {
   /// Specific class ID if viewed from inside a class (no dropdown).
   final String? classId;
 
+  /// Specific teacher name if viewed from teacher profile (no dropdown).
+  final String? teacherName;
+
   const TimetableScreen({
     super.key,
     this.forceTeacherMode = false,
     this.classId,
+    this.teacherName,
   });
 
   @override
@@ -81,7 +89,12 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       final auth = ref.read(authProvider);
       final user = auth.user;
 
-      if (widget.classId != null) {
+      if (widget.teacherName != null) {
+        setState(() {
+          _selectedTeacher = widget.teacherName!;
+          _selectedSegment = "Teachers";
+        });
+      } else if (widget.classId != null) {
         setState(() {
           _selectedSortClass = widget.classId!;
           _selectedSegment = "Classes";
@@ -278,7 +291,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               const SizedBox(height: 12),
 
               // ── HOD controls ────────────────────────────────────────────
-              if (isHOD) ...[
+              if (isHOD && widget.teacherName == null) ...[
                 _HodControls(
                   selectedSegment: _selectedSegment,
                   selectedSortClass: _selectedSortClass,
@@ -304,23 +317,27 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   onUploadTap: _pickAndPreviewTimetable,
                 ),
               ] else if (isTeacherMode) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _OutlinedDropdown(
-                          label: _selectedTeacher,
-                          items: currentTeachers,
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedTeacher = val;
-                              _isSwapMode = false;
-                            });
-                          },
-                        ),
-                      ),
-                      if (isOwnTeacher) ...[
+                if (widget.teacherName == null || isOwnTeacher)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        if (widget.teacherName == null)
+                          Expanded(
+                            child: _OutlinedDropdown(
+                              label: _selectedTeacher,
+                              items: currentTeachers,
+                              onSelected: (val) {
+                                setState(() {
+                                  _selectedTeacher = val;
+                                  _isSwapMode = false;
+                                });
+                              },
+                            ),
+                          ),
+                        if (widget.teacherName != null && isOwnTeacher)
+                          const Spacer(),
+                        if (isOwnTeacher) ...[
                         const SizedBox(width: 12),
                         if (_isSwapMode) ...[
                           GestureDetector(
@@ -401,11 +418,27 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final auth = ref.read(authProvider);
     final isHOD = (auth.user?.isHOD ?? false) && !widget.forceTeacherMode;
 
-    if (isHOD && _isHodEditing) {
+    if (_isSwapMode) {
+      if (slot != null) {
+        _showSwapTeacherSelection(slot);
+      }
+    } else if (isHOD && _isHodEditing) {
       _showTimetableEditor(slot, day);
     } else if (slot != null) {
       _showSlotDetailsModal(slot);
     }
+  }
+
+  void _showSwapTeacherSelection(TimetableSlot slot) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => _SelectTeacherDialog(
+        currentTeacher: slot.teacherName,
+        onSelected: (newTeacher) {
+          _submitSwapRequest();
+        },
+      ),
+    );
   }
 
   void _showSlotDetailsModal(TimetableSlot slot) {
@@ -489,7 +522,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     int day,
   ) async {
     try {
-      // Wait for all three API requests to complete.
       final results = await Future.wait([
         ref.read(departmentClassesProvider.future),
         ref.read(departmentTeachersProvider.future),
@@ -499,11 +531,6 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       final classes = results[0] as List<DepartmentClass>;
       final teachers = results[1] as List<DepartmentTeacher>;
       final subjects = results[2] as List<DepartmentSubject>;
-
-      debugPrint('========== TIMETABLE EDIT ==========');
-      debugPrint('Classes: ${classes.length}');
-      debugPrint('Teachers: ${teachers.length}');
-      debugPrint('Subjects: ${subjects.length}');
 
       if (!mounted) return;
 
@@ -515,232 +542,219 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         ].join(', ');
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Missing data: $missing. Check the backend API.'),
-          ),
+          SnackBar(content: Text('Missing data: $missing. Check backend.')),
         );
         return;
       }
-  
 
-    // if (classes.isEmpty || teachers.isEmpty || subjects.isEmpty) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Could not load batches, teachers or subjects. Please refresh and try again.')),
-    //   );
-    //   return;
-    // }
+      final matchingBatches = classes.where(
+        (e) => e.name == (existing?.classId ?? _selectedSortClass),
+      ).toList();
+      final batch = matchingBatches.isNotEmpty ? matchingBatches.first : classes.first;
 
-    final matchingBatches = classes.where(
-      (e) => e.name == (existing?.classId ?? _selectedSortClass),
-    ).toList();
-    final batch = matchingBatches.isNotEmpty ? matchingBatches.first : classes.first;
-    final selectedBatchId = batch.id;
-    final matchingTeachers = teachers.where((e) => e.id == existing?.teacherId).toList();
-    final selectedTeacher = matchingTeachers.isNotEmpty ? matchingTeachers.first : teachers.first;
-    final matchingSubjects = subjects.where((e) => e.id == existing?.subjectId).toList();
-    final selectedSubject = matchingSubjects.isNotEmpty ? matchingSubjects.first : subjects.first;
+      final matchingTeachers = teachers.where((e) => e.id == existing?.teacherId).toList();
+      final teacher = matchingTeachers.isNotEmpty ? matchingTeachers.first : teachers.first;
 
+      final matchingSubjects = subjects.where((e) => e.id == existing?.subjectId).toList();
+      final subject = matchingSubjects.isNotEmpty ? matchingSubjects.first : subjects.first;
 
-    if (selectedBatchId == null || selectedTeacher.id == null || selectedSubject.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Batch, teacher or subject is missing a database ID.')),
-      );
-      return;
-    }
- 
-    String batchId = selectedBatchId;
-    String teacherId = selectedTeacher.id!;
-    String subjectId = selectedSubject.id!;
-    int selectedDay = existing?.dayOfWeek ?? day;
-    TimeOfDay start = existing?.startTime ?? const TimeOfDay(hour: 9, minute: 0);
-    TimeOfDay end = existing?.endTime ?? const TimeOfDay(hour: 10, minute: 0);
-    bool saving = false;
+      String batchId = batch.id ?? (classes.isNotEmpty ? classes.first.id! : "");
+      String teacherId = teacher.id ?? (teachers.isNotEmpty ? teachers.first.id! : "");
+      String subjectId = subject.id ?? (subjects.isNotEmpty ? subjects.first.id! : "");
+      int selectedDay = existing?.dayOfWeek ?? day;
+      TimeOfDay start = existing?.startTime ?? const TimeOfDay(hour: 9, minute: 0);
+      TimeOfDay end = existing?.endTime ?? const TimeOfDay(hour: 10, minute: 0);
+      bool saving = false;
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: !saving,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(existing == null ? 'Add timetable entry' : 'Edit timetable entry'),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              DropdownButtonFormField<String>(
-                initialValue: batchId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Batch / Class'),
-                items: classes.where((e) => e.id != null).map((e) =>
-                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
-                onChanged: existing == null ? (v) => setDialogState(() => batchId = v!) : null,
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: subjectId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Subject'),
-                items: subjects.where((e) => e.id != null).map((e) =>
-                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
-                onChanged: (v) => setDialogState(() => subjectId = v!),
-              ),
-              DropdownButtonFormField<String>(
-                initialValue: teacherId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Teacher'),
-                items: teachers.where((e) => e.id != null).map((e) =>
-                  DropdownMenuItem(value: e.id!, child: Text(e.name))).toList(),
-                onChanged: (v) => setDialogState(() => teacherId = v!),
-              ),
-              DropdownButtonFormField<int>(
-                initialValue: selectedDay,
-                decoration: const InputDecoration(labelText: 'Day'),
-                items: const [
-                  DropdownMenuItem(value: 1, child: Text('Monday')),
-                  DropdownMenuItem(value: 2, child: Text('Tuesday')),
-                  DropdownMenuItem(value: 3, child: Text('Wednesday')),
-                  DropdownMenuItem(value: 4, child: Text('Thursday')),
-                  DropdownMenuItem(value: 5, child: Text('Friday')),
-                ],
-                onChanged: (v) => setDialogState(() => selectedDay = v!),
-              ),
-               
-              Row(children: [
-                Expanded(child: OutlinedButton(
-                  onPressed: () async {
-                    final picked = await showTimePicker(context: context, initialTime: start);
-                    if (picked != null) setDialogState(() => start = picked);
-                  },
-                  child: Text('Start: ${start.format(context)}'),
-                )),
-                const SizedBox(width: 8),
-                Expanded(child: OutlinedButton(
-                  onPressed: () async {
-                    final picked = await showTimePicker(context: context, initialTime: end);
-                    if (picked != null) setDialogState(() => end = picked);
-                  },
-                  child: Text('End: ${end.format(context)}'),
-                )),
-              ]),
-            ]),
-          ),
-          actions: [
-            if (existing != null)
-              TextButton(
-                onPressed: saving ? null : () async {
-                  setDialogState(() => saving = true);
-                 final messenger = ScaffoldMessenger.of(context);
-                  try {
-                    await ref.read(timetableNotifierProvider.notifier)
-                        .deleteSlot(existing.id);
+      final formKey = GlobalKey<FormState>();
 
-                    if (dialogContext.mounted) {
-                      Navigator.pop(dialogContext);
-                    }
-
-                    if (messenger.mounted) {
-                    messenger.showSnackBar(
-                      const SnackBar(content: Text('Timetable entry deleted')),
-                    );
-                  }
-                  } catch (e) {
-                    if (dialogContext.mounted) {
-                      setDialogState(() => saving = false);
-                    }
-
-                    if (!mounted) return;
-
-                    if (messenger.mounted) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('Delete failed: $e')),
-                      );
-                    }
-                  }
-                },
-                child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
-            TextButton(onPressed: saving ? null : () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: saving ? null : () async {
-                if (end.hour * 60 + end.minute <= start.hour * 60 + start.minute) {
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    const SnackBar(content: Text('Enter a room and a valid end time.')),
-                  );
-                  return;
-                }
-                final selectedBatch = classes.firstWhere((e) => e.id == batchId);
-                final selectedSub = subjects.firstWhere((e) => e.id == subjectId);
-                final selectedTeach = teachers.firstWhere((e) => e.id == teacherId);
-                final slot = TimetableSlot(
-                  id: existing?.id ?? '',
-                  dayOfWeek: selectedDay,
-                  startTime: start,
-                  endTime: end, 
-                  subjectName: selectedSub.name,
-                  teacherName: selectedTeach.name,
-                  classId: selectedBatch.name,
-                  batchId: batchId,
-                  subjectId: subjectId,
-                  teacherId: teacherId,
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (context, setDialogState) => AppFormDialog(
+            formKey: formKey,
+            title: existing == null ? 'Add Entry' : 'Edit Entry',
+            primaryText: saving ? 'Saving...' : 'Save',
+            onPrimary: saving ? () {} : () async {
+              if (end.hour * 60 + end.minute <= start.hour * 60 + start.minute) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Invalid end time.')),
                 );
-                setDialogState(() => saving = true);
-                final messenger = ScaffoldMessenger.of(context);
-                try {
-                  final notifier = ref.read(timetableNotifierProvider.notifier);
+                return;
+              }
 
-                  if (existing == null) {
-                    await notifier.createSlot(slot);
-                  } else {
-                    await notifier.saveSlot(slot);
-                  }
+              final selBatch = classes.firstWhere((e) => e.id == batchId);
+              final selSub = subjects.firstWhere((e) => e.id == subjectId);
+              final selTeach = teachers.firstWhere((e) => e.id == teacherId);
 
-                  if (dialogContext.mounted) {
-                    Navigator.pop(dialogContext);
-                  }
+              final slot = TimetableSlot(
+                id: existing?.id ?? '',
+                dayOfWeek: selectedDay,
+                startTime: start,
+                endTime: end,
+                subjectName: selSub.name,
+                teacherName: selTeach.name,
+                classId: selBatch.name,
+                batchId: batchId,
+                subjectId: subjectId,
+                teacherId: teacherId,
+              );
 
-                  if (!mounted) return;
-
-                  if (messenger.mounted) {
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          existing == null
-                              ? 'Timetable entry created'
-                              : 'Timetable entry updated',
-                        ),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (dialogContext.mounted) {
-                    setDialogState(() => saving = false);
-                  }
-
-                  if (!mounted) return;
-
-                  if (messenger.mounted) {
-                    messenger.showSnackBar(
-                      SnackBar(content: Text('Could not save timetable: $e')),
-                    );
-                  }
+              setDialogState(() => saving = true);
+              try {
+                final notifier = ref.read(timetableNotifierProvider.notifier);
+                if (existing == null) {
+                  await notifier.createSlot(slot);
+                } else {
+                  await notifier.saveSlot(slot);
                 }
-              },
-              child: Text(saving ? 'Saving...' : 'Save'),
-            ),
-          ],
-        ),
-      ),
-    ); 
-
-      } catch (e, stackTrace) {
-        debugPrint('Timetable editor loading error: $e');
-        debugPrintStack(stackTrace: stackTrace);
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load timetable edit data: $e'),
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+                showAddedSnackBar(this.context, 'Timetable entry');
+              } catch (e) {
+                setDialogState(() => saving = false);
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  SnackBar(content: Text('Error: $e')),
+                );
+              }
+            },
+            fields: [
+              AppDropdownField(
+                label: 'Batch / Class',
+                value: classes.firstWhere((e) => e.id == batchId).name,
+                items: classes.map((e) => e.name).toList(),
+                onChanged: existing == null ? (v) {
+                   final b = classes.firstWhere((e) => e.name == v);
+                   setDialogState(() => batchId = b.id!);
+                } : null,
+              ),
+              AppDropdownField(
+                label: 'Subject',
+                value: subjects.firstWhere((e) => e.id == subjectId).name,
+                items: subjects.map((e) => e.name).toList(),
+                onChanged: (v) {
+                  final sub = subjects.firstWhere((e) => e.name == v);
+                  setDialogState(() => subjectId = sub.id!);
+                },
+              ),
+              AppDropdownField(
+                label: 'Teacher',
+                value: teachers.firstWhere((e) => e.id == teacherId).name,
+                items: teachers.map((e) => e.name).toList(),
+                onChanged: (v) {
+                  final teach = teachers.firstWhere((e) => e.name == v);
+                  setDialogState(() => teacherId = teach.id!);
+                },
+              ),
+              AppDropdownField(
+                label: 'Day',
+                value: _getDayName(selectedDay),
+                items: const ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                onChanged: (v) {
+                  setDialogState(() => selectedDay = _getDayIndex(v!));
+                },
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Start Time', style: AppTextStyles.sfPRO.copyWith(fontSize: 14, color: AppColors.labelText, fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 8),
+                        AppButton.secondary(
+                          text: start.format(context),
+                          onPressed: () async {
+                            final p = await showTimePicker(context: context, initialTime: start);
+                            if (p != null) setDialogState(() => start = p);
+                          },
+                          borderRadius: 28,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          boxShadow: [],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('End Time', style: AppTextStyles.sfPRO.copyWith(fontSize: 14, color: AppColors.labelText, fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 8),
+                        AppButton.secondary(
+                          text: end.format(context),
+                          onPressed: () async {
+                            final p = await showTimePicker(context: context, initialTime: end);
+                            if (p != null) setDialogState(() => end = p);
+                          },
+                          borderRadius: 28,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          boxShadow: [],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (existing != null) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: saving ? null : () async {
+                      setDialogState(() => saving = true);
+                      try {
+                        await ref.read(timetableNotifierProvider.notifier).deleteSlot(existing.id);
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(content: Text('Entry deleted')),
+                        );
+                      } catch (e) {
+                        setDialogState(() => saving = false);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          SnackBar(content: Text('Delete failed: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.delete_outline, color: AppColors.danger, size: 18),
+                    label: Text('Delete Entry', style: GoogleFonts.inter(color: AppColors.danger, fontWeight: FontWeight.w600, fontSize: 13)),
+                  ),
+                ),
+              ],
+            ],
           ),
-        );
-      }
-     
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load data: $e')),
+      );
+    }
+  }
+
+  String _getDayName(int day) {
+    switch (day) {
+      case 1: return 'Monday';
+      case 2: return 'Tuesday';
+      case 3: return 'Wednesday';
+      case 4: return 'Thursday';
+      case 5: return 'Friday';
+      default: return 'Monday';
+    }
+  }
+
+  int _getDayIndex(String name) {
+    switch (name) {
+      case 'Monday': return 1;
+      case 'Tuesday': return 2;
+      case 'Wednesday': return 3;
+      case 'Thursday': return 4;
+      case 'Friday': return 5;
+      default: return 1;
+    }
   }
 
   void _submitSwapRequest() {
@@ -1731,7 +1745,7 @@ class _SwapButton extends StatelessWidget {
 // Select Teacher Dialog
 // ============================================================================
 
-class _SelectTeacherDialog extends StatefulWidget {
+class _SelectTeacherDialog extends ConsumerStatefulWidget {
   final String currentTeacher;
   final ValueChanged<String> onSelected;
 
@@ -1741,150 +1755,51 @@ class _SelectTeacherDialog extends StatefulWidget {
   });
 
   @override
-  State<_SelectTeacherDialog> createState() => _SelectTeacherDialogState();
+  ConsumerState<_SelectTeacherDialog> createState() => _SelectTeacherDialogState();
 }
 
-class _SelectTeacherDialogState extends State<_SelectTeacherDialog> {
+class _SelectTeacherDialogState extends ConsumerState<_SelectTeacherDialog> {
   late String _selectedTeacher;
-  final List<String> _availableTeachers = [
-    "Anju miss",
-    "Anju krishna",
-    "Anu Varghese",
-    "Rijina NM",
-    "Sheetal",
-    "Lakshmi",
-  ];
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _selectedTeacher = widget.currentTeacher.isNotEmpty
         ? widget.currentTeacher
-        : "Anju miss";
+        : "";
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.large),
-      ),
-      backgroundColor: AppColors.surface,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                "Select the teacher",
-                style: GoogleFonts.poppins(
-                  color: AppColors.headingText,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              "Teacher Name",
-              style: GoogleFonts.inter(
-                color: AppColors.headingText,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Dropdown
-            PopupMenuButton<String>(
-              onSelected: (teacher) {
-                setState(() => _selectedTeacher = teacher);
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.medium),
-              ),
-              offset: const Offset(0, 52),
-              itemBuilder: (_) => _availableTeachers
-                  .map(
-                    (t) => PopupMenuItem<String>(
-                      value: t,
-                      child: Text(
-                        t,
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  )
-                  .toList(),
-              child: Container(
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  border: Border.all(color: AppColors.outline, width: 1.2),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _selectedTeacher.isNotEmpty
-                            ? _selectedTeacher
-                            : "Select teacher",
-                        style: GoogleFonts.inter(
-                          color: _selectedTeacher.isNotEmpty
-                              ? AppColors.headingText
-                              : AppColors.hintText,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: AppColors.headingText,
-                      size: 22,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 28),
-            Row(
-              children: [
-                Expanded(
-                  child: BlueBtn(
-                    text: "Cancel",
-                    backgroundColor: const Color(0xFF6E6E6E),
-                    borderColor: const Color(0xFF6E6E6E),
-                    textColor: AppColors.surface,
-                    borderRadius: AppRadius.pill,
-                    onPressed: () {
-                      if (!context.mounted) return;
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: BlueBtn(
-                    text: "Save",
-                    backgroundColor: AppColors.primary,
-                    borderColor: AppColors.primary,
-                    textColor: AppColors.surface,
-                    borderRadius: AppRadius.pill,
-                    onPressed: () {
-                      widget.onSelected(_selectedTeacher);
-                      if (!context.mounted) return;
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
+    final teachersAsync = ref.watch(departmentTeachersProvider);
+    final teachers = teachersAsync.value ?? [];
+
+    // Fallback list if provider is empty (though it shouldn't be if we got here)
+    final teacherNames = teachers.isNotEmpty
+        ? teachers.map((t) => t.name).toList()
+        : ["Anju miss", "Anju krishna", "Anu Varghese", "Rijina NM", "Sheetal", "Lakshmi"];
+
+    if (_selectedTeacher.isEmpty && teacherNames.isNotEmpty) {
+      _selectedTeacher = teacherNames.first;
+    }
+
+    return AppFormDialog(
+      formKey: _formKey,
+      title: 'Select Teacher',
+      primaryText: 'Request Swap',
+      onPrimary: () {
+        widget.onSelected(_selectedTeacher);
+        Navigator.of(context).pop();
+      },
+      fields: [
+        AppDropdownField(
+          label: 'Teacher Name',
+          value: _selectedTeacher,
+          items: teacherNames,
+          onChanged: (v) => setState(() => _selectedTeacher = v!),
         ),
-      ),
+      ],
     );
   }
 }

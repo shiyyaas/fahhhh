@@ -81,3 +81,8 @@ All Flutter widgets must respect:
 - Shadow/elevation system
 
 Ask for clarification if `design.md` or `product.md` is ambiguous.
+
+## After each tasks : Rules & Workflow
+- **Task Review Protocol:** After completing each task, analyze the changes to identify any critical context, decisions, or rules that should be preserved.
+- **Documentation Updates:** If important information needs to be committed to `.md` files, stop and ask the user for explicit permission first using the exact phrase: *"I wanna add this to my existing .md file."*
+- **Design Alignment:** Read the design and product documentation sections before initiating tasks. Always ask for permission before modifying any structural design rules.

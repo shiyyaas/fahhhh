@@ -177,7 +177,11 @@ class TeacherProfileScreen extends ConsumerWidget {
                     // the top (below the avatar, above the info cards).
                     GestureDetector(
                       onTap: () {
-                        if (context.mounted) context.push('/timetable?mode=teacher');
+                        if (context.mounted) {
+                          context.push(
+                            '/timetable?mode=teacher&teacherName=${Uri.encodeComponent(name)}',
+                          );
+                        }
                       },
                       child: Container(
                         width: double.infinity,

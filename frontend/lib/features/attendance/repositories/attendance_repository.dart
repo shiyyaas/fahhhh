@@ -63,6 +63,20 @@ class AttendanceRepository {
     }
   }
 
+  /// Get batch attendance list
+  Future<List<dynamic>> getBatchAttendance(String batchId) async {
+    try {
+      final response = await _apiClient.dio.get(ApiEndpoints.batchAttendance(batchId));
+      if (response.data['success'] == true) {
+        return (response.data['attendance'] as List?) ?? [];
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[AttendanceRepository] getBatchAttendance error: $e');
+      return [];
+    }
+  }
+
   /// Get student attendance list
   Future<List<dynamic>> getStudentAttendance(String studentId) async {
     try {

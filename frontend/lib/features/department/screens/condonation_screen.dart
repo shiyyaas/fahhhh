@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 //Design
-import 'package:fahhhh/core/theme_data/app_colors.dart';
 import 'package:fahhhh/core/theme_data/app_text_styles.dart';
 import 'package:fahhhh/core/widgets/app_back_header.dart';
 import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
@@ -20,11 +19,8 @@ import 'package:fahhhh/features/department/models/department_student.dart';
 //Providers
 import 'package:fahhhh/features/department/providers/department_provider.dart';
 
-/// Condonation Register: a searchable roster of students whose sessions have
-/// been condoned, each row ending in an attendance-percentage pill.
-///
-/// Pushed from the My Class "More" menu (`Check Condonation`) — outside the
-/// StatefulShellRoute so the bottom navigation is hidden.
+/// Condonation Report: a searchable roster of students whose attendance is below 75% (< 75%),
+/// fetched from backend defaulters endpoint (`GET /api/attendance/defaulters`).
 class CondonationScreen extends ConsumerStatefulWidget {
   const CondonationScreen({super.key});
 
@@ -78,35 +74,12 @@ class _CondonationScreenState extends ConsumerState<CondonationScreen> {
           children: [
             const SizedBox(height: 8),
             AppBackHeader(
-              title: 'Condonation Register',
-              subtitle: 'View List of Students with Condonation.',
+              title: 'Check Condonation',
+              subtitle: 'Students with attendance below 75%',
               onBack: () {
                 if (context.mounted) context.pop();
               },
               padding: const EdgeInsets.symmetric(horizontal: 20),
-            ),
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 26),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _CondonationActionButton(
-                      icon: Icons.visibility_outlined,
-                      label: 'Show Preview',
-                      onTap: () => _notify('Preview generated'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _CondonationActionButton(
-                      icon: Icons.file_download_outlined,
-                      label: 'Download',
-                      onTap: () => _notify('Register downloaded'),
-                    ),
-                  ),
-                ],
-              ),
             ),
             const SizedBox(height: 14),
             Padding(
@@ -150,15 +123,6 @@ class _CondonationScreenState extends ConsumerState<CondonationScreen> {
     );
   }
 
-  void _notify(String message) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
-
-
   List<_CondonationEntry> _sort(
       List<_CondonationEntry> entries, String option) {
     final sorted = List<_CondonationEntry>.from(entries);
@@ -181,55 +145,6 @@ class _CondonationEntry {
   const _CondonationEntry({required this.student, required this.percent});
 }
 
-/// White outlined pill action (Show Preview / Download).
-class _CondonationActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-
-  const _CondonationActionButton({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 30,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.outline, width: 0.8),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.controlShadow,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: AppColors.headingText),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTextStyles.heading.copyWith(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -237,7 +152,7 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'No students with condonation',
+        'No students with condonation shortage (< 75%)',
         style: AppTextStyles.small.copyWith(fontSize: 15),
       ),
     );
