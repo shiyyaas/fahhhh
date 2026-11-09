@@ -13,6 +13,11 @@ const {
   deleteAttendance,
   getStudentReport
 } = require("../controllers/attendanceController");
+const {
+  downloadStudentReport,
+  downloadStudentSubjectReport,
+  downloadDefaultersReport
+} = require("../controllers/reportController");
 
 const { verifyToken, authorizeRoles } = require("../middleware/authMiddleware");
 const {
@@ -38,6 +43,9 @@ router.get("/batch/:id", verifyToken, authorizeRoles("HOD"), requireHodDepartmen
 router.get("/subject/:id", verifyToken, authorizeRoles("HOD", "TEACHER"), requireHodSubjectScope, getSubjectAttendance);
 router.get("/percentage/:studentId", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("studentId"), getAttendancePercentage);
 router.get("/defaulters", verifyToken, authorizeRoles("HOD"), getDefaulters);
+router.get("/defaulters/pdf", verifyToken, authorizeRoles("HOD"), downloadDefaultersReport);
 router.get("/report/student/:id", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("id"), getStudentReport);
+router.get("/report/student/:id/pdf", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("id"), downloadStudentReport);
+router.get("/report/student/:id/subject-wise-pdf", verifyToken, authorizeRoles("HOD", "STUDENT"), requireStudentOrHod("id"), downloadStudentSubjectReport);
 
 module.exports = router;
