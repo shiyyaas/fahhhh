@@ -11,6 +11,7 @@ import 'package:fahhhh/core/widgets/app_screen_scaffold.dart';
 import 'package:fahhhh/features/department/widgets/app_search_bar.dart';
 import 'package:fahhhh/features/department/widgets/sort_dropdown.dart';
 import 'package:fahhhh/features/my_subjects/widgets/my_subject_list_tile.dart';
+import 'package:fahhhh/features/department/widgets/attendance_chart.dart';
 
 //Models
 import 'package:fahhhh/features/my_subjects/models/my_subject_item.dart';
@@ -120,6 +121,8 @@ class _MySubjectState extends ConsumerState<MySubject> {
             children: [
               const SizedBox(height: 8),
               _MySubjectHeader(subjectCount: subjects.length),
+              const SizedBox(height: 14),
+              const AttendanceChart(),
               const SizedBox(height: 14),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
