@@ -72,6 +72,7 @@ class ApiEndpoints {
   static String studentReport(String id) => '/reports/student/$id';
   static String batchReport(String id) => '/reports/batch/$id';
   static String subjectReport(String id) => '/reports/subject/$id';
+  static String subjectReportPdf(String id) => '/reports/subject/$id/pdf';
   static String studentReportPdf(String id) => '/reports/student/$id/pdf';
   static String batchMonthlyPdf(String id) => '/reports/batch/$id/monthly-pdf';
   static String batchMonthlyPreview(String id) => '/reports/batch/$id/monthly-preview';

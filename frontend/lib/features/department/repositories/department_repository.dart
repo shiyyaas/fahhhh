@@ -283,6 +283,14 @@ class DepartmentRepository {
     return Uint8List.fromList(response.data);
   }
 
+  Future<Uint8List> getSubjectReportPdfBytes(String subjectId) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.subjectReportPdf(subjectId),
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data);
+  }
+
   Future<Map<String, dynamic>> getBatchMonthlyPreview(String batchId, int month, int year) async {
     final response = await _apiClient.get('${ApiEndpoints.batchMonthlyPreview(batchId)}?month=$month&year=$year');
     if (response.data is Map) {
